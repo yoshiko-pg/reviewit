@@ -9,7 +9,13 @@ interface FileListProps {
   onToggleReviewed: (path: string) => void;
 }
 
-export function FileList({ files, onScrollToFile, comments, reviewedFiles, onToggleReviewed }: FileListProps) {
+export function FileList({
+  files,
+  onScrollToFile,
+  comments,
+  reviewedFiles,
+  onToggleReviewed,
+}: FileListProps) {
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
       case 'added':
@@ -51,7 +57,10 @@ export function FileList({ files, onScrollToFile, comments, reviewedFiles, onTog
           const commentCount = getCommentCount(file.path);
 
           return (
-            <div key={file.path} className={`${styles.file} ${reviewedFiles.has(file.path) ? styles.reviewed : ''}`}>
+            <div
+              key={file.path}
+              className={`${styles.file} ${reviewedFiles.has(file.path) ? styles.reviewed : ''}`}
+            >
               <div className={styles.fileHeader}>
                 <input
                   type="checkbox"
@@ -64,13 +73,35 @@ export function FileList({ files, onScrollToFile, comments, reviewedFiles, onTog
                   title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
                 />
                 <span className={styles.fileIcon}>{getFileIcon(file.status)}</span>
-                <span className={styles.fileName} title={file.path} onClick={() => onScrollToFile(file.path)}>
+                <span
+                  className={styles.fileName}
+                  title={file.path}
+                  onClick={() => onScrollToFile(file.path)}
+                >
                   {file.path.split('/').pop()}
                 </span>
+                <button
+                  className={styles.copyButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(file.path)
+                      .then(() => {
+                        console.log('File path copied to clipboard:', file.path);
+                      })
+                      .catch(err => {
+                        console.error('Failed to copy file path:', err);
+                      });
+                  }}
+                  title="Copy file path"
+                >
+                  📋
+                </button>
                 {commentCount > 0 && <span className={styles.commentBadge}>💬 {commentCount}</span>}
               </div>
 
-              <div className={styles.filePath} onClick={() => onScrollToFile(file.path)}>{file.path}</div>
+              <div className={styles.filePath} onClick={() => onScrollToFile(file.path)}>
+                {file.path}
+              </div>
 
               <div className={styles.fileStats} onClick={() => onScrollToFile(file.path)}>
                 <span className={`${styles.stat} ${styles.additions}`}>+{file.additions}</span>
