@@ -10,6 +10,7 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
 - 🔐 **Local Only**: Never exposes data over network - runs on localhost only
 - 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
+- ✨ **100% vibe coding**: Built with pure coding energy and good vibes
 
 ## 📦 Installation
 
