@@ -3,7 +3,7 @@ import { DiffResponse } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { useLocalComments } from './hooks/useLocalComments';
-import { ClipboardList, Columns, AlignLeft, Copy, Eye, EyeOff } from 'lucide-react';
+import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -136,18 +136,16 @@ function App() {
                 Inline
               </button>
             </div>
-            <button
-              onClick={() => setIgnoreWhitespace(!ignoreWhitespace)}
-              className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer border ${
-                ignoreWhitespace
-                  ? 'bg-github-accent text-white border-github-accent'
-                  : 'bg-github-bg-tertiary text-github-text-secondary border-github-border hover:text-github-text-primary hover:border-github-text-muted'
-              }`}
-              title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
-            >
-              {ignoreWhitespace ? <EyeOff size={14} /> : <Eye size={14} />}
+            <label className="flex items-center gap-2 text-xs text-github-text-primary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ignoreWhitespace}
+                onChange={(e) => setIgnoreWhitespace(e.target.checked)}
+                className="w-4 h-4 cursor-pointer accent-github-accent bg-github-bg-tertiary border border-github-border rounded"
+                title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
+              />
               Ignore Whitespace
-            </button>
+            </label>
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}

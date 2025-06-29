@@ -1,6 +1,15 @@
 import { DiffFile, Comment } from '../../types/diff';
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, FolderOpen, Folder } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronDown,
+  FileText,
+  FolderOpen,
+  Folder,
+  FilePlus,
+  FileX,
+  FilePen,
+} from 'lucide-react';
 
 interface FileListProps {
   files: DiffFile[];
@@ -82,6 +91,19 @@ export function FileList({
     return comments.filter((c) => c.file === filePath).length;
   };
 
+  const getFileIcon = (status: DiffFile['status']) => {
+    switch (status) {
+      case 'added':
+        return <FilePlus size={16} className="text-github-accent" />;
+      case 'deleted':
+        return <FileX size={16} className="text-github-danger" />;
+      case 'renamed':
+        return <FilePen size={16} className="text-github-warning" />;
+      default:
+        return <FileText size={16} className="text-github-text-secondary" />;
+    }
+  };
+
   const toggleDirectory = (path: string) => {
     setExpandedDirs((prev) => {
       const newSet = new Set(prev);
@@ -149,7 +171,7 @@ export function FileList({
         >
           <input
             type="checkbox"
-            className="w-4 h-4 cursor-pointer accent-github-accent"
+            className="w-4 h-4 cursor-pointer accent-github-accent bg-github-bg-tertiary border border-github-border rounded"
             checked={isReviewed}
             onChange={(e) => {
               e.stopPropagation();
@@ -157,7 +179,7 @@ export function FileList({
             }}
             title={isReviewed ? 'Mark as not reviewed' : 'Mark as reviewed'}
           />
-          <FileText size={16} className="text-github-text-secondary" />
+          {getFileIcon(node.file.status)}
           <span
             className={`text-sm text-github-text-primary flex-1 overflow-hidden text-ellipsis whitespace-nowrap ${
               isReviewed ? 'line-through text-github-text-muted' : ''
