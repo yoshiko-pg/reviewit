@@ -1,23 +1,9 @@
-import { useEffect } from 'react';
-import { Highlight, Prism, themes } from 'prism-react-renderer';
+import { Highlight, themes } from 'prism-react-renderer';
 
 interface PrismSyntaxHighlighterProps {
   code: string;
   language?: string;
   className?: string;
-}
-
-// Dynamically add Prism language support
-function usePrismLanguages() {
-  useEffect(() => {
-    // Expose Prism globally (for dynamic imports)
-    (globalThis as any).Prism = Prism;
-
-    // Dynamically import required languages
-    import('prismjs/components/prism-typescript');
-    import('prismjs/components/prism-json');
-    import('prismjs/components/prism-css');
-  }, []);
 }
 
 // Detect language from file extension
@@ -45,8 +31,6 @@ export function setCurrentFilename(filename: string) {
 }
 
 export function PrismSyntaxHighlighter({ code, language, className }: PrismSyntaxHighlighterProps) {
-  usePrismLanguages();
-
   const detectedLang = language || detectLanguage(currentFilename);
 
   return (

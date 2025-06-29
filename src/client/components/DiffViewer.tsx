@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
 import { useComments } from './CommentContext';
@@ -24,10 +24,8 @@ export function DiffViewer({
   );
   const { onAddComment } = useComments();
 
-  // Set filename for syntax highlighter
-  useEffect(() => {
-    setCurrentFilename(file.path);
-  }, [file.path]);
+  // Set filename for syntax highlighter immediately
+  setCurrentFilename(file.path);
 
   const toggleChunk = (index: number) => {
     setExpandedChunks((prev) => {
