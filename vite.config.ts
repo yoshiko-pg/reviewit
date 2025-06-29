@@ -16,9 +16,7 @@ export default defineConfig({
     },
   },
   css: {
-    modules: {
-      localsConvention: 'camelCaseOnly',
-    },
+    postcss: './postcss.config.js',
   },
   server: {
     port: 5173,

@@ -1,115 +1,31 @@
-:root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #656d76;
-  --border: #30363d;
-  --border-muted: #21262d;
-  --green: #238636;
-  --green-bg: rgba(35, 134, 54, 0.15);
-  --red: #da3633;
-  --red-bg: rgba(218, 54, 51, 0.15);
-  --blue: #2f81f7;
-  --blue-bg: rgba(47, 129, 247, 0.15);
-  --yellow: #d29922;
-  --yellow-bg: rgba(210, 153, 34, 0.15);
+@import 'tailwindcss';
+
+@theme {
+  --color-github-bg-primary: #0d1117;
+  --color-github-bg-secondary: #161b22;
+  --color-github-bg-tertiary: #21262d;
+  --color-github-border: #30363d;
+  --color-github-text-primary: #f0f6fc;
+  --color-github-text-secondary: #8b949e;
+  --color-github-text-muted: #6e7681;
+  --color-github-accent: #238636;
+  --color-github-danger: #da3633;
+  --color-github-warning: #d29922;
+
+  --color-diff-addition-bg: #0d4429;
+  --color-diff-addition-border: #1b7c3d;
+  --color-diff-deletion-bg: #67060c;
+  --color-diff-deletion-border: #da3633;
+  --color-diff-neutral-bg: #21262d;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Global styles */
+html,
 body {
+  background-color: #0d1117;
+  color: #f0f6fc;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
   line-height: 1.5;
   font-size: 14px;
-}
-
-code {
-  font-family:
-    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  font-size: 12px;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-button:hover {
-  opacity: 0.8;
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background-color: var(--blue);
-  color: white;
-}
-
-.btn-secondary {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-.btn-danger {
-  background-color: var(--red);
-  color: white;
-}
-
-.btn-success {
-  background-color: var(--green);
-  color: white;
-}
-
-input,
-textarea {
-  font-family: inherit;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.3);
-}
-
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
 }

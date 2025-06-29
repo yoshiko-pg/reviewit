@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styles from '../styles/CommentForm.module.css';
 
 interface CommentFormProps {
   onSubmit: (body: string) => Promise<void>;
@@ -35,14 +34,19 @@ export function CommentForm({ onSubmit, onCancel }: CommentFormProps) {
   };
 
   return (
-    <form className={styles.commentForm} onSubmit={handleSubmit}>
-      <div className={styles.formHeader}>
-        <span className={styles.formTitle}>Add a comment</span>
-        <span className={styles.formHint}>Cmd+Enter to submit • Escape to cancel</span>
+    <form
+      className="m-2 mx-3 p-3 bg-github-bg-tertiary border border-github-border rounded-md"
+      onSubmit={handleSubmit}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-github-text-primary">Add a comment</span>
+        <span className="text-xs text-github-text-muted">
+          Cmd+Enter to submit • Escape to cancel
+        </span>
       </div>
 
       <textarea
-        className={styles.commentInput}
+        className="w-full min-h-[60px] mb-2 resize-y bg-github-bg-secondary border border-github-border rounded px-3 py-2 text-github-text-primary text-sm leading-6 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:min-h-[80px] disabled:opacity-50"
         value={body}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -52,11 +56,20 @@ export function CommentForm({ onSubmit, onCancel }: CommentFormProps) {
         disabled={isSubmitting}
       />
 
-      <div className={styles.formActions}>
-        <button type="button" onClick={onCancel} className="btn-secondary" disabled={isSubmitting}>
+      <div className="flex gap-2 justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-xs px-3 py-1.5 bg-github-bg-tertiary text-github-text-primary border border-github-border rounded hover:opacity-80 transition-all disabled:opacity-50"
+          disabled={isSubmitting}
+        >
           Cancel
         </button>
-        <button type="submit" className="btn-primary" disabled={!body.trim() || isSubmitting}>
+        <button
+          type="submit"
+          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:opacity-80 transition-all disabled:opacity-50"
+          disabled={!body.trim() || isSubmitting}
+        >
           {isSubmitting ? 'Adding...' : 'Add Comment'}
         </button>
       </div>

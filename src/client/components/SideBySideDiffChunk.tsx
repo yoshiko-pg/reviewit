@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
-import styles from '../styles/SideBySideDiffChunk.module.css';
 
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
@@ -108,8 +107,8 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
   const sideBySideLines = convertToSideBySide(chunk.lines);
 
   return (
-    <div className={styles.chunk}>
-      <table className={styles.sideBySideTable}>
+    <div className="bg-github-bg-primary border border-github-border rounded-md overflow-hidden">
+      <table className="w-full border-collapse font-mono text-xs leading-5">
         <tbody>
           {sideBySideLines.map((sideLine, index) => {
             const leftComments = sideLine.oldLineNumber
@@ -127,27 +126,29 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
 
             return (
               <React.Fragment key={index}>
-                <tr className={styles.diffRow}>
+                <tr className="transition-colors duration-200 hover:bg-github-bg-secondary group">
                   {/* Old side */}
-                  <td className={styles.lineNumber}>{sideLine.oldLineNumber || ''}</td>
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
+                    {sideLine.oldLineNumber || ''}
+                  </td>
                   <td
-                    className={`${styles.lineContent} ${
+                    className={`w-1/2 p-0 align-top border-r border-github-border relative ${
                       sideLine.oldLine?.type === 'delete'
-                        ? styles.deleted
+                        ? 'bg-diff-deletion-bg'
                         : sideLine.oldLine?.type === 'normal'
-                          ? styles.normal
-                          : styles.empty
+                          ? 'bg-transparent'
+                          : 'bg-github-bg-secondary'
                     }`}
                   >
                     {sideLine.oldLine && (
-                      <div className={styles.lineWrapper}>
+                      <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.oldLine.content}
-                          className={styles.lineText}
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                         />
                         {sideLine.oldLineNumber && (
                           <button
-                            className={styles.commentButton}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
                             onClick={() => handleAddComment(sideLine.oldLineNumber!)}
                             title="Add comment"
                           >
@@ -159,25 +160,27 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   </td>
 
                   {/* New side */}
-                  <td className={styles.lineNumber}>{sideLine.newLineNumber || ''}</td>
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
+                    {sideLine.newLineNumber || ''}
+                  </td>
                   <td
-                    className={`${styles.lineContent} ${
+                    className={`w-1/2 p-0 align-top relative ${
                       sideLine.newLine?.type === 'add'
-                        ? styles.added
+                        ? 'bg-diff-addition-bg'
                         : sideLine.newLine?.type === 'normal'
-                          ? styles.normal
-                          : styles.empty
+                          ? 'bg-transparent'
+                          : 'bg-github-bg-secondary'
                     }`}
                   >
                     {sideLine.newLine && (
-                      <div className={styles.lineWrapper}>
+                      <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.newLine.content}
-                          className={styles.lineText}
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                         />
                         {sideLine.newLineNumber && (
                           <button
-                            className={styles.commentButton}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
                             onClick={() => handleAddComment(sideLine.newLineNumber!)}
                             title="Add comment"
                           >
@@ -191,16 +194,21 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
 
                 {/* Comments row */}
                 {allComments.length > 0 && (
-                  <tr className={styles.commentRow}>
-                    <td colSpan={4} className={styles.commentCell}>
+                  <tr className="bg-github-bg-secondary">
+                    <td colSpan={4} className="p-0 border-t border-github-border">
                       {allComments.map((comment) => (
-                        <div key={comment.id} className={styles.existingComment}>
-                          <div className={styles.commentHeader}>
-                            <span className={styles.commentMeta}>
+                        <div
+                          key={comment.id}
+                          className="m-2 mx-3 p-2 bg-github-bg-tertiary border border-github-border rounded-md"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] text-github-text-muted">
                               Line {comment.line} • {new Date(comment.timestamp).toLocaleString()}
                             </span>
                           </div>
-                          <div className={styles.commentBody}>{comment.body}</div>
+                          <div className="text-github-text-primary text-[13px] leading-6 whitespace-pre-wrap">
+                            {comment.body}
+                          </div>
                         </div>
                       ))}
                     </td>
@@ -210,8 +218,8 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                 {/* Comment form row */}
                 {(commentingLine === sideLine.oldLineNumber ||
                   commentingLine === sideLine.newLineNumber) && (
-                  <tr className={styles.commentRow}>
-                    <td colSpan={4} className={styles.commentCell}>
+                  <tr className="bg-github-bg-secondary">
+                    <td colSpan={4} className="p-0 border-t border-github-border">
                       <CommentForm onSubmit={handleSubmitComment} onCancel={handleCancelComment} />
                     </td>
                   </tr>

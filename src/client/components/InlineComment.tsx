@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Comment } from '../../types/diff';
 import { useComments } from './CommentContext';
-import styles from '../styles/InlineComment.module.css';
 
 interface InlineCommentProps {
   comment: Comment;
@@ -23,24 +22,32 @@ export function InlineComment({ comment }: InlineCommentProps) {
   };
 
   return (
-    <div className={styles.inlineComment}>
-      <div className={styles.commentHeader}>
-        <div className={styles.commentMeta}>
-          <span className={styles.filePath}>{comment.file}</span>
-          <span className={styles.lineNumber}>Line {comment.line}</span>
-          <span className={styles.timestamp}>{new Date(comment.timestamp).toLocaleString()}</span>
+    <div className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-github-border rounded-md border-l-4 border-l-blue-600">
+      <div className="flex items-center justify-between mb-2 gap-3">
+        <div className="flex items-center gap-2 text-xs text-github-text-muted flex-1 min-w-0">
+          <span className="font-mono bg-github-bg-secondary px-1 py-0.5 rounded text-github-text-secondary overflow-hidden text-ellipsis whitespace-nowrap">
+            {comment.file}
+          </span>
+          <span className="bg-github-bg-secondary px-1 py-0.5 rounded text-github-text-secondary font-medium">
+            Line {comment.line}
+          </span>
+          <span className="text-github-text-muted">
+            {new Date(comment.timestamp).toLocaleString()}
+          </span>
         </div>
 
         <button
           onClick={handleCopyPrompt}
-          className={`btn-secondary ${styles.copyButton}`}
+          className="text-xs px-2 py-1 bg-github-bg-tertiary text-github-text-primary border border-github-border rounded hover:bg-blue-100/10 hover:border-blue-600 transition-all whitespace-nowrap"
           title="Copy prompt for Claude Code"
         >
           {isCopied ? '✅ Copied!' : '📋 Copy Prompt'}
         </button>
       </div>
 
-      <div className={styles.commentBody}>{comment.body}</div>
+      <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
+        {comment.body}
+      </div>
     </div>
   );
 }

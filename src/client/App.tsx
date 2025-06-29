@@ -3,7 +3,6 @@ import { DiffResponse, Comment } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { CommentProvider } from './components/CommentContext';
-import styles from './styles/App.module.css';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -92,26 +91,26 @@ function App() {
 
   if (loading) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.spinner}>Loading diff...</div>
+      <div className="flex items-center justify-center h-screen bg-github-bg-primary">
+        <div className="text-github-text-secondary text-base">Loading diff...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.error}>
-        <h2>Error</h2>
-        <p>{error}</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-github-bg-primary text-center gap-2">
+        <h2 className="text-github-danger text-2xl mb-2">Error</h2>
+        <p className="text-github-text-secondary text-base">{error}</p>
       </div>
     );
   }
 
   if (!diffData) {
     return (
-      <div className={styles.error}>
-        <h2>No data</h2>
-        <p>No diff data available</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-github-bg-primary text-center gap-2">
+        <h2 className="text-github-danger text-2xl mb-2">No data</h2>
+        <p className="text-github-text-secondary text-base">No diff data available</p>
       </div>
     );
   }
@@ -122,35 +121,46 @@ function App() {
       onAddComment={addComment}
       onGeneratePrompt={generatePrompt}
     >
-      <div className={styles.app}>
-        <header className={styles.header}>
-          <h1>📋 ReviewIt</h1>
-          <div className={styles.commitInfo}>
+      <div className="h-screen flex flex-col">
+        <header className="bg-github-bg-secondary border-b border-github-border px-4 py-3 flex items-center justify-between gap-4">
+          <h1 className="text-lg font-semibold text-github-text-primary m-0">📋 ReviewIt</h1>
+          <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             <span>
-              Reviewing: <code>{diffData.commit}</code>
+              Reviewing:{' '}
+              <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
+                {diffData.commit}
+              </code>
             </span>
             <span>
               {diffData.files.length} file{diffData.files.length !== 1 ? 's' : ''} changed
             </span>
           </div>
-          <div className={styles.viewModeToggle}>
+          <div className="flex gap-1">
             <button
               onClick={() => setDiffMode('side-by-side')}
-              className={`btn-secondary ${diffMode === 'side-by-side' ? styles.active : ''}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded border transition-all duration-200 ${
+                diffMode === 'side-by-side'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-github-bg-tertiary text-github-text-primary border-github-border hover:opacity-80'
+              }`}
             >
               📋 Side by Side
             </button>
             <button
               onClick={() => setDiffMode('inline')}
-              className={`btn-secondary ${diffMode === 'inline' ? styles.active : ''}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded border transition-all duration-200 ${
+                diffMode === 'inline'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-github-bg-tertiary text-github-text-primary border-github-border hover:opacity-80'
+              }`}
             >
               📝 Inline
             </button>
           </div>
         </header>
 
-        <div className={styles.content}>
-          <aside className={styles.sidebar}>
+        <div className="flex flex-1 overflow-hidden">
+          <aside className="w-80 min-w-80 bg-github-bg-secondary border-r border-github-border overflow-y-auto">
             <FileList
               files={diffData.files}
               onScrollToFile={(filePath) => {
@@ -167,15 +177,15 @@ function App() {
             />
           </aside>
 
-          <main className={styles.main}>
+          <main className="flex-1 overflow-y-auto">
             {diffData.files.map((file) => (
               <div
                 key={file.path}
                 id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                className={styles.fileSection}
+                className="mb-6"
               >
-                <DiffViewer 
-                  file={file} 
+                <DiffViewer
+                  file={file}
                   comments={comments.filter((c) => c.file === file.path)}
                   diffMode={diffMode}
                   reviewedFiles={reviewedFiles}

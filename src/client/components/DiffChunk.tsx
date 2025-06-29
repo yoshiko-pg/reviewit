@@ -3,7 +3,6 @@ import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff'
 import { CommentForm } from './CommentForm';
 import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
-import styles from '../styles/DiffChunk.module.css';
 
 interface DiffChunkProps {
   chunk: DiffChunkType;
@@ -18,11 +17,11 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
   const getLineClass = (line: DiffLine) => {
     switch (line.type) {
       case 'add':
-        return styles.added;
+        return 'bg-diff-addition-bg';
       case 'delete':
-        return styles.deleted;
+        return 'bg-diff-deletion-bg';
       default:
-        return styles.normal;
+        return 'bg-transparent';
     }
   };
 
@@ -62,23 +61,42 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
   }
 
   return (
-    <div className={styles.chunk}>
-      <table className={styles.diffTable}>
+    <div className="bg-github-bg-primary">
+      <table className="w-full border-collapse font-mono text-xs leading-5">
         <tbody>
           {chunk.lines.map((line, index) => {
             const lineComments = getCommentsForLine(line.newLineNumber || line.oldLineNumber || 0);
 
             return (
               <React.Fragment key={index}>
-                <tr className={`${styles.diffLine} ${getLineClass(line)}`}>
-                  <td className={styles.lineNumber}>{line.oldLineNumber || ''}</td>
-                  <td className={styles.lineNumber}>{line.newLineNumber || ''}</td>
-                  <td className={styles.lineContent}>
-                    <div className={styles.lineWrapper}>
-                      <span className={styles.linePrefix}>{getLinePrefix(line)}</span>
-                      <PrismSyntaxHighlighter code={line.content} className={styles.lineText} />
+                <tr
+                  className={`transition-colors duration-200 hover:bg-[var(--bg-tertiary)] group ${getLineClass(line)}`}
+                >
+                  <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
+                    {line.oldLineNumber || ''}
+                  </td>
+                  <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
+                    {line.newLineNumber || ''}
+                  </td>
+                  <td className="p-0 w-full relative align-top">
+                    <div className="flex items-center relative min-h-[20px]">
+                      <span
+                        className={`w-5 text-center text-github-text-muted flex-shrink-0 bg-github-bg-secondary border-r border-github-border ${
+                          line.type === 'add'
+                            ? 'text-github-accent bg-diff-addition-bg'
+                            : line.type === 'delete'
+                              ? 'text-github-danger bg-diff-deletion-bg'
+                              : ''
+                        }`}
+                      >
+                        {getLinePrefix(line)}
+                      </span>
+                      <PrismSyntaxHighlighter
+                        code={line.content}
+                        className="flex-1 px-3 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                      />
                       <button
-                        className={styles.commentButton}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
                         onClick={() =>
                           handleAddComment(line.newLineNumber || line.oldLineNumber || 0)
                         }
@@ -91,23 +109,25 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                 </tr>
 
                 {lineComments.map((comment) => (
-                  <tr key={comment.id} className={styles.commentRow}>
-                    <td colSpan={3} className={styles.commentCell}>
-                      <div className={styles.existingComment}>
-                        <div className={styles.commentHeader}>
-                          <span className={styles.commentMeta}>
+                  <tr key={comment.id} className="bg-[var(--bg-secondary)]">
+                    <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
+                      <div className="m-2 mx-3 p-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-md">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] text-[var(--text-muted)]">
                             Line {comment.line} • {new Date(comment.timestamp).toLocaleString()}
                           </span>
                         </div>
-                        <div className={styles.commentBody}>{comment.body}</div>
+                        <div className="text-[var(--text-primary)] text-[13px] leading-6 whitespace-pre-wrap">
+                          {comment.body}
+                        </div>
                       </div>
                     </td>
                   </tr>
                 ))}
 
                 {commentingLine === (line.newLineNumber || line.oldLineNumber) && (
-                  <tr className={styles.commentRow}>
-                    <td colSpan={3} className={styles.commentCell}>
+                  <tr className="bg-[var(--bg-secondary)]">
+                    <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
                       <CommentForm onSubmit={handleSubmitComment} onCancel={handleCancelComment} />
                     </td>
                   </tr>
