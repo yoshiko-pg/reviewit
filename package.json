@@ -19,7 +19,7 @@
     "url": "https://github.com/yoshiko-pg/reviewit/issues"
   },
   "scripts": {
-    "dev": "concurrently \"pnpm run dev:cli HEAD --no-open\" \"sleep 3 && vite --open\"",
+    "dev": "concurrently \"pnpm run dev:cli HEAD --no-open\" \"sleep 1 && vite --open\"",
     "dev:cli": "tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js",
     "build": "tsc && vite build",
     "build:cli": "tsc --project tsconfig.cli.json",
