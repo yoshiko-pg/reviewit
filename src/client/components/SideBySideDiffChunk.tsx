@@ -124,18 +124,14 @@ export function SideBySideDiffChunk({
       <table className="w-full border-collapse font-mono text-xs leading-5">
         <tbody>
           {sideBySideLines.map((sideLine, index) => {
-            const leftComments = sideLine.oldLineNumber
-              ? getCommentsForLine(sideLine.oldLineNumber)
-              : [];
-            const rightComments = sideLine.newLineNumber
+            // For side-by-side view, only show comments on the right side (new line numbers)
+            // to avoid duplication. Comments are associated with line numbers and should
+            // only be displayed once per line number.
+            const allComments = sideLine.newLineNumber
               ? getCommentsForLine(sideLine.newLineNumber)
-              : [];
-            // Remove duplicate comments (display comments with the same ID only once)
-            const allComments = Array.from(
-              new Map(
-                [...leftComments, ...rightComments].map((comment) => [comment.id, comment])
-              ).values()
-            );
+              : sideLine.oldLineNumber
+                ? getCommentsForLine(sideLine.oldLineNumber)
+                : [];
 
             return (
               <React.Fragment key={index}>
