@@ -70,7 +70,9 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
             return (
               <React.Fragment key={index}>
                 <tr
-                  className={`transition-colors duration-200 hover:bg-[var(--bg-tertiary)] group ${getLineClass(line)}`}
+                  className={`cursor-pointer group ${getLineClass(line)}`}
+                  onClick={() => handleAddComment(line.newLineNumber || line.oldLineNumber || 0)}
+                  title="Click to add comment"
                 >
                   <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
                     {line.oldLineNumber || ''}
@@ -95,15 +97,6 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                         code={line.content}
                         className="flex-1 px-3 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                       />
-                      <button
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
-                        onClick={() =>
-                          handleAddComment(line.newLineNumber || line.oldLineNumber || 0)
-                        }
-                        title="Add comment"
-                      >
-                        💬
-                      </button>
                     </div>
                   </td>
                 </tr>

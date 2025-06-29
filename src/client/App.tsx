@@ -3,6 +3,7 @@ import { DiffResponse, Comment } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { CommentProvider } from './components/CommentContext';
+import { ClipboardList, Columns, AlignLeft } from 'lucide-react';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -122,40 +123,49 @@ function App() {
       onGeneratePrompt={generatePrompt}
     >
       <div className="h-screen flex flex-col">
-        <header className="bg-github-bg-secondary border-b border-github-border px-4 py-3 flex items-center justify-between gap-4">
-          <h1 className="text-lg font-semibold text-github-text-primary m-0">📋 ReviewIt</h1>
-          <div className="flex items-center gap-4 text-sm text-github-text-secondary">
-            <span>
-              Reviewing:{' '}
-              <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
-                {diffData.commit}
-              </code>
-            </span>
-            <span>
-              {diffData.files.length} file{diffData.files.length !== 1 ? 's' : ''} changed
-            </span>
+        <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
+          <div className="w-80 min-w-80 px-4 py-3 border-r border-github-border">
+            <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
+              <ClipboardList size={20} />
+              ReviewIt
+            </h1>
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setDiffMode('side-by-side')}
-              className={`px-3 py-1.5 text-xs font-medium rounded border transition-all duration-200 ${
-                diffMode === 'side-by-side'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-github-bg-tertiary text-github-text-primary border-github-border hover:opacity-80'
-              }`}
-            >
-              📋 Side by Side
-            </button>
-            <button
-              onClick={() => setDiffMode('inline')}
-              className={`px-3 py-1.5 text-xs font-medium rounded border transition-all duration-200 ${
-                diffMode === 'inline'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-github-bg-tertiary text-github-text-primary border-github-border hover:opacity-80'
-              }`}
-            >
-              📝 Inline
-            </button>
+          <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
+              <button
+                onClick={() => setDiffMode('side-by-side')}
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 ${
+                  diffMode === 'side-by-side'
+                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
+                    : 'text-github-text-secondary hover:text-github-text-primary'
+                }`}
+              >
+                <Columns size={14} />
+                Side by Side
+              </button>
+              <button
+                onClick={() => setDiffMode('inline')}
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 ${
+                  diffMode === 'inline'
+                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
+                    : 'text-github-text-secondary hover:text-github-text-primary'
+                }`}
+              >
+                <AlignLeft size={14} />
+                Inline
+              </button>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-github-text-secondary">
+              <span>
+                Reviewing:{' '}
+                <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
+                  {diffData.commit}
+                </code>
+              </span>
+              <span>
+                {diffData.files.length} file{diffData.files.length !== 1 ? 's' : ''} changed
+              </span>
+            </div>
           </div>
         </header>
 

@@ -126,19 +126,23 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
 
             return (
               <React.Fragment key={index}>
-                <tr className="transition-colors duration-200 hover:bg-github-bg-secondary group">
+                <tr className="group">
                   {/* Old side */}
                   <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
                     {sideLine.oldLineNumber || ''}
                   </td>
                   <td
-                    className={`w-1/2 p-0 align-top border-r border-github-border relative ${
+                    className={`w-1/2 p-0 align-top border-r border-github-border relative cursor-pointer ${
                       sideLine.oldLine?.type === 'delete'
                         ? 'bg-diff-deletion-bg'
                         : sideLine.oldLine?.type === 'normal'
                           ? 'bg-transparent'
                           : 'bg-github-bg-secondary'
                     }`}
+                    onClick={() =>
+                      sideLine.oldLineNumber && handleAddComment(sideLine.oldLineNumber)
+                    }
+                    title={sideLine.oldLineNumber ? 'Click to add comment' : ''}
                   >
                     {sideLine.oldLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
@@ -146,15 +150,6 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                           code={sideLine.oldLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                         />
-                        {sideLine.oldLineNumber && (
-                          <button
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
-                            onClick={() => handleAddComment(sideLine.oldLineNumber!)}
-                            title="Add comment"
-                          >
-                            💬
-                          </button>
-                        )}
                       </div>
                     )}
                   </td>
@@ -164,13 +159,17 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                     {sideLine.newLineNumber || ''}
                   </td>
                   <td
-                    className={`w-1/2 p-0 align-top relative ${
+                    className={`w-1/2 p-0 align-top relative cursor-pointer ${
                       sideLine.newLine?.type === 'add'
                         ? 'bg-diff-addition-bg'
                         : sideLine.newLine?.type === 'normal'
                           ? 'bg-transparent'
                           : 'bg-github-bg-secondary'
                     }`}
+                    onClick={() =>
+                      sideLine.newLineNumber && handleAddComment(sideLine.newLineNumber)
+                    }
+                    title={sideLine.newLineNumber ? 'Click to add comment' : ''}
                   >
                     {sideLine.newLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
@@ -178,15 +177,6 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                           code={sideLine.newLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                         />
-                        {sideLine.newLineNumber && (
-                          <button
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-github-bg-tertiary border border-github-border rounded w-6 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] cursor-pointer hover:bg-github-bg-secondary"
-                            onClick={() => handleAddComment(sideLine.newLineNumber!)}
-                            title="Add comment"
-                          >
-                            💬
-                          </button>
-                        )}
                       </div>
                     )}
                   </td>
