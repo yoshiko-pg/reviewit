@@ -20,7 +20,11 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
 
   const handleAddComment = (lineNumber: number) => {
-    setCommentingLine(lineNumber);
+    if (commentingLine === lineNumber) {
+      setCommentingLine(null);
+    } else {
+      setCommentingLine(lineNumber);
+    }
   };
 
   const handleCancelComment = () => {
@@ -132,17 +136,23 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                     {sideLine.oldLineNumber || ''}
                   </td>
                   <td
-                    className={`w-1/2 p-0 align-top border-r border-github-border relative cursor-pointer ${
+                    className={`w-1/2 p-0 align-top border-r border-github-border relative ${
                       sideLine.oldLine?.type === 'delete'
-                        ? 'bg-diff-deletion-bg'
+                        ? 'bg-diff-deletion-bg cursor-pointer'
                         : sideLine.oldLine?.type === 'normal'
                           ? 'bg-transparent'
                           : 'bg-github-bg-secondary'
                     }`}
                     onClick={() =>
-                      sideLine.oldLineNumber && handleAddComment(sideLine.oldLineNumber)
+                      sideLine.oldLine?.type === 'delete' &&
+                      sideLine.oldLineNumber &&
+                      handleAddComment(sideLine.oldLineNumber)
                     }
-                    title={sideLine.oldLineNumber ? 'Click to add comment' : ''}
+                    title={
+                      sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber
+                        ? 'Click to add comment'
+                        : ''
+                    }
                   >
                     {sideLine.oldLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
@@ -159,17 +169,24 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                     {sideLine.newLineNumber || ''}
                   </td>
                   <td
-                    className={`w-1/2 p-0 align-top relative cursor-pointer ${
+                    className={`w-1/2 p-0 align-top relative ${
                       sideLine.newLine?.type === 'add'
-                        ? 'bg-diff-addition-bg'
+                        ? 'bg-diff-addition-bg cursor-pointer'
                         : sideLine.newLine?.type === 'normal'
-                          ? 'bg-transparent'
+                          ? 'bg-transparent cursor-pointer'
                           : 'bg-github-bg-secondary'
                     }`}
                     onClick={() =>
-                      sideLine.newLineNumber && handleAddComment(sideLine.newLineNumber)
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
+                      sideLine.newLineNumber &&
+                      handleAddComment(sideLine.newLineNumber)
                     }
-                    title={sideLine.newLineNumber ? 'Click to add comment' : ''}
+                    title={
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
+                      sideLine.newLineNumber
+                        ? 'Click to add comment'
+                        : ''
+                    }
                   >
                     {sideLine.newLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">

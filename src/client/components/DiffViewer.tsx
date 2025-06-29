@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
 import { useComments } from './CommentContext';
@@ -12,6 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   Check,
+  Square,
 } from 'lucide-react';
 
 interface DiffViewerProps {
@@ -29,27 +29,12 @@ export function DiffViewer({
   reviewedFiles,
   onToggleReviewed,
 }: DiffViewerProps) {
-  const [expandedChunks, setExpandedChunks] = useState<Set<number>>(
-    new Set(file.chunks.map((_, index) => index))
-  );
   const { onAddComment } = useComments();
 
   const isCollapsed = reviewedFiles.has(file.path);
 
   // Set filename for syntax highlighter immediately
   setCurrentFilename(file.path);
-
-  const toggleChunk = (index: number) => {
-    setExpandedChunks((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
-    });
-  };
 
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
@@ -73,12 +58,12 @@ export function DiffViewer({
   };
 
   return (
-    <div className="h-full flex flex-col bg-github-bg-primary">
-      <div className="bg-github-bg-secondary border-b border-github-border px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+    <div className="bg-github-bg-primary">
+      <div className="bg-github-bg-secondary border-b border-github-border px-5 py-4 flex items-center justify-between flex-wrap gap-3 sticky top-0 z-10">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
             onClick={() => onToggleReviewed(file.path)}
-            className="text-github-text-muted hover:text-github-text-primary transition-colors"
+            className="text-github-text-muted hover:text-github-text-primary transition-colors cursor-pointer"
             title={isCollapsed ? 'Expand file' : 'Collapse file'}
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
@@ -116,38 +101,29 @@ export function DiffViewer({
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
               reviewedFiles.has(file.path)
                 ? 'bg-github-accent text-white'
-                : 'bg-github-bg-tertiary text-github-text-secondary border border-github-border hover:bg-github-bg-secondary hover:text-github-text-primary'
+                : 'bg-gray-600 text-gray-200 border border-gray-500 hover:bg-gray-500 hover:text-white'
             }`}
             title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
           >
-            {reviewedFiles.has(file.path) && <Check size={14} />}
+            {reviewedFiles.has(file.path) ? <Check size={14} /> : <Square size={14} />}
             Viewed
           </button>
         </div>
       </div>
 
       {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto">
+        <div className="overflow-y-auto">
           {file.chunks.map((chunk, index) => (
             <div key={index} className="border-b border-github-border">
-              <div
-                className="bg-github-bg-tertiary px-3 py-2 cursor-pointer flex items-center gap-2 border-b border-github-border transition-colors hover:bg-github-bg-secondary"
-                onClick={() => toggleChunk(index)}
-              >
-                <span className="text-github-text-muted text-xs w-3 text-center">
-                  {expandedChunks.has(index) ? '▼' : '▶'}
-                </span>
+              <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
                 <code className="text-github-text-secondary text-xs font-mono">{chunk.header}</code>
               </div>
-
-              {expandedChunks.has(index) && (
-                <DiffChunk
-                  chunk={chunk}
-                  comments={comments}
-                  onAddComment={handleAddComment}
-                  mode={diffMode}
-                />
-              )}
+              <DiffChunk
+                chunk={chunk}
+                comments={comments}
+                onAddComment={handleAddComment}
+                mode={diffMode}
+              />
             </div>
           ))}
         </div>

@@ -134,7 +134,7 @@ function App() {
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
               <button
                 onClick={() => setDiffMode('side-by-side')}
-                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   diffMode === 'side-by-side'
                     ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
                     : 'text-github-text-secondary hover:text-github-text-primary'
@@ -145,7 +145,7 @@ function App() {
               </button>
               <button
                 onClick={() => setDiffMode('inline')}
-                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   diffMode === 'inline'
                     ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
                     : 'text-github-text-secondary hover:text-github-text-primary'

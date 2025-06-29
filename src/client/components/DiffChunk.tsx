@@ -37,7 +37,11 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
   };
 
   const handleAddComment = (lineNumber: number) => {
-    setCommentingLine(lineNumber);
+    if (commentingLine === lineNumber) {
+      setCommentingLine(null);
+    } else {
+      setCommentingLine(lineNumber);
+    }
   };
 
   const handleCancelComment = () => {
