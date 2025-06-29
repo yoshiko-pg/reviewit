@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "commit": "./scripts/commit.sh"
   },
   "dependencies": {
     "commander": "^11.1.0",
