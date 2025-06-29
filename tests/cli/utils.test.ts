@@ -12,6 +12,10 @@ describe('CLI Utils', () => {
       expect(validateCommitish('HEAD')).toBe(true);
       expect(validateCommitish('HEAD~1')).toBe(true);
       expect(validateCommitish('HEAD~10')).toBe(true);
+      expect(validateCommitish('HEAD^')).toBe(true);
+      expect(validateCommitish('HEAD^1')).toBe(true);
+      expect(validateCommitish('HEAD^2')).toBe(true);
+      expect(validateCommitish('HEAD~2^1')).toBe(true);
     });
 
     it('should validate branch names', () => {

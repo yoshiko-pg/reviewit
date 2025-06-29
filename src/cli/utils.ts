@@ -8,7 +8,16 @@ export function validateCommitish(commitish: string): boolean {
     return false;
   }
 
-  const validPatterns = [/^[a-f0-9]{4,40}$/i, /^HEAD(~\d+)?$/, /^[a-zA-Z0-9_\-/.]+$/];
+  // Special case: reject HEAD followed by ~ without a number
+  if (trimmed === 'HEAD~') {
+    return false;
+  }
+
+  const validPatterns = [
+    /^[a-f0-9]{4,40}$/i, // SHA hashes
+    /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.
+    /^[a-zA-Z][a-zA-Z0-9_\-/.]*$/, // branch names, tags (must start with letter, no ^ or ~ in middle)
+  ];
 
   return validPatterns.some((pattern) => pattern.test(trimmed));
 }
