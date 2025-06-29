@@ -7,7 +7,9 @@ import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (line: number, body: string) => Promise<void>;
+  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onGeneratePrompt: (comment: Comment) => string;
+  onRemoveComment: (commentId: string) => void;
 }
 
 interface SideBySideLine {
@@ -17,7 +19,13 @@ interface SideBySideLine {
   newLineNumber?: number;
 }
 
-export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySideDiffChunkProps) {
+export function SideBySideDiffChunk({
+  chunk,
+  comments,
+  onAddComment,
+  onGeneratePrompt,
+  onRemoveComment,
+}: SideBySideDiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
 
   const handleAddComment = (lineNumber: number) => {
@@ -205,7 +213,12 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   <tr className="bg-github-bg-secondary">
                     <td colSpan={4} className="p-0 border-t border-github-border">
                       {allComments.map((comment) => (
-                        <InlineComment key={comment.id} comment={comment} />
+                        <InlineComment
+                          key={comment.id}
+                          comment={comment}
+                          onGeneratePrompt={onGeneratePrompt}
+                          onRemoveComment={onRemoveComment}
+                        />
                       ))}
                     </td>
                   </tr>

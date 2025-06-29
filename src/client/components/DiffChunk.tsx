@@ -8,12 +8,22 @@ import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 interface DiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (line: number, body: string) => Promise<void>;
+  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onGeneratePrompt: (comment: Comment) => string;
+  onRemoveComment: (commentId: string) => void;
   mode?: 'side-by-side' | 'inline';
 }
 
-export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: DiffChunkProps) {
+export function DiffChunk({
+  chunk,
+  comments,
+  onAddComment,
+  onGeneratePrompt,
+  onRemoveComment,
+  mode = 'inline',
+}: DiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
+  const [commentingLineContent, setCommentingLineContent] = useState<string | null>(null);
 
   const getLineClass = (line: DiffLine) => {
     switch (line.type) {
@@ -37,22 +47,26 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
     }
   };
 
-  const handleAddComment = (lineNumber: number) => {
+  const handleAddComment = (lineNumber: number, lineContent: string) => {
     if (commentingLine === lineNumber) {
       setCommentingLine(null);
+      setCommentingLineContent(null);
     } else {
       setCommentingLine(lineNumber);
+      setCommentingLineContent(lineContent);
     }
   };
 
   const handleCancelComment = () => {
     setCommentingLine(null);
+    setCommentingLineContent(null);
   };
 
   const handleSubmitComment = async (body: string) => {
     if (commentingLine !== null) {
-      await onAddComment(commentingLine, body);
+      await onAddComment(commentingLine, body, commentingLineContent || undefined);
       setCommentingLine(null);
+      setCommentingLineContent(null);
     }
   };
 
@@ -62,7 +76,15 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
 
   // Use side-by-side component for side-by-side mode
   if (mode === 'side-by-side') {
-    return <SideBySideDiffChunk chunk={chunk} comments={comments} onAddComment={onAddComment} />;
+    return (
+      <SideBySideDiffChunk
+        chunk={chunk}
+        comments={comments}
+        onAddComment={onAddComment}
+        onGeneratePrompt={onGeneratePrompt}
+        onRemoveComment={onRemoveComment}
+      />
+    );
   }
 
   return (
@@ -76,7 +98,9 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
               <React.Fragment key={index}>
                 <tr
                   className={`cursor-pointer group ${getLineClass(line)}`}
-                  onClick={() => handleAddComment(line.newLineNumber || line.oldLineNumber || 0)}
+                  onClick={() =>
+                    handleAddComment(line.newLineNumber || line.oldLineNumber || 0, line.content)
+                  }
                   title="Click to add comment"
                 >
                   <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
@@ -109,7 +133,11 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                 {lineComments.map((comment) => (
                   <tr key={comment.id} className="bg-github-bg-secondary">
                     <td colSpan={3} className="p-0 border-t border-github-border">
-                      <InlineComment comment={comment} />
+                      <InlineComment
+                        comment={comment}
+                        onGeneratePrompt={onGeneratePrompt}
+                        onRemoveComment={onRemoveComment}
+                      />
                     </td>
                   </tr>
                 ))}

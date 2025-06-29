@@ -34,4 +34,5 @@ export interface Comment {
   line: number;
   body: string;
   timestamp: string;
+  codeContent?: string; // The actual code content for this line
 }

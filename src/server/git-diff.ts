@@ -10,13 +10,16 @@ export class GitDiffParser {
 
   async parseDiff(commitish: string): Promise<DiffResponse> {
     try {
+      // Resolve commitish to actual commit hash
+      const resolvedCommit = await this.git.revparse([commitish]);
+
       const diffSummary = await this.git.diffSummary([`${commitish}^`, commitish]);
       const diffRaw = await this.git.diff([`${commitish}^`, commitish]);
 
       const files = await this.parseUnifiedDiff(diffRaw, diffSummary.files);
 
       return {
-        commit: commitish,
+        commit: resolvedCommit,
         files,
       };
     } catch (error) {

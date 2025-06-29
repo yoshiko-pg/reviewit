@@ -1,6 +1,5 @@
 import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
-import { useComments } from './CommentContext';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import {
   FileText,
@@ -20,6 +19,9 @@ interface DiffViewerProps {
   diffMode: 'side-by-side' | 'inline';
   reviewedFiles: Set<string>;
   onToggleReviewed: (path: string) => void;
+  onAddComment: (file: string, line: number, body: string, codeContent?: string) => Promise<void>;
+  onGeneratePrompt: (comment: Comment) => string;
+  onRemoveComment: (commentId: string) => void;
 }
 
 export function DiffViewer({
@@ -28,9 +30,10 @@ export function DiffViewer({
   diffMode,
   reviewedFiles,
   onToggleReviewed,
+  onAddComment,
+  onGeneratePrompt,
+  onRemoveComment,
 }: DiffViewerProps) {
-  const { onAddComment } = useComments();
-
   const isCollapsed = reviewedFiles.has(file.path);
 
   // Set filename for syntax highlighter immediately
@@ -49,9 +52,9 @@ export function DiffViewer({
     }
   };
 
-  const handleAddComment = async (line: number, body: string) => {
+  const handleAddComment = async (line: number, body: string, codeContent?: string) => {
     try {
-      await onAddComment(file.path, line, body);
+      await onAddComment(file.path, line, body, codeContent);
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
@@ -122,6 +125,8 @@ export function DiffViewer({
                 chunk={chunk}
                 comments={comments}
                 onAddComment={handleAddComment}
+                onGeneratePrompt={onGeneratePrompt}
+                onRemoveComment={onRemoveComment}
                 mode={diffMode}
               />
             </div>
