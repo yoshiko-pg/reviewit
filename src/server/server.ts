@@ -125,10 +125,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     });
   }
 
-  const port = await findAvailablePort(options.preferredPort || 3000);
-  app.listen(port, '127.0.0.1');
-
-  const url = `http://localhost:${port}`;
+  const { port, url } = await startServerWithFallback(app, options.preferredPort || 3000);
 
   if (options.openBrowser) {
     try {
@@ -141,21 +138,26 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   return { port, url };
 }
 
-async function findAvailablePort(preferredPort: number): Promise<number> {
-  const net = await import('net');
-
+async function startServerWithFallback(
+  app: any,
+  preferredPort: number
+): Promise<{ port: number; url: string }> {
   return new Promise((resolve, reject) => {
-    const server = net.createServer();
-
-    server.listen(preferredPort, () => {
-      const port = (server.address() as any)?.port;
-      server.close(() => resolve(port));
+    const server = app.listen(preferredPort, '127.0.0.1', () => {
+      const port = server.address()?.port;
+      const url = `http://localhost:${port}`;
+      resolve({ port, url });
     });
 
-    server.on('error', () => {
-      findAvailablePort(preferredPort + 1)
-        .then(resolve)
-        .catch(reject);
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
+        startServerWithFallback(app, preferredPort + 1)
+          .then(resolve)
+          .catch(reject);
+      } else {
+        reject(err);
+      }
     });
   });
 }
