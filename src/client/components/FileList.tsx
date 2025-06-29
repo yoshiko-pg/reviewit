@@ -1,5 +1,6 @@
 import { DiffFile, Comment } from '../../types/diff';
 import { useState } from 'react';
+import { Checkbox } from './Checkbox';
 import {
   ChevronRight,
   ChevronDown,
@@ -198,15 +199,13 @@ export function FileList({
           style={{ paddingLeft: `${depth * 16 + 16}px` }}
           onClick={() => onScrollToFile(node.file!.path)}
         >
-          <input
-            type="checkbox"
-            className="w-4 h-4 cursor-pointer accent-github-accent bg-github-bg-tertiary border border-github-border rounded"
+          <Checkbox
             checked={isReviewed}
-            onChange={(e) => {
-              e.stopPropagation();
+            onChange={() => {
               onToggleReviewed(node.file!.path);
             }}
             title={isReviewed ? 'Mark as not reviewed' : 'Mark as reviewed'}
+            className="z-10"
           />
           {getFileIcon(node.file.status)}
           <span

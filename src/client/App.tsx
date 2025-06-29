@@ -3,6 +3,7 @@ import { DiffResponse } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { useLocalComments } from './hooks/useLocalComments';
+import { Checkbox } from './components/Checkbox';
 import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
 
 function App() {
@@ -166,16 +167,12 @@ function App() {
                 Inline
               </button>
             </div>
-            <label className="flex items-center gap-2 text-xs text-github-text-primary cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ignoreWhitespace}
-                onChange={(e) => setIgnoreWhitespace(e.target.checked)}
-                className="w-4 h-4 cursor-pointer accent-github-accent bg-github-bg-tertiary border border-github-border rounded"
-                title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
-              />
-              Ignore Whitespace
-            </label>
+            <Checkbox
+              checked={ignoreWhitespace}
+              onChange={setIgnoreWhitespace}
+              label="Ignore Whitespace"
+              title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
+            />
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
