@@ -24,6 +24,10 @@ describe('CLI Utils', () => {
       expect(validateCommitish('develop')).toBe(true);
     });
 
+    it('should validate special cases', () => {
+      expect(validateCommitish('.')).toBe(true); // working directory diff
+    });
+
     it('should reject invalid input', () => {
       expect(validateCommitish('')).toBe(false);
       expect(validateCommitish('   ')).toBe(false);

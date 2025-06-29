@@ -8,9 +8,12 @@ export function validateCommitish(commitish: string): boolean {
     return false;
   }
 
-  // Special case: reject HEAD followed by ~ without a number
+  // Special cases
   if (trimmed === 'HEAD~') {
     return false;
+  }
+  if (trimmed === '.') {
+    return true; // Allow '.' for working directory diff
   }
 
   const validPatterns = [
