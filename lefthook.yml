@@ -3,12 +3,14 @@ pre-commit:
   commands:
     lint:
       glob: '*.{ts,tsx}'
-      run: npm run lint
+      run: npm run lint:fix
+      stage_fixed: true
       fail_text: 'Linting failed. Please fix the issues and try again.'
 
     format:
       glob: '*.{ts,tsx,js,jsx,json,css}'
       run: npm run format
+      stage_fixed: true
       fail_text: 'Code formatting failed. Please check the issues and try again.'
 
     typecheck:
