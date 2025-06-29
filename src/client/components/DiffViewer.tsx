@@ -3,7 +3,7 @@ import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
 import { InlineComment } from './InlineComment';
 import { useComments } from './CommentContext';
-import { setCurrentFilename } from './SyntaxHighlighter';
+import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import styles from '../styles/DiffViewer.module.css';
 
 interface DiffViewerProps {

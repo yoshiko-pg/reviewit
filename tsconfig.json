@@ -20,6 +20,6 @@
       "@/types/*": ["src/types/*"]
     }
   },
-  "include": ["src/client/**/*", "src/types/css-modules.d.ts"],
+  "include": ["src/client/**/*", "src/types/*.d.ts"],
   "references": [{ "path": "./tsconfig.cli.json" }]
 }

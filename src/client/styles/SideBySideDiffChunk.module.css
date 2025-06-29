@@ -85,7 +85,7 @@
 }
 
 .added .lineText {
-  color: var(--green);
+  /* color: var(--green); シンタックスハイライトを優先 */
 }
 
 .deleted {
@@ -93,7 +93,7 @@
 }
 
 .deleted .lineText {
-  color: var(--red);
+  /* color: var(--red); シンタックスハイライトを優先 */
 }
 
 .normal {

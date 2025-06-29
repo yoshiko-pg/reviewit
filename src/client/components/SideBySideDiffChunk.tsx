@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
-import { SyntaxHighlighter } from './SyntaxHighlighter';
+import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 import styles from '../styles/SideBySideDiffChunk.module.css';
 
 interface SideBySideDiffChunkProps {
@@ -129,7 +129,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   }`}>
                     {sideLine.oldLine && (
                       <div className={styles.lineWrapper}>
-                        <SyntaxHighlighter 
+                        <PrismSyntaxHighlighter 
                           code={sideLine.oldLine.content}
                           className={styles.lineText}
                         />
@@ -156,7 +156,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   }`}>
                     {sideLine.newLine && (
                       <div className={styles.lineWrapper}>
-                        <SyntaxHighlighter 
+                        <PrismSyntaxHighlighter 
                           code={sideLine.newLine.content}
                           className={styles.lineText}
                         />
