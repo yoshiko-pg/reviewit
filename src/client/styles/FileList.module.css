@@ -121,3 +121,32 @@
 .status.modified {
   color: var(--text-muted);
 }
+
+.reviewedCheckbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  cursor: pointer;
+  accent-color: var(--green);
+}
+
+.file.reviewed {
+  opacity: 0.7;
+}
+
+.file.reviewed .fileName {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.fileName {
+  cursor: pointer;
+}
+
+.filePath {
+  cursor: pointer;
+}
+
+.fileStats {
+  cursor: pointer;
+}

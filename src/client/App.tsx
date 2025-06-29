@@ -8,6 +8,7 @@ import styles from './styles/App.module.css';
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [reviewedFiles, setReviewedFiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,6 +77,18 @@ function App() {
     }
   };
 
+  const toggleFileReviewed = (filePath: string) => {
+    setReviewedFiles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(filePath)) {
+        newSet.delete(filePath);
+      } else {
+        newSet.add(filePath);
+      }
+      return newSet;
+    });
+  };
+
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -126,26 +139,27 @@ function App() {
             <FileList
               files={diffData.files}
               onScrollToFile={(filePath) => {
-                const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                const element = document.getElementById(
+                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                );
                 if (element) {
                   element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
               comments={comments}
+              reviewedFiles={reviewedFiles}
+              onToggleReviewed={toggleFileReviewed}
             />
           </aside>
 
           <main className={styles.main}>
             {diffData.files.map((file) => (
-              <div 
-                key={file.path} 
+              <div
+                key={file.path}
                 id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
                 className={styles.fileSection}
               >
-                <DiffViewer
-                  file={file}
-                  comments={comments.filter((c) => c.file === file.path)}
-                />
+                <DiffViewer file={file} comments={comments.filter((c) => c.file === file.path)} />
               </div>
             ))}
           </main>

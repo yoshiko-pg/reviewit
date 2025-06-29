@@ -123,7 +123,6 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

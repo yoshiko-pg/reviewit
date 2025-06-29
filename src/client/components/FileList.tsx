@@ -5,9 +5,11 @@ interface FileListProps {
   files: DiffFile[];
   onScrollToFile: (path: string) => void;
   comments: Comment[];
+  reviewedFiles: Set<string>;
+  onToggleReviewed: (path: string) => void;
 }
 
-export function FileList({ files, onScrollToFile, comments }: FileListProps) {
+export function FileList({ files, onScrollToFile, comments, reviewedFiles, onToggleReviewed }: FileListProps) {
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
       case 'added':
@@ -49,22 +51,28 @@ export function FileList({ files, onScrollToFile, comments }: FileListProps) {
           const commentCount = getCommentCount(file.path);
 
           return (
-            <div
-              key={file.path}
-              className={styles.file}
-              onClick={() => onScrollToFile(file.path)}
-            >
+            <div key={file.path} className={`${styles.file} ${reviewedFiles.has(file.path) ? styles.reviewed : ''}`}>
               <div className={styles.fileHeader}>
+                <input
+                  type="checkbox"
+                  className={styles.reviewedCheckbox}
+                  checked={reviewedFiles.has(file.path)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onToggleReviewed(file.path);
+                  }}
+                  title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
+                />
                 <span className={styles.fileIcon}>{getFileIcon(file.status)}</span>
-                <span className={styles.fileName} title={file.path}>
+                <span className={styles.fileName} title={file.path} onClick={() => onScrollToFile(file.path)}>
                   {file.path.split('/').pop()}
                 </span>
                 {commentCount > 0 && <span className={styles.commentBadge}>💬 {commentCount}</span>}
               </div>
 
-              <div className={styles.filePath}>{file.path}</div>
+              <div className={styles.filePath} onClick={() => onScrollToFile(file.path)}>{file.path}</div>
 
-              <div className={styles.fileStats}>
+              <div className={styles.fileStats} onClick={() => onScrollToFile(file.path)}>
                 <span className={`${styles.stat} ${styles.additions}`}>+{file.additions}</span>
                 <span className={`${styles.stat} ${styles.deletions}`}>-{file.deletions}</span>
                 <span className={`${styles.status} ${getStatusClass(file.status)}`}>
