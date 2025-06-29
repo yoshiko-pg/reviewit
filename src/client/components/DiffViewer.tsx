@@ -22,7 +22,7 @@ export function DiffViewer({
   const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set([0]));
   const { onAddComment } = useComments();
 
-  // シンタックスハイライター用にファイル名をセット
+  // Set filename for syntax highlighter
   useEffect(() => {
     setCurrentFilename(file.path);
   }, [file.path]);

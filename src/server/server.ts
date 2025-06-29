@@ -93,12 +93,12 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     }
   });
 
-  // CLIツールとして配布される場合は常にproductionモードで動作する
+  // Always runs in production mode when distributed as a CLI tool
   const isProduction =
     process.env.NODE_ENV === 'production' || process.env.NODE_ENV !== 'development';
 
   if (isProduction) {
-    // CLI実行ファイルの場所から相対的にクライアントファイルを探す
+    // Find client files relative to the CLI executable location
     const distPath = join(__dirname, '..', 'client');
     app.use(express.static(distPath));
 

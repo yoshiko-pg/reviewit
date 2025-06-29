@@ -117,7 +117,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
             const rightComments = sideLine.newLineNumber
               ? getCommentsForLine(sideLine.newLineNumber)
               : [];
-            // コメントの重複を除去（同じIDのコメントは一度だけ表示）
+            // Remove duplicate comments (display comments with the same ID only once)
             const allComments = Array.from(
               new Map(
                 [...leftComments, ...rightComments].map((comment) => [comment.id, comment])

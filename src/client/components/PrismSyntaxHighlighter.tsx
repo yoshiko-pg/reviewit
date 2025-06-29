@@ -7,20 +7,20 @@ interface PrismSyntaxHighlighterProps {
   className?: string;
 }
 
-// 動的にPrismの言語サポートを追加
+// Dynamically add Prism language support
 function usePrismLanguages() {
   useEffect(() => {
-    // Prismをグローバルに公開（動的インポート用）
+    // Expose Prism globally (for dynamic imports)
     (globalThis as any).Prism = Prism;
 
-    // 必要な言語を動的にインポート
+    // Dynamically import required languages
     import('prismjs/components/prism-typescript');
     import('prismjs/components/prism-json');
     import('prismjs/components/prism-css');
   }, []);
 }
 
-// ファイル拡張子から言語を推測
+// Detect language from file extension
 function detectLanguage(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase();
 

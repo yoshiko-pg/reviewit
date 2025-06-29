@@ -98,7 +98,7 @@ ReviewIt includes an inline commenting system that integrates with Claude Code:
 +   onClick();  
 + };
 ----
-コメント: 「この関数名はもっと具体的にした方がいいかも」
+Comment: "This function name should probably be more specific"
 ```
 
 ## 🏗️ Architecture

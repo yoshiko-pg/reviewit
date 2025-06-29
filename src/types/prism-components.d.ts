@@ -1,4 +1,4 @@
-// Prismjsの言語コンポーネント用のTypeScript宣言
+// TypeScript declarations for Prismjs language components
 declare module 'prismjs/components/*' {
   const value: any;
   export = value;

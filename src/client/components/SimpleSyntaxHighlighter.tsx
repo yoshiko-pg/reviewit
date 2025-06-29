@@ -6,7 +6,7 @@ interface SimpleSyntaxHighlighterProps {
   className?: string;
 }
 
-// 簡単なJavaScript/TypeScriptハイライト
+// Simple JavaScript/TypeScript highlighting
 function highlightJavaScript(code: string): string {
   const keywords =
     /\b(const|let|var|function|return|if|else|for|while|class|import|export|default|async|await|try|catch|finally|throw|new|this|typeof|instanceof)\b/g;
@@ -24,7 +24,7 @@ function highlightJavaScript(code: string): string {
     .replace(numbers, '<span style="color: #79c0ff;">$1</span>');
 }
 
-// JSONハイライト
+// JSON highlighting
 function highlightJSON(code: string): string {
   const strings = /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g;
   const keys = /("(?:\\.|[^"\\])*")(\s*:)/g;
@@ -41,7 +41,7 @@ function highlightJSON(code: string): string {
     .replace(booleans, '<span style="color: #ff7b72;">$1</span>');
 }
 
-// CSSハイライト
+// CSS highlighting
 function highlightCSS(code: string): string {
   const comments = /(\/\*[\s\S]*?\*\/)/g;
   const strings = /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g;

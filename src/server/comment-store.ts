@@ -46,7 +46,7 @@ export class CommentStore {
       '----',
       context,
       '----',
-      `コメント: 「${comment.body}」`,
+      `Comment: "${comment.body}"`,
     ].join('\n');
   }
 
