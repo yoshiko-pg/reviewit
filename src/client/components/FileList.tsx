@@ -9,6 +9,8 @@ import {
   FilePlus,
   FileX,
   FilePen,
+  Search,
+  MessageCircle,
 } from 'lucide-react';
 
 interface FileListProps {
@@ -86,10 +88,37 @@ export function FileList({
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(
     () => new Set(getAllDirectoryPaths(fileTree))
   );
+  const [filterText, setFilterText] = useState('');
 
   const getCommentCount = (filePath: string) => {
     return comments.filter((c) => c.file === filePath).length;
   };
+
+  // Filter the file tree based on search text
+  const filterTreeNode = (node: TreeNode): TreeNode | null => {
+    if (!filterText.trim()) return node;
+
+    if (node.isDirectory && node.children) {
+      const filteredChildren = node.children
+        .map((child) => filterTreeNode(child))
+        .filter((child) => child !== null) as TreeNode[];
+
+      if (filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+      return null;
+    } else if (node.file) {
+      // Check if file name matches filter
+      if (node.file.path.toLowerCase().includes(filterText.toLowerCase())) {
+        return node;
+      }
+      return null;
+    }
+
+    return null;
+  };
+
+  const filteredFileTree = filterTreeNode(fileTree) || { ...fileTree, children: [] };
 
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
@@ -146,8 +175,8 @@ export function FileList({
               )}
               <span className="text-sm text-github-text-primary font-medium">{node.name}</span>
               {dirHasComments && (
-                <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto">
-                  💬
+                <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
+                  <MessageCircle size={12} />
                 </span>
               )}
             </div>
@@ -189,8 +218,9 @@ export function FileList({
             {node.name}
           </span>
           {commentCount > 0 && (
-            <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto">
-              💬 {commentCount}
+            <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
+              <MessageCircle size={12} />
+              {commentCount}
             </span>
           )}
         </div>
@@ -203,13 +233,27 @@ export function FileList({
   return (
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-github-border bg-github-bg-tertiary">
-        <h3 className="text-sm font-semibold text-github-text-primary m-0">
+        <h3 className="text-sm font-semibold text-github-text-primary m-0 mb-3">
           Files changed ({files.length})
         </h3>
+        <div className="relative">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-github-text-muted"
+          />
+          <input
+            type="text"
+            placeholder="Filter files..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm bg-github-bg-primary border border-github-border rounded-md focus:outline-none focus:border-github-accent text-github-text-primary placeholder-github-text-muted"
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {fileTree.children && fileTree.children.map((child) => renderTreeNode(child))}
+        {filteredFileTree.children &&
+          filteredFileTree.children.map((child) => renderTreeNode(child))}
       </div>
     </div>
   );

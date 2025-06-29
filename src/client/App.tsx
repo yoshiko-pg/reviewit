@@ -176,6 +176,8 @@ function App() {
               />
               Ignore Whitespace
             </label>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}
@@ -183,11 +185,9 @@ function App() {
                 title={`Copy all ${comments.length} comments to Claude Code`}
               >
                 <Copy size={12} />
-                {isCopiedAll ? 'Copied All!' : `Copy All (${comments.length})`}
+                {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
               </button>
             )}
-          </div>
-          <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
