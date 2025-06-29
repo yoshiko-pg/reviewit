@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
+import { InlineComment } from './InlineComment';
 import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 
@@ -106,18 +107,9 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                 </tr>
 
                 {lineComments.map((comment) => (
-                  <tr key={comment.id} className="bg-[var(--bg-secondary)]">
-                    <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
-                      <div className="m-2 mx-3 p-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-md">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[11px] text-[var(--text-muted)]">
-                            Line {comment.line} • {new Date(comment.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="text-[var(--text-primary)] text-[13px] leading-6 whitespace-pre-wrap">
-                          {comment.body}
-                        </div>
-                      </div>
+                  <tr key={comment.id} className="bg-github-bg-secondary">
+                    <td colSpan={3} className="p-0 border-t border-github-border">
+                      <InlineComment comment={comment} />
                     </td>
                   </tr>
                 ))}

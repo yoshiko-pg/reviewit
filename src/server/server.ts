@@ -93,6 +93,16 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     }
   });
 
+  app.post('/api/comments/all/prompt', async (_, res) => {
+    try {
+      const comments = await commentStore.getComments();
+      const prompt = commentStore.generateAllCommentsPrompt(comments, diffData.files);
+      res.json({ prompt });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to generate all comments prompt' });
+    }
+  });
+
   // Always runs in production mode when distributed as a CLI tool
   const isProduction =
     process.env.NODE_ENV === 'production' || process.env.NODE_ENV !== 'development';

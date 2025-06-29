@@ -57,9 +57,11 @@ describe('CommentStore', () => {
 
       const prompt = store.generatePrompt(comment, diffContent);
 
-      expect(prompt).toContain('📄 src/test.ts L42');
+      expect(prompt).toContain('File: src/test.ts');
+      expect(prompt).toContain('Line: 42');
       expect(prompt).toContain('Fix this bug');
-      expect(prompt).toContain('----');
+      expect(prompt).toContain('Code Context:');
+      expect(prompt).toContain('```');
     });
   });
 });

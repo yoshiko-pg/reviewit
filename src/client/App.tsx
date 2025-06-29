@@ -3,7 +3,7 @@ import { DiffResponse, Comment } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { CommentProvider } from './components/CommentContext';
-import { ClipboardList, Columns, AlignLeft } from 'lucide-react';
+import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -12,6 +12,7 @@ function App() {
   const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCopiedAll, setIsCopiedAll] = useState(false);
 
   useEffect(() => {
     fetchDiffData();
@@ -78,6 +79,33 @@ function App() {
     }
   };
 
+  const generateAllCommentsPrompt = async (): Promise<string> => {
+    try {
+      const response = await fetch('/api/comments/all/prompt', {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Failed to generate all comments prompt');
+
+      const { prompt } = await response.json();
+      return prompt;
+    } catch (err) {
+      console.error('Failed to generate all comments prompt:', err);
+      throw err;
+    }
+  };
+
+  const handleCopyAllComments = async () => {
+    try {
+      const prompt = await generateAllCommentsPrompt();
+      await navigator.clipboard.writeText(prompt);
+      setIsCopiedAll(true);
+      setTimeout(() => setIsCopiedAll(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy all comments prompt:', error);
+    }
+  };
+
   const toggleFileReviewed = (filePath: string) => {
     setReviewedFiles((prev) => {
       const newSet = new Set(prev);
@@ -131,29 +159,41 @@ function App() {
             </h1>
           </div>
           <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
-              <button
-                onClick={() => setDiffMode('side-by-side')}
-                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'side-by-side'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
-                }`}
-              >
-                <Columns size={14} />
-                Side by Side
-              </button>
-              <button
-                onClick={() => setDiffMode('inline')}
-                className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'inline'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
-                }`}
-              >
-                <AlignLeft size={14} />
-                Inline
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
+                <button
+                  onClick={() => setDiffMode('side-by-side')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                    diffMode === 'side-by-side'
+                      ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
+                      : 'text-github-text-secondary hover:text-github-text-primary'
+                  }`}
+                >
+                  <Columns size={14} />
+                  Side by Side
+                </button>
+                <button
+                  onClick={() => setDiffMode('inline')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                    diffMode === 'inline'
+                      ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
+                      : 'text-github-text-secondary hover:text-github-text-primary'
+                  }`}
+                >
+                  <AlignLeft size={14} />
+                  Inline
+                </button>
+              </div>
+              {comments.length > 0 && (
+                <button
+                  onClick={handleCopyAllComments}
+                  className="text-xs px-3 py-1.5 bg-yellow-900/20 text-yellow-200 border border-yellow-600/50 rounded hover:bg-yellow-800/30 hover:border-yellow-500 transition-all whitespace-nowrap flex items-center gap-1.5"
+                  title={`Copy all ${comments.length} comments to Claude Code`}
+                >
+                  <Copy size={12} />
+                  {isCopiedAll ? 'Copied All!' : `Copy All (${comments.length})`}
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-4 text-sm text-github-text-secondary">
               <span>

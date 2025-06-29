@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
+import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 
 interface SideBySideDiffChunkProps {
@@ -204,19 +205,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   <tr className="bg-github-bg-secondary">
                     <td colSpan={4} className="p-0 border-t border-github-border">
                       {allComments.map((comment) => (
-                        <div
-                          key={comment.id}
-                          className="m-2 mx-3 p-2 bg-github-bg-tertiary border border-github-border rounded-md"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] text-github-text-muted">
-                              Line {comment.line} • {new Date(comment.timestamp).toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="text-github-text-primary text-[13px] leading-6 whitespace-pre-wrap">
-                            {comment.body}
-                          </div>
-                        </div>
+                        <InlineComment key={comment.id} comment={comment} />
                       ))}
                     </td>
                   </tr>
