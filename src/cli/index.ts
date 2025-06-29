@@ -10,7 +10,7 @@ program
   .name('reviewit')
   .description('A lightweight Git diff viewer with GitHub-like interface')
   .version('0.1.0')
-  .argument('<commit-ish>', 'Git commit, tag, branch, or HEAD~n reference')
+  .argument('[commit-ish]', 'Git commit, tag, branch, or HEAD~n reference (default: HEAD)', 'HEAD')
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
