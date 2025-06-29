@@ -1,6 +1,6 @@
 {
   "name": "reviewit",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
   "engines": {
@@ -8,6 +8,15 @@
   },
   "bin": {
     "reviewit": "./dist/cli/index.js"
+  },
+  "main": "./dist/cli/index.js",
+  "homepage": "https://github.com/yoshiko-pg/reviewit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yoshiko-pg/reviewit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yoshiko-pg/reviewit/issues"
   },
   "scripts": {
     "dev": "vite",
@@ -20,7 +29,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "prepublishOnly": "pnpm run build && pnpm run build:cli"
   },
   "dependencies": {
     "commander": "^11.1.0",
@@ -66,8 +76,15 @@
     "diff",
     "cli",
     "review",
-    "github"
+    "github",
+    "code-review",
+    "tailwind",
+    "react",
+    "diff-viewer"
   ],
-  "author": "",
-  "license": "MIT"
+  "author": "yoshiko-pg",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }

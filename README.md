@@ -1,26 +1,27 @@
-# ReviewIt
+# ReviewIt 🔍
 
-A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal.
+A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal! 🚀
 
-## Features
+## ✨ Features
 
-- **GitHub-like UI**: Familiar file list and diff interface
-- **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
-- **Zero Config**: Just run `npx reviewit <commit>` and it works
-- **Local Only**: Never exposes data over network - runs on localhost only
-- **TypeScript**: Fully typed codebase with comprehensive testing
+- 🌙 **GitHub-like UI**: Familiar dark theme file list and diff interface
+- 💬 **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
+- 🔄 **Side-by-Side & Inline Views**: Choose your preferred diff viewing mode
+- ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
+- 🔐 **Local Only**: Never exposes data over network - runs on localhost only
+- 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
 
-## Installation
+## 📦 Installation
 
 ```bash
 # Global install
 npm install -g reviewit
 
-# Or use npx (no installation needed)
+# Or use npx (no installation needed) 
 npx reviewit <commit-ish>
 ```
 
-## Usage
+## 🚀 Usage
 
 ```bash
 # Review a specific commit
@@ -36,41 +37,41 @@ reviewit 6f4a9b7 --port 4300 --no-open
 npx reviewit main~1
 ```
 
-### CLI Options
+### ⚙️ CLI Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
 | `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch |
 | `--port` | auto | Preferred port; falls back if occupied |
 | `--no-open` | false | Don't automatically open browser |
-| `--mode` | inline | Diff mode (inline only for now) |
+| `--mode` | side-by-side | Diff mode: `inline` or `side-by-side` |
 
-## Development
+## 🛠️ Development
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Run tests
-npm test
+pnpm test
 
 # Lint and format
-npm run lint
-npm run format
-npm run typecheck
+pnpm run lint
+pnpm run format
+pnpm run typecheck
 ```
 
-## Comment System
+## 💬 Comment System
 
 ReviewIt includes an inline commenting system that integrates with Claude Code:
 
-1. **Add Comments**: Click the 💬 icon on any diff line to add a comment
+1.️ **Add Comments**: Click the 💬 icon on any diff line to add a comment
 2. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
 3. **Persistent Storage**: Comments are saved in `.reviewit/tmp-comments-*.json` for the session
 
@@ -83,23 +84,23 @@ ReviewIt includes an inline commenting system that integrates with Claude Code:
 +   onClick();  
 + };
 ----
-コメント: 「この関数名はもっと具体的にした方がいいかも」
+Comment: "This function name could be more specific"
 ```
 
-## Architecture
+## 🏗️ Architecture
 
 - **CLI**: Commander.js for argument parsing
 - **Backend**: Express server with simple-git for diff processing  
 - **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: CSS Modules (no global CSS or frameworks)
+- **Styling**: Tailwind CSS v4 with GitHub-like dark theme
 - **Testing**: Vitest for unit tests
 - **Quality**: ESLint, Prettier, lefthook pre-commit hooks
 
-## Requirements
+## 📋 Requirements
 
 - Node.js ≥ 18.0.0
 - Git repository with commits to review
 
-## License
+## 📄 License
 
-MIT
+MIT 📝
