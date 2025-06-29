@@ -86,6 +86,22 @@
   overflow-x: auto;
 }
 
+.lineText :global(pre) {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.lineText :global(code) {
+  background: transparent !important;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 .commentButton {
   position: absolute;
   right: 8px;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
 import { SideBySideDiffChunk } from './SideBySideDiffChunk';
+import { SyntaxHighlighter } from './SyntaxHighlighter';
 import styles from '../styles/DiffChunk.module.css';
 
 interface DiffChunkProps {
@@ -81,7 +82,10 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                   <td className={styles.lineContent}>
                     <div className={styles.lineWrapper}>
                       <span className={styles.linePrefix}>{getLinePrefix(line)}</span>
-                      <span className={styles.lineText}>{line.content}</span>
+                      <SyntaxHighlighter 
+                        code={line.content}
+                        className={styles.lineText}
+                      />
                       <button
                         className={styles.commentButton}
                         onClick={() =>

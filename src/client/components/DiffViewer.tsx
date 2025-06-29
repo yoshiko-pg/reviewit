@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
 import { InlineComment } from './InlineComment';
 import { useComments } from './CommentContext';
+import { setCurrentFilename } from './SyntaxHighlighter';
 import styles from '../styles/DiffViewer.module.css';
 
 interface DiffViewerProps {
@@ -14,6 +15,11 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
   const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set([0]));
   const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const { onAddComment } = useComments();
+
+  // シンタックスハイライター用にファイル名をセット
+  useEffect(() => {
+    setCurrentFilename(file.path);
+  }, [file.path]);
 
   const toggleChunk = (index: number) => {
     setExpandedChunks((prev) => {

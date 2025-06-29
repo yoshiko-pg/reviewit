@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
+import { SyntaxHighlighter } from './SyntaxHighlighter';
 import styles from '../styles/SideBySideDiffChunk.module.css';
 
 interface SideBySideDiffChunkProps {
@@ -109,14 +110,6 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
   return (
     <div className={styles.chunk}>
       <table className={styles.sideBySideTable}>
-        <thead>
-          <tr>
-            <th className={styles.lineNumber}>Old</th>
-            <th className={styles.content}>Before</th>
-            <th className={styles.lineNumber}>New</th>
-            <th className={styles.content}>After</th>
-          </tr>
-        </thead>
         <tbody>
           {sideBySideLines.map((sideLine, index) => {
             const leftComments = sideLine.oldLineNumber ? getCommentsForLine(sideLine.oldLineNumber) : [];
@@ -136,9 +129,10 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   }`}>
                     {sideLine.oldLine && (
                       <div className={styles.lineWrapper}>
-                        <span className={styles.lineText}>
-                          {sideLine.oldLine.content}
-                        </span>
+                        <SyntaxHighlighter 
+                          code={sideLine.oldLine.content}
+                          className={styles.lineText}
+                        />
                         {sideLine.oldLineNumber && (
                           <button
                             className={styles.commentButton}
@@ -162,9 +156,10 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   }`}>
                     {sideLine.newLine && (
                       <div className={styles.lineWrapper}>
-                        <span className={styles.lineText}>
-                          {sideLine.newLine.content}
-                        </span>
+                        <SyntaxHighlighter 
+                          code={sideLine.newLine.content}
+                          className={styles.lineText}
+                        />
                         {sideLine.newLineNumber && (
                           <button
                             className={styles.commentButton}

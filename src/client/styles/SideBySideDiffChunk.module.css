@@ -13,22 +13,6 @@
   line-height: 20px;
 }
 
-.sideBySideTable thead {
-  background-color: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border);
-}
-
-.sideBySideTable th {
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-primary);
-  border-right: 1px solid var(--border);
-}
-
-.sideBySideTable th:last-child {
-  border-right: none;
-}
 
 .diffRow {
   transition: background-color 0.2s;
@@ -78,6 +62,22 @@
   color: var(--text-primary);
   white-space: pre;
   overflow-x: auto;
+}
+
+.lineText :global(pre) {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.lineText :global(code) {
+  background: transparent !important;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .added {
