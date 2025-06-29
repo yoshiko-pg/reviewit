@@ -12,6 +12,7 @@ interface DiffViewerProps {
 
 export function DiffViewer({ file, comments }: DiffViewerProps) {
   const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set([0]));
+  const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const { onAddComment } = useComments();
 
   const toggleChunk = (index: number) => {
@@ -73,12 +74,28 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
         </div>
 
         <div className={styles.controls}>
-          <button onClick={expandAll} className="btn-secondary">
-            Expand All
-          </button>
-          <button onClick={collapseAll} className="btn-secondary">
-            Collapse All
-          </button>
+          <div className={styles.viewModeToggle}>
+            <button
+              onClick={() => setDiffMode('side-by-side')}
+              className={`btn-secondary ${diffMode === 'side-by-side' ? styles.active : ''}`}
+            >
+              📋 Side by Side
+            </button>
+            <button
+              onClick={() => setDiffMode('inline')}
+              className={`btn-secondary ${diffMode === 'inline' ? styles.active : ''}`}
+            >
+              📝 Inline
+            </button>
+          </div>
+          <div className={styles.chunkControls}>
+            <button onClick={expandAll} className="btn-secondary">
+              Expand All
+            </button>
+            <button onClick={collapseAll} className="btn-secondary">
+              Collapse All
+            </button>
+          </div>
         </div>
       </div>
 
@@ -91,7 +108,12 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
             </div>
 
             {expandedChunks.has(index) && (
-              <DiffChunk chunk={chunk} comments={comments} onAddComment={handleAddComment} />
+              <DiffChunk 
+                chunk={chunk} 
+                comments={comments} 
+                onAddComment={handleAddComment}
+                mode={diffMode}
+              />
             )}
           </div>
         ))}

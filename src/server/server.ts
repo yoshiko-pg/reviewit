@@ -1,6 +1,10 @@
 import express from 'express';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import open from 'open';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { GitDiffParser } from './git-diff.js';
 import { CommentStore } from './comment-store.js';
 
@@ -92,7 +96,8 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (isProduction) {
-    const distPath = join(process.cwd(), 'dist', 'client');
+    // CLI実行ファイルの場所から相対的にクライアントファイルを探す
+    const distPath = join(__dirname, '..', 'client');
     app.use(express.static(distPath));
 
     app.get('*', (_req, res) => {

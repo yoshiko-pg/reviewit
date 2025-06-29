@@ -69,6 +69,23 @@
 
 .controls {
   display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.viewModeToggle {
+  display: flex;
+  gap: 4px;
+}
+
+.viewModeToggle .active {
+  background-color: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.chunkControls {
+  display: flex;
   gap: 8px;
 }
 

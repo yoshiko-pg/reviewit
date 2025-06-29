@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
 import { CommentForm } from './CommentForm';
+import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 import styles from '../styles/DiffChunk.module.css';
 
 interface DiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
   onAddComment: (line: number, body: string) => Promise<void>;
+  mode?: 'side-by-side' | 'inline';
 }
 
-export function DiffChunk({ chunk, comments, onAddComment }: DiffChunkProps) {
+export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: DiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
 
   const getLineClass = (line: DiffLine) => {
@@ -52,6 +54,17 @@ export function DiffChunk({ chunk, comments, onAddComment }: DiffChunkProps) {
   const getCommentsForLine = (lineNumber: number) => {
     return comments.filter((c) => c.line === lineNumber);
   };
+
+  // Use side-by-side component for side-by-side mode
+  if (mode === 'side-by-side') {
+    return (
+      <SideBySideDiffChunk 
+        chunk={chunk}
+        comments={comments}
+        onAddComment={onAddComment}
+      />
+    );
+  }
 
   return (
     <div className={styles.chunk}>
