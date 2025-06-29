@@ -30,6 +30,9 @@ reviewit 6f4a9b7
 # Review HEAD~3
 reviewit HEAD~3
 
+# Review current uncommitted changes
+reviewit .
+
 # Custom port, don't auto-open browser  
 reviewit 6f4a9b7 --port 4300 --no-open
 
@@ -41,7 +44,7 @@ npx reviewit main~1
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch |
+| `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch, or `.` for uncommitted changes |
 | `--port` | auto | Preferred port; falls back if occupied |
 | `--no-open` | false | Don't automatically open browser |
 | `--mode` | inline | Diff mode: `inline` or `side-by-side` |
@@ -87,20 +90,18 @@ pnpm run typecheck
 
 ReviewIt includes an inline commenting system that integrates with Claude Code:
 
-1.️ **Add Comments**: Click the 💬 icon on any diff line to add a comment
-2. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
-3. **Persistent Storage**: Comments are saved in `.reviewit/tmp-comments-*.json` for the session
+1. **Add Comments**: Click on any diff line to add a comment
+2. **Edit Comments**: Edit existing comments with the edit button
+3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
+4. **Copy All**: Use "Copy All Prompt" to copy all comments in a structured format
+5. **Persistent Storage**: Comments are saved in browser localStorage per commit
 
 ### Comment Prompt Format
 
 ```
-📄 src/components/Button.tsx L42
-----
-+ const handleClick = () => {
-+   onClick();  
-+ };
-----
-Comment: "This function name should probably be more specific"
+File: src/components/Button.tsx
+Line: 42
+Comment: This function name should probably be more specific
 ```
 
 ## 🏗️ Architecture
