@@ -3,12 +3,13 @@ import { DiffResponse } from '../types/diff';
 import { FileList } from './components/FileList';
 import { DiffViewer } from './components/DiffViewer';
 import { useLocalComments } from './hooks/useLocalComments';
-import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
+import { ClipboardList, Columns, AlignLeft, Copy, Eye, EyeOff } from 'lucide-react';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
   const [reviewedFiles, setReviewedFiles] = useState<Set<string>>(new Set());
   const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
+  const [ignoreWhitespace, setIgnoreWhitespace] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCopiedAll, setIsCopiedAll] = useState(false);
@@ -18,11 +19,11 @@ function App() {
 
   useEffect(() => {
     fetchDiffData();
-  }, []);
+  }, [ignoreWhitespace]);
 
   const fetchDiffData = async () => {
     try {
-      const response = await fetch('/api/diff');
+      const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
       if (!response.ok) throw new Error('Failed to fetch diff data');
       const data = await response.json();
       setDiffData(data);
@@ -56,10 +57,19 @@ function App() {
   const toggleFileReviewed = (filePath: string) => {
     setReviewedFiles((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(filePath)) {
+      const wasReviewed = newSet.has(filePath);
+
+      if (wasReviewed) {
         newSet.delete(filePath);
       } else {
         newSet.add(filePath);
+        // When marking as reviewed (closing file), scroll to the file header
+        setTimeout(() => {
+          const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
       return newSet;
     });
@@ -126,6 +136,18 @@ function App() {
                 Inline
               </button>
             </div>
+            <button
+              onClick={() => setIgnoreWhitespace(!ignoreWhitespace)}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer border ${
+                ignoreWhitespace
+                  ? 'bg-github-accent text-white border-github-accent'
+                  : 'bg-github-bg-tertiary text-github-text-secondary border-github-border hover:text-github-text-primary hover:border-github-text-muted'
+              }`}
+              title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
+            >
+              {ignoreWhitespace ? <EyeOff size={14} /> : <Eye size={14} />}
+              Ignore Whitespace
+            </button>
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}

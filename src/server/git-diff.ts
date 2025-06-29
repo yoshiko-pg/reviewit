@@ -8,13 +8,27 @@ export class GitDiffParser {
     this.git = simpleGit(repoPath);
   }
 
-  async parseDiff(commitish: string): Promise<DiffResponse> {
+  async parseDiff(commitish: string, ignoreWhitespace = false): Promise<DiffResponse> {
     try {
-      // Resolve commitish to actual commit hash
-      const resolvedCommit = await this.git.revparse([commitish]);
+      let resolvedCommit: string;
+      let diffArgs: string[];
 
-      const diffSummary = await this.git.diffSummary([`${commitish}^`, commitish]);
-      const diffRaw = await this.git.diff([`${commitish}^`, commitish]);
+      if (commitish === '.') {
+        // Show diff between HEAD and working directory (uncommitted changes)
+        resolvedCommit = 'Working Directory (uncommitted changes)';
+        diffArgs = ['HEAD'];
+      } else {
+        // Resolve commitish to actual commit hash
+        resolvedCommit = await this.git.revparse([commitish]);
+        diffArgs = [`${commitish}^`, commitish];
+      }
+
+      if (ignoreWhitespace) {
+        diffArgs.push('-w');
+      }
+
+      const diffSummary = await this.git.diffSummary(diffArgs);
+      const diffRaw = await this.git.diff(diffArgs);
 
       const files = await this.parseUnifiedDiff(diffRaw, diffSummary.files);
 
@@ -142,6 +156,11 @@ export class GitDiffParser {
 
   async validateCommit(commitish: string): Promise<boolean> {
     try {
+      if (commitish === '.') {
+        // For working directory, just check if we're in a git repo
+        await this.git.status();
+        return true;
+      }
       await this.git.show([commitish, '--name-only']);
       return true;
     } catch {

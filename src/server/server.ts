@@ -6,21 +6,21 @@ import open from 'open';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { GitDiffParser } from './git-diff.js';
-import { CommentStore } from './comment-store.js';
 
 interface ServerOptions {
   commitish: string;
   preferredPort?: number;
   openBrowser?: boolean;
   mode?: string;
+  ignoreWhitespace?: boolean;
 }
 
 export async function startServer(options: ServerOptions): Promise<{ port: number; url: string }> {
   const app = express();
   const parser = new GitDiffParser();
-  const commentStore = new CommentStore();
 
   let diffData: any = null;
+  let currentIgnoreWhitespace = options.ignoreWhitespace || false;
 
   app.use(express.json());
 
@@ -36,71 +36,17 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     throw new Error(`Invalid or non-existent commit: ${options.commitish}`);
   }
 
-  diffData = await parser.parseDiff(options.commitish);
-  await commentStore.loadFromFile();
+  diffData = await parser.parseDiff(options.commitish, currentIgnoreWhitespace);
 
-  app.get('/api/diff', (_req, res) => {
-    res.json(diffData);
-  });
+  app.get('/api/diff', async (req, res) => {
+    const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
-  app.get('/api/comments', async (_req, res) => {
-    const comments = await commentStore.getComments();
-    res.json(comments);
-  });
-
-  app.post('/api/comments', async (req, res) => {
-    try {
-      const { file, line, body } = req.body;
-
-      if (!file || typeof line !== 'number' || !body) {
-        return res.status(400).json({ error: 'Missing required fields: file, line, body' });
-      }
-
-      const comment = await commentStore.addComment(file, line, body);
-      res.json(comment);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to save comment' });
+    if (ignoreWhitespace !== currentIgnoreWhitespace) {
+      currentIgnoreWhitespace = ignoreWhitespace;
+      diffData = await parser.parseDiff(options.commitish, ignoreWhitespace);
     }
-  });
 
-  app.post('/api/comments/:id/prompt', async (req, res) => {
-    try {
-      const comments = await commentStore.getComments();
-      const comment = comments.find((c) => c.id === req.params.id);
-
-      if (!comment) {
-        return res.status(404).json({ error: 'Comment not found' });
-      }
-
-      const targetFile = diffData.files.find((f: any) => f.path === comment.file);
-      if (!targetFile) {
-        return res.status(404).json({ error: 'File not found in diff' });
-      }
-
-      let diffContent = '';
-      for (const chunk of targetFile.chunks) {
-        diffContent += chunk.header + '\n';
-        for (const line of chunk.lines) {
-          const prefix = line.type === 'add' ? '+' : line.type === 'delete' ? '-' : ' ';
-          diffContent += prefix + line.content + '\n';
-        }
-      }
-
-      const prompt = commentStore.generatePrompt(comment, diffContent);
-      res.json({ prompt });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to generate prompt' });
-    }
-  });
-
-  app.post('/api/comments/all/prompt', async (_, res) => {
-    try {
-      const comments = await commentStore.getComments();
-      const prompt = commentStore.generateAllCommentsPrompt(comments, diffData.files);
-      res.json({ prompt });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to generate all comments prompt' });
-    }
+    res.json({ ...diffData, ignoreWhitespace });
   });
 
   // Always runs in production mode when distributed as a CLI tool

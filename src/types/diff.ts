@@ -26,6 +26,7 @@ export interface DiffLine {
 export interface DiffResponse {
   commit: string;
   files: DiffFile[];
+  ignoreWhitespace?: boolean;
 }
 
 export interface Comment {

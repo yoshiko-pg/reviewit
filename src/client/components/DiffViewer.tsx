@@ -99,6 +99,14 @@ export function DiffViewer({
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium px-1 py-0.5 rounded text-github-accent bg-green-100/10">
+              +{file.additions}
+            </span>
+            <span className="font-medium px-1 py-0.5 rounded text-github-danger bg-red-100/10">
+              -{file.deletions}
+            </span>
+          </div>
           <button
             onClick={() => onToggleReviewed(file.path)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
