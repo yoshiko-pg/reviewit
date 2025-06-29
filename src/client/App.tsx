@@ -13,9 +13,29 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCopiedAll, setIsCopiedAll] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
 
   const { comments, addComment, removeComment, generatePrompt, generateAllCommentsPrompt } =
     useLocalComments(diffData?.commit);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(200, Math.min(600, startWidth + (e.clientX - startX)));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   useEffect(() => {
     fetchDiffData();
@@ -67,7 +87,7 @@ function App() {
         setTimeout(() => {
           const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: 'instant', block: 'start' });
           }
         }, 100);
       }
@@ -104,12 +124,16 @@ function App() {
   return (
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
-        <div className="w-80 min-w-80 px-4 py-3 border-r border-github-border">
+        <div
+          className="px-4 py-3 border-r border-github-border"
+          style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '600px' }}
+        >
           <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
             <ClipboardList size={20} />
             ReviewIt
           </h1>
         </div>
+        <div className="w-1" />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
@@ -172,7 +196,10 @@ function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-80 min-w-80 bg-github-bg-secondary border-r border-github-border overflow-y-auto">
+        <aside
+          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
+          style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '600px' }}
+        >
           <FileList
             files={diffData.files}
             onScrollToFile={(filePath) => {
@@ -188,6 +215,12 @@ function App() {
             onToggleReviewed={toggleFileReviewed}
           />
         </aside>
+
+        <div
+          className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
+          onMouseDown={handleMouseDown}
+          title="Drag to resize file list"
+        />
 
         <main className="flex-1 overflow-y-auto">
           {diffData.files.map((file) => (
