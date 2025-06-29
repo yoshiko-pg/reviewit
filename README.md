@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="public/logo.png" alt="ReviewIt" width="400">
+</div>
+
 # ReviewIt 🔍
 
 A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal! 🚀
