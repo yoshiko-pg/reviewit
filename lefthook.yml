@@ -1,0 +1,28 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: '*.{ts,tsx}'
+      run: npm run lint
+      fail_text: 'Linting failed. Please fix the issues and try again.'
+
+    format:
+      glob: '*.{ts,tsx,js,jsx,json,css}'
+      run: npm run format
+      fail_text: 'Code formatting failed. Please check the issues and try again.'
+
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: npm run typecheck
+      fail_text: 'TypeScript compilation failed. Please fix type errors and try again.'
+
+    test:
+      glob: 'src/**/*.{ts,tsx}'
+      run: npm test
+      fail_text: 'Tests failed. Please fix failing tests and try again.'
+
+pre-push:
+  commands:
+    build:
+      run: npm run build
+      fail_text: 'Build failed. Please fix build errors before pushing.'

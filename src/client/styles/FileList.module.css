@@ -1,0 +1,123 @@
+.fileList {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-tertiary);
+}
+
+.header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.files {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.file {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-muted);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.file:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.file.selected {
+  background-color: var(--blue-bg);
+  border-left: 3px solid var(--blue);
+}
+
+.fileHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.fileIcon {
+  font-size: 12px;
+}
+
+.fileName {
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commentBadge {
+  background-color: var(--yellow-bg);
+  color: var(--yellow);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.filePath {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.stat {
+  font-weight: 500;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.stat.additions {
+  color: var(--green);
+  background-color: var(--green-bg);
+}
+
+.stat.deletions {
+  color: var(--red);
+  background-color: var(--red-bg);
+}
+
+.status {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.added {
+  color: var(--green);
+}
+
+.status.deleted {
+  color: var(--red);
+}
+
+.status.renamed {
+  color: var(--yellow);
+}
+
+.status.modified {
+  color: var(--text-muted);
+}

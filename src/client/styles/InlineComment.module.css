@@ -1,0 +1,67 @@
+.inlineComment {
+  margin: 8px 16px;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  border-left: 3px solid var(--blue);
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.commentMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+.filePath {
+  font-family: ui-monospace, monospace;
+  background-color: var(--bg-secondary);
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineNumber {
+  background-color: var(--bg-secondary);
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.timestamp {
+  color: var(--text-muted);
+}
+
+.copyButton {
+  font-size: 11px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.copyButton:hover {
+  background-color: var(--blue-bg);
+  border-color: var(--blue);
+}
+
+.commentBody {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}

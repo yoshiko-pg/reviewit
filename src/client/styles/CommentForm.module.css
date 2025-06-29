@@ -1,0 +1,50 @@
+.commentForm {
+  margin: 8px 12px;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.formTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.formHint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.commentInput {
+  width: 100%;
+  min-height: 60px;
+  margin-bottom: 8px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.commentInput:focus {
+  min-height: 80px;
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.formActions button {
+  font-size: 12px;
+  padding: 6px 12px;
+}

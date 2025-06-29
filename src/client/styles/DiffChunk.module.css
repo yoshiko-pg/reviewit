@@ -1,0 +1,146 @@
+.chunk {
+  background-color: var(--bg-primary);
+}
+
+.diffTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.diffLine {
+  transition: background-color 0.2s;
+}
+
+.diffLine:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.diffLine:hover .commentButton {
+  opacity: 1;
+}
+
+.diffLine.added {
+  background-color: var(--green-bg);
+}
+
+.diffLine.deleted {
+  background-color: var(--red-bg);
+}
+
+.diffLine.normal {
+  background-color: transparent;
+}
+
+.lineNumber {
+  width: 50px;
+  padding: 0 8px;
+  text-align: right;
+  color: var(--text-muted);
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-muted);
+  user-select: none;
+  vertical-align: top;
+}
+
+.lineContent {
+  padding: 0;
+  width: 100%;
+  position: relative;
+  vertical-align: top;
+}
+
+.lineWrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 20px;
+}
+
+.linePrefix {
+  width: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-muted);
+}
+
+.added .linePrefix {
+  color: var(--green);
+  background-color: var(--green-bg);
+}
+
+.deleted .linePrefix {
+  color: var(--red);
+  background-color: var(--red-bg);
+}
+
+.lineText {
+  flex: 1;
+  padding: 0 12px;
+  color: var(--text-primary);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.commentButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 24px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.commentButton:hover {
+  background-color: var(--bg-secondary);
+}
+
+.commentRow {
+  background-color: var(--bg-secondary);
+}
+
+.commentCell {
+  padding: 0;
+  border-top: 1px solid var(--border-muted);
+}
+
+.existingComment {
+  margin: 8px 12px;
+  padding: 8px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.commentMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.commentBody {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
