@@ -84,11 +84,12 @@ export function FileList({
                   className={styles.copyButton}
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(file.path)
+                    navigator.clipboard
+                      .writeText(file.path)
                       .then(() => {
                         console.log('File path copied to clipboard:', file.path);
                       })
-                      .catch(err => {
+                      .catch((err) => {
                         console.error('Failed to copy file path:', err);
                       });
                   }}
