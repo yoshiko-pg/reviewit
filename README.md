@@ -52,8 +52,15 @@ npx reviewit main~1
 # Install dependencies
 pnpm install
 
-# Start development server
+# Start development server (with hot reload)
+# This runs both Vite dev server and CLI with NODE_ENV=development
 pnpm run dev
+
+# For development CLI only (connects to separate Vite server)
+pnpm run dev:cli <commit-ish>
+
+# Build and start production server
+pnpm run start HEAD
 
 # Build for production
 pnpm run build
@@ -66,6 +73,13 @@ pnpm run lint
 pnpm run format
 pnpm run typecheck
 ```
+
+### Development Workflow
+
+- **`pnpm run dev`**: Starts both Vite dev server (with hot reload) and CLI server simultaneously
+- **`pnpm run start <commit>`**: Builds everything and starts production server (for testing final build)
+- **Development mode**: Uses Vite's dev server for hot reload and fast development
+- **Production mode**: Serves built static files (used by npx and production builds)
 
 ## 💬 Comment System
 
