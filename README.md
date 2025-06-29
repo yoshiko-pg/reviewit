@@ -54,7 +54,9 @@ pnpm install
 
 # Start development server (with hot reload)
 # This runs both Vite dev server and CLI with NODE_ENV=development
-pnpm run dev
+pnpm run dev                    # defaults to HEAD
+pnpm run dev HEAD~3            # review HEAD~3
+pnpm run dev main              # review main branch
 
 # For development CLI only (connects to separate Vite server)
 pnpm run dev:cli <commit-ish>

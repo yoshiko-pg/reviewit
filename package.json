@@ -19,7 +19,7 @@
     "url": "https://github.com/yoshiko-pg/reviewit/issues"
   },
   "scripts": {
-    "dev": "concurrently \"pnpm run dev:cli HEAD --no-open\" \"sleep 1 && vite --open\"",
+    "dev": "node scripts/dev.js",
     "dev:cli": "tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js",
     "build": "tsc && vite build",
     "build:cli": "tsc --project tsconfig.cli.json",
@@ -57,7 +57,6 @@
     "@typescript-eslint/parser": "^6.15.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.21",
-    "concurrently": "^9.2.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
