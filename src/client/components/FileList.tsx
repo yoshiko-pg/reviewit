@@ -3,12 +3,11 @@ import styles from '../styles/FileList.module.css';
 
 interface FileListProps {
   files: DiffFile[];
-  selectedFile: string | null;
-  onSelectFile: (path: string) => void;
+  onScrollToFile: (path: string) => void;
   comments: Comment[];
 }
 
-export function FileList({ files, selectedFile, onSelectFile, comments }: FileListProps) {
+export function FileList({ files, onScrollToFile, comments }: FileListProps) {
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
       case 'added':
@@ -52,8 +51,8 @@ export function FileList({ files, selectedFile, onSelectFile, comments }: FileLi
           return (
             <div
               key={file.path}
-              className={`${styles.file} ${selectedFile === file.path ? styles.selected : ''}`}
-              onClick={() => onSelectFile(file.path)}
+              className={styles.file}
+              onClick={() => onScrollToFile(file.path)}
             >
               <div className={styles.fileHeader}>
                 <span className={styles.fileIcon}>{getFileIcon(file.status)}</span>

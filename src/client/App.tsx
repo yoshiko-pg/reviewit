@@ -7,7 +7,6 @@ import styles from './styles/App.module.css';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,9 +22,6 @@ function App() {
       if (!response.ok) throw new Error('Failed to fetch diff data');
       const data = await response.json();
       setDiffData(data);
-      if (data.files.length > 0) {
-        setSelectedFile(data.files[0].path);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -129,19 +125,29 @@ function App() {
           <aside className={styles.sidebar}>
             <FileList
               files={diffData.files}
-              selectedFile={selectedFile}
-              onSelectFile={setSelectedFile}
+              onScrollToFile={(filePath) => {
+                const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
               comments={comments}
             />
           </aside>
 
           <main className={styles.main}>
-            {selectedFile && (
-              <DiffViewer
-                file={diffData.files.find((f) => f.path === selectedFile)!}
-                comments={comments.filter((c) => c.file === selectedFile)}
-              />
-            )}
+            {diffData.files.map((file) => (
+              <div 
+                key={file.path} 
+                id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                className={styles.fileSection}
+              >
+                <DiffViewer
+                  file={file}
+                  comments={comments.filter((c) => c.file === file.path)}
+                />
+              </div>
+            ))}
           </main>
         </div>
       </div>

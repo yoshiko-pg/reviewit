@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DiffFile, Comment } from '../../types/diff';
 import { DiffChunk } from './DiffChunk';
-import { InlineComment } from './InlineComment';
 import { useComments } from './CommentContext';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import styles from '../styles/DiffViewer.module.css';
@@ -125,17 +124,6 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
         ))}
       </div>
 
-      <div className={styles.commentsSection}>
-        {comments.length > 0 && (
-          <div className={styles.commentsHeader}>
-            <h3>Comments ({comments.length})</h3>
-          </div>
-        )}
-
-        {comments.map((comment) => (
-          <InlineComment key={comment.id} comment={comment} />
-        ))}
-      </div>
     </div>
   );
 }
