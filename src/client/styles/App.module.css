@@ -94,3 +94,14 @@
 .fileSection {
   margin-bottom: 24px;
 }
+
+.viewModeToggle {
+  display: flex;
+  gap: 4px;
+}
+
+.viewModeToggle .active {
+  background-color: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}

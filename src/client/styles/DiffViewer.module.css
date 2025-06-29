@@ -67,6 +67,56 @@
   letter-spacing: 0.5px;
 }
 
+.fileActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewedCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--green);
+}
+
+.viewedLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.copyButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.copyButton:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 16px;
+  color: var(--text-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.menuButton:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
 .controls {
   display: flex;
   align-items: center;

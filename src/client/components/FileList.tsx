@@ -80,23 +80,6 @@ export function FileList({
                 >
                   {file.path.split('/').pop()}
                 </span>
-                <button
-                  className={styles.copyButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard
-                      .writeText(file.path)
-                      .then(() => {
-                        console.log('File path copied to clipboard:', file.path);
-                      })
-                      .catch((err) => {
-                        console.error('Failed to copy file path:', err);
-                      });
-                  }}
-                  title="Copy file path"
-                >
-                  📋
-                </button>
                 {commentCount > 0 && <span className={styles.commentBadge}>💬 {commentCount}</span>}
               </div>
 

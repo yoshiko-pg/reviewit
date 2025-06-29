@@ -120,7 +120,9 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
               : [];
             // コメントの重複を除去（同じIDのコメントは一度だけ表示）
             const allComments = Array.from(
-              new Map([...leftComments, ...rightComments].map(comment => [comment.id, comment])).values()
+              new Map(
+                [...leftComments, ...rightComments].map((comment) => [comment.id, comment])
+              ).values()
             );
 
             return (

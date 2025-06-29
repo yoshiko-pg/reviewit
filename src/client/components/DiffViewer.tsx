@@ -8,11 +8,13 @@ import styles from '../styles/DiffViewer.module.css';
 interface DiffViewerProps {
   file: DiffFile;
   comments: Comment[];
+  diffMode: 'side-by-side' | 'inline';
+  reviewedFiles: Set<string>;
+  onToggleReviewed: (path: string) => void;
 }
 
-export function DiffViewer({ file, comments }: DiffViewerProps) {
+export function DiffViewer({ file, comments, diffMode, reviewedFiles, onToggleReviewed }: DiffViewerProps) {
   const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set([0]));
-  const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const { onAddComment } = useComments();
 
   // シンタックスハイライター用にファイル名をセット
@@ -72,35 +74,44 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
           )}
         </div>
 
-        <div className={styles.fileStats}>
-          <span className={styles.additions}>+{file.additions}</span>
-          <span className={styles.deletions}>-{file.deletions}</span>
-          <span className={styles.status}>{file.status}</span>
+        <div className={styles.fileActions}>
+          <input
+            type="checkbox"
+            className={styles.viewedCheckbox}
+            checked={reviewedFiles.has(file.path)}
+            onChange={() => onToggleReviewed(file.path)}
+            title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
+          />
+          <span className={styles.viewedLabel}>Viewed</span>
+          <button
+            className={styles.copyButton}
+            onClick={() => {
+              navigator.clipboard.writeText(file.path)
+                .then(() => {
+                  console.log('File path copied to clipboard:', file.path);
+                })
+                .catch(err => {
+                  console.error('Failed to copy file path:', err);
+                });
+            }}
+            title="Copy file path"
+          >
+            📋
+          </button>
+          <button className={styles.menuButton} title="More options">
+            ⋯
+          </button>
         </div>
+      </div>
 
-        <div className={styles.controls}>
-          <div className={styles.viewModeToggle}>
-            <button
-              onClick={() => setDiffMode('side-by-side')}
-              className={`btn-secondary ${diffMode === 'side-by-side' ? styles.active : ''}`}
-            >
-              📋 Side by Side
-            </button>
-            <button
-              onClick={() => setDiffMode('inline')}
-              className={`btn-secondary ${diffMode === 'inline' ? styles.active : ''}`}
-            >
-              📝 Inline
-            </button>
-          </div>
-          <div className={styles.chunkControls}>
-            <button onClick={expandAll} className="btn-secondary">
-              Expand All
-            </button>
-            <button onClick={collapseAll} className="btn-secondary">
-              Collapse All
-            </button>
-          </div>
+      <div className={styles.controls}>
+        <div className={styles.chunkControls}>
+          <button onClick={expandAll} className="btn-secondary">
+            Expand All
+          </button>
+          <button onClick={collapseAll} className="btn-secondary">
+            Collapse All
+          </button>
         </div>
       </div>
 

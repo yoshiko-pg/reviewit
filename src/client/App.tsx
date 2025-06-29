@@ -9,6 +9,7 @@ function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [reviewedFiles, setReviewedFiles] = useState<Set<string>>(new Set());
+  const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,6 +133,20 @@ function App() {
               {diffData.files.length} file{diffData.files.length !== 1 ? 's' : ''} changed
             </span>
           </div>
+          <div className={styles.viewModeToggle}>
+            <button
+              onClick={() => setDiffMode('side-by-side')}
+              className={`btn-secondary ${diffMode === 'side-by-side' ? styles.active : ''}`}
+            >
+              📋 Side by Side
+            </button>
+            <button
+              onClick={() => setDiffMode('inline')}
+              className={`btn-secondary ${diffMode === 'inline' ? styles.active : ''}`}
+            >
+              📝 Inline
+            </button>
+          </div>
         </header>
 
         <div className={styles.content}>
@@ -159,7 +174,13 @@ function App() {
                 id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
                 className={styles.fileSection}
               >
-                <DiffViewer file={file} comments={comments.filter((c) => c.file === file.path)} />
+                <DiffViewer 
+                  file={file} 
+                  comments={comments.filter((c) => c.file === file.path)}
+                  diffMode={diffMode}
+                  reviewedFiles={reviewedFiles}
+                  onToggleReviewed={toggleFileReviewed}
+                />
               </div>
             ))}
           </main>
