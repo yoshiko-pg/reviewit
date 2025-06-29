@@ -30,7 +30,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install",
-    "prepublishOnly": "pnpm run build && pnpm run build:cli"
+    "prepublishOnly": "NODE_ENV=production pnpm run build && pnpm run build:cli"
   },
   "dependencies": {
     "commander": "^11.1.0",

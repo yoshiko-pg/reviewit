@@ -44,7 +44,7 @@ npx reviewit main~1
 | `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch |
 | `--port` | auto | Preferred port; falls back if occupied |
 | `--no-open` | false | Don't automatically open browser |
-| `--mode` | side-by-side | Diff mode: `inline` or `side-by-side` |
+| `--mode` | inline | Diff mode: `inline` or `side-by-side` |
 
 ## 🛠️ Development
 
@@ -84,7 +84,7 @@ ReviewIt includes an inline commenting system that integrates with Claude Code:
 +   onClick();  
 + };
 ----
-Comment: "This function name could be more specific"
+コメント: 「この関数名はもっと具体的にした方がいいかも」
 ```
 
 ## 🏗️ Architecture
