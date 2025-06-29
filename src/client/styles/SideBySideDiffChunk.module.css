@@ -59,8 +59,9 @@
 .lineText {
   flex: 1;
   color: var(--text-primary);
-  white-space: pre;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .lineText :global(pre) {

@@ -82,8 +82,9 @@
   flex: 1;
   padding: 0 12px;
   color: var(--text-primary);
-  white-space: pre;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .lineText :global(pre) {
