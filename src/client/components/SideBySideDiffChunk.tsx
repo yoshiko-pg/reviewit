@@ -223,14 +223,21 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                 )}
 
                 {/* Comment form row */}
-                {(commentingLine === sideLine.oldLineNumber ||
-                  commentingLine === sideLine.newLineNumber) && (
-                  <tr className="bg-github-bg-secondary">
-                    <td colSpan={4} className="p-0 border-t border-github-border">
-                      <CommentForm onSubmit={handleSubmitComment} onCancel={handleCancelComment} />
-                    </td>
-                  </tr>
-                )}
+                {commentingLine &&
+                  ((commentingLine === sideLine.oldLineNumber &&
+                    sideLine.oldLine?.type === 'delete') ||
+                    (commentingLine === sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' ||
+                        sideLine.newLine?.type === 'normal'))) && (
+                    <tr className="bg-github-bg-secondary">
+                      <td colSpan={4} className="p-0 border-t border-github-border">
+                        <CommentForm
+                          onSubmit={handleSubmitComment}
+                          onCancel={handleCancelComment}
+                        />
+                      </td>
+                    </tr>
+                  )}
               </React.Fragment>
             );
           })}
