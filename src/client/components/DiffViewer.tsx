@@ -114,9 +114,9 @@ export function DiffViewer({ file, comments }: DiffViewerProps) {
             </div>
 
             {expandedChunks.has(index) && (
-              <DiffChunk 
-                chunk={chunk} 
-                comments={comments} 
+              <DiffChunk
+                chunk={chunk}
+                comments={comments}
                 onAddComment={handleAddComment}
                 mode={diffMode}
               />

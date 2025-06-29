@@ -36,7 +36,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
   };
 
   const getCommentsForLine = (lineNumber: number) => {
-    return comments.filter(c => c.line === lineNumber);
+    return comments.filter((c) => c.line === lineNumber);
   };
 
   // Convert unified diff to side-by-side format
@@ -112,24 +112,31 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
       <table className={styles.sideBySideTable}>
         <tbody>
           {sideBySideLines.map((sideLine, index) => {
-            const leftComments = sideLine.oldLineNumber ? getCommentsForLine(sideLine.oldLineNumber) : [];
-            const rightComments = sideLine.newLineNumber ? getCommentsForLine(sideLine.newLineNumber) : [];
+            const leftComments = sideLine.oldLineNumber
+              ? getCommentsForLine(sideLine.oldLineNumber)
+              : [];
+            const rightComments = sideLine.newLineNumber
+              ? getCommentsForLine(sideLine.newLineNumber)
+              : [];
             const allComments = [...leftComments, ...rightComments];
 
             return (
               <React.Fragment key={index}>
                 <tr className={styles.diffRow}>
                   {/* Old side */}
-                  <td className={styles.lineNumber}>
-                    {sideLine.oldLineNumber || ''}
-                  </td>
-                  <td className={`${styles.lineContent} ${
-                    sideLine.oldLine?.type === 'delete' ? styles.deleted : 
-                    sideLine.oldLine?.type === 'normal' ? styles.normal : styles.empty
-                  }`}>
+                  <td className={styles.lineNumber}>{sideLine.oldLineNumber || ''}</td>
+                  <td
+                    className={`${styles.lineContent} ${
+                      sideLine.oldLine?.type === 'delete'
+                        ? styles.deleted
+                        : sideLine.oldLine?.type === 'normal'
+                          ? styles.normal
+                          : styles.empty
+                    }`}
+                  >
                     {sideLine.oldLine && (
                       <div className={styles.lineWrapper}>
-                        <PrismSyntaxHighlighter 
+                        <PrismSyntaxHighlighter
                           code={sideLine.oldLine.content}
                           className={styles.lineText}
                         />
@@ -147,16 +154,19 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                   </td>
 
                   {/* New side */}
-                  <td className={styles.lineNumber}>
-                    {sideLine.newLineNumber || ''}
-                  </td>
-                  <td className={`${styles.lineContent} ${
-                    sideLine.newLine?.type === 'add' ? styles.added : 
-                    sideLine.newLine?.type === 'normal' ? styles.normal : styles.empty
-                  }`}>
+                  <td className={styles.lineNumber}>{sideLine.newLineNumber || ''}</td>
+                  <td
+                    className={`${styles.lineContent} ${
+                      sideLine.newLine?.type === 'add'
+                        ? styles.added
+                        : sideLine.newLine?.type === 'normal'
+                          ? styles.normal
+                          : styles.empty
+                    }`}
+                  >
                     {sideLine.newLine && (
                       <div className={styles.lineWrapper}>
-                        <PrismSyntaxHighlighter 
+                        <PrismSyntaxHighlighter
                           code={sideLine.newLine.content}
                           className={styles.lineText}
                         />
@@ -178,7 +188,7 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                 {allComments.length > 0 && (
                   <tr className={styles.commentRow}>
                     <td colSpan={4} className={styles.commentCell}>
-                      {allComments.map(comment => (
+                      {allComments.map((comment) => (
                         <div key={comment.id} className={styles.existingComment}>
                           <div className={styles.commentHeader}>
                             <span className={styles.commentMeta}>
@@ -193,7 +203,8 @@ export function SideBySideDiffChunk({ chunk, comments, onAddComment }: SideBySid
                 )}
 
                 {/* Comment form row */}
-                {(commentingLine === sideLine.oldLineNumber || commentingLine === sideLine.newLineNumber) && (
+                {(commentingLine === sideLine.oldLineNumber ||
+                  commentingLine === sideLine.newLineNumber) && (
                   <tr className={styles.commentRow}>
                     <td colSpan={4} className={styles.commentCell}>
                       <CommentForm onSubmit={handleSubmitComment} onCancel={handleCancelComment} />

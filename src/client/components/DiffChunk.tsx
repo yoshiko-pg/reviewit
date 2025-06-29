@@ -58,13 +58,7 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
 
   // Use side-by-side component for side-by-side mode
   if (mode === 'side-by-side') {
-    return (
-      <SideBySideDiffChunk 
-        chunk={chunk}
-        comments={comments}
-        onAddComment={onAddComment}
-      />
-    );
+    return <SideBySideDiffChunk chunk={chunk} comments={comments} onAddComment={onAddComment} />;
   }
 
   return (
@@ -82,10 +76,7 @@ export function DiffChunk({ chunk, comments, onAddComment, mode = 'inline' }: Di
                   <td className={styles.lineContent}>
                     <div className={styles.lineWrapper}>
                       <span className={styles.linePrefix}>{getLinePrefix(line)}</span>
-                      <PrismSyntaxHighlighter 
-                        code={line.content}
-                        className={styles.lineText}
-                      />
+                      <PrismSyntaxHighlighter code={line.content} className={styles.lineText} />
                       <button
                         className={styles.commentButton}
                         onClick={() =>

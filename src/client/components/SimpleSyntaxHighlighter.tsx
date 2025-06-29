@@ -8,11 +8,12 @@ interface SimpleSyntaxHighlighterProps {
 
 // 簡単なJavaScript/TypeScriptハイライト
 function highlightJavaScript(code: string): string {
-  const keywords = /\b(const|let|var|function|return|if|else|for|while|class|import|export|default|async|await|try|catch|finally|throw|new|this|typeof|instanceof)\b/g;
+  const keywords =
+    /\b(const|let|var|function|return|if|else|for|while|class|import|export|default|async|await|try|catch|finally|throw|new|this|typeof|instanceof)\b/g;
   const strings = /(["'`])((?:\\.|(?!\1)[^\\])*?)\1/g;
   const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm;
   const numbers = /\b\d+\.?\d*\b/g;
-  
+
   return code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -29,7 +30,7 @@ function highlightJSON(code: string): string {
   const keys = /("(?:\\.|[^"\\])*")(\s*:)/g;
   const numbers = /\b-?\d+\.?\d*\b/g;
   const booleans = /\b(true|false|null)\b/g;
-  
+
   return code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -47,7 +48,7 @@ function highlightCSS(code: string): string {
   const hexColors = /(#[0-9a-fA-F]{3,8})\b/g;
   const properties = /(\b[a-z-]+)(\s*:)/g;
   const values = /:\s*([^;{}]+;)/g;
-  
+
   return code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -61,16 +62,16 @@ function highlightCSS(code: string): string {
 
 function detectLanguage(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase();
-  
+
   const extensionMap: Record<string, string> = {
-    'ts': 'typescript',
-    'tsx': 'typescript',
-    'js': 'javascript',
-    'jsx': 'javascript',
-    'json': 'json',
-    'css': 'css',
-    'scss': 'css',
-    'html': 'html',
+    ts: 'typescript',
+    tsx: 'typescript',
+    js: 'javascript',
+    jsx: 'javascript',
+    json: 'json',
+    css: 'css',
+    scss: 'css',
+    html: 'html',
   };
 
   return extensionMap[ext || ''] || 'text';
@@ -82,10 +83,14 @@ export function setCurrentFilename(filename: string) {
   currentFilename = filename;
 }
 
-export function SimpleSyntaxHighlighter({ code, language, className }: SimpleSyntaxHighlighterProps) {
+export function SimpleSyntaxHighlighter({
+  code,
+  language,
+  className,
+}: SimpleSyntaxHighlighterProps) {
   const highlightedCode = useMemo(() => {
     const lang = language || detectLanguage(currentFilename);
-    
+
     try {
       switch (lang) {
         case 'javascript':
@@ -104,10 +109,5 @@ export function SimpleSyntaxHighlighter({ code, language, className }: SimpleSyn
     }
   }, [code, language]);
 
-  return (
-    <span 
-      className={className}
-      dangerouslySetInnerHTML={{ __html: highlightedCode }}
-    />
-  );
+  return <span className={className} dangerouslySetInnerHTML={{ __html: highlightedCode }} />;
 }

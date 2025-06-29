@@ -21,7 +21,7 @@ describe('CommentStore', () => {
 
     it.skip('should generate unique IDs for comments', async () => {
       const comment1 = await store.addComment('src/test.ts', 42, 'Comment 1');
-      await new Promise(resolve => setTimeout(resolve, 1)); // Ensure different timestamps
+      await new Promise((resolve) => setTimeout(resolve, 1)); // Ensure different timestamps
       const comment2 = await store.addComment('src/test.ts', 42, 'Comment 2');
 
       expect(comment1.id).not.toBe(comment2.id);
