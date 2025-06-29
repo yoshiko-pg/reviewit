@@ -160,7 +160,11 @@ function App() {
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
           className="px-4 py-3 border-r border-github-border"
-          style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '600px' }}
+          style={{
+            width: `${sidebarWidth}px`,
+            minWidth: '200px',
+            maxWidth: '600px',
+          }}
         >
           <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
             <ClipboardList size={20} />
@@ -219,7 +223,8 @@ function App() {
               </code>
             </span>
             <span>
-              {diffData.files.length} file{diffData.files.length !== 1 ? 's' : ''} changed
+              {diffData.files.length} file
+              {diffData.files.length !== 1 ? 's' : ''} changed
             </span>
           </div>
         </div>
@@ -228,7 +233,11 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         <aside
           className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
-          style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '600px' }}
+          style={{
+            width: `${sidebarWidth}px`,
+            minWidth: '200px',
+            maxWidth: '600px',
+          }}
         >
           <FileList
             files={diffData.files}

@@ -31,7 +31,12 @@ interface TreeNode {
 }
 
 function buildFileTree(files: DiffFile[]): TreeNode {
-  const root: TreeNode = { name: '', path: '', isDirectory: true, children: [] };
+  const root: TreeNode = {
+    name: '',
+    path: '',
+    isDirectory: true,
+    children: [],
+  };
 
   files.forEach((file) => {
     const parts = file.path.split('/');
@@ -119,7 +124,10 @@ export function FileList({
     return null;
   };
 
-  const filteredFileTree = filterTreeNode(fileTree) || { ...fileTree, children: [] };
+  const filteredFileTree = filterTreeNode(fileTree) || {
+    ...fileTree,
+    children: [],
+  };
 
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {

@@ -17,7 +17,7 @@ A lightweight command-line tool that spins up a local web server to display Git 
 # Global install
 npm install -g reviewit
 
-# Or use npx (no installation needed) 
+# Or use npx (no installation needed)
 npx reviewit <commit-ish>
 ```
 
@@ -30,7 +30,7 @@ reviewit 6f4a9b7
 # Review HEAD~3
 reviewit HEAD~3
 
-# Custom port, don't auto-open browser  
+# Custom port, don't auto-open browser
 reviewit 6f4a9b7 --port 4300 --no-open
 
 # Via npx
@@ -39,12 +39,12 @@ npx reviewit main~1
 
 ### ⚙️ CLI Options
 
-| Flag | Default | Description |
-|------|---------|-------------|
+| Flag           | Default    | Description                                  |
+| -------------- | ---------- | -------------------------------------------- |
 | `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch |
-| `--port` | auto | Preferred port; falls back if occupied |
-| `--no-open` | false | Don't automatically open browser |
-| `--mode` | inline | Diff mode: `inline` or `side-by-side` |
+| `--port`       | auto       | Preferred port; falls back if occupied       |
+| `--no-open`    | false      | Don't automatically open browser             |
+| `--mode`       | inline     | Diff mode: `inline` or `side-by-side`        |
 
 ## 🛠️ Development
 
@@ -104,7 +104,7 @@ Comment: This function name should probably be more specific
 ## 🏗️ Architecture
 
 - **CLI**: Commander.js for argument parsing
-- **Backend**: Express server with simple-git for diff processing  
+- **Backend**: Express server with simple-git for diff processing
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 with GitHub-like dark theme
 - **Testing**: Vitest for unit tests
