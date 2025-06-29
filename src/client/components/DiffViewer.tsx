@@ -22,6 +22,7 @@ interface DiffViewerProps {
   onAddComment: (file: string, line: number, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
+  onUpdateComment: (commentId: string, newBody: string) => void;
 }
 
 export function DiffViewer({
@@ -33,6 +34,7 @@ export function DiffViewer({
   onAddComment,
   onGeneratePrompt,
   onRemoveComment,
+  onUpdateComment,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
 
@@ -135,6 +137,7 @@ export function DiffViewer({
                 onAddComment={handleAddComment}
                 onGeneratePrompt={onGeneratePrompt}
                 onRemoveComment={onRemoveComment}
+                onUpdateComment={onUpdateComment}
                 mode={diffMode}
               />
             </div>

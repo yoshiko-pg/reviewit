@@ -11,6 +11,7 @@ interface DiffChunkProps {
   onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
+  onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
 }
 
@@ -20,6 +21,7 @@ export function DiffChunk({
   onAddComment,
   onGeneratePrompt,
   onRemoveComment,
+  onUpdateComment,
   mode = 'inline',
 }: DiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
@@ -83,6 +85,7 @@ export function DiffChunk({
         onAddComment={onAddComment}
         onGeneratePrompt={onGeneratePrompt}
         onRemoveComment={onRemoveComment}
+        onUpdateComment={onUpdateComment}
       />
     );
   }
@@ -137,6 +140,7 @@ export function DiffChunk({
                         comment={comment}
                         onGeneratePrompt={onGeneratePrompt}
                         onRemoveComment={onRemoveComment}
+                        onUpdateComment={onUpdateComment}
                       />
                     </td>
                   </tr>

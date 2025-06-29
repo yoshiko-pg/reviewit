@@ -10,6 +10,7 @@ interface SideBySideDiffChunkProps {
   onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
+  onUpdateComment: (commentId: string, newBody: string) => void;
 }
 
 interface SideBySideLine {
@@ -25,6 +26,7 @@ export function SideBySideDiffChunk({
   onAddComment,
   onGeneratePrompt,
   onRemoveComment,
+  onUpdateComment,
 }: SideBySideDiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
 
@@ -214,6 +216,7 @@ export function SideBySideDiffChunk({
                           comment={comment}
                           onGeneratePrompt={onGeneratePrompt}
                           onRemoveComment={onRemoveComment}
+                          onUpdateComment={onUpdateComment}
                         />
                       ))}
                     </td>

@@ -15,8 +15,14 @@ function App() {
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
 
-  const { comments, addComment, removeComment, generatePrompt, generateAllCommentsPrompt } =
-    useLocalComments(diffData?.commit);
+  const {
+    comments,
+    addComment,
+    removeComment,
+    updateComment,
+    generatePrompt,
+    generateAllCommentsPrompt,
+  } = useLocalComments(diffData?.commit);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -238,6 +244,7 @@ function App() {
                 onAddComment={handleAddComment}
                 onGeneratePrompt={generatePrompt}
                 onRemoveComment={removeComment}
+                onUpdateComment={updateComment}
               />
             </div>
           ))}

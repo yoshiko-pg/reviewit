@@ -41,6 +41,10 @@ export function useLocalComments(commitHash?: string) {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   };
 
+  const updateComment = (commentId: string, newBody: string) => {
+    setComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, body: newBody } : c)));
+  };
+
   const clearAllComments = () => {
     setComments([]);
     localStorage.removeItem(storageKey);
@@ -48,10 +52,10 @@ export function useLocalComments(commitHash?: string) {
 
   const generatePrompt = (comment: Comment): string => {
     console.log('Generating prompt for comment:', comment);
-    const parts = [`File: ${comment.file}`, `Line: ${comment.line}`, ''];
+    const parts = [`File: ${comment.file}`, `Line: ${comment.line}`];
 
     if (comment.codeContent) {
-      parts.push('Code Context:', '```', comment.codeContent, '```', '');
+      parts.push('', 'Code Context:', '```', comment.codeContent, '```');
     } else {
       console.log('No codeContent found for comment:', comment.id);
     }
@@ -82,6 +86,7 @@ export function useLocalComments(commitHash?: string) {
     comments,
     addComment,
     removeComment,
+    updateComment,
     clearAllComments,
     generatePrompt,
     generateAllCommentsPrompt,
