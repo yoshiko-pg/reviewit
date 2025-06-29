@@ -19,7 +19,9 @@ export function DiffViewer({
   reviewedFiles,
   onToggleReviewed,
 }: DiffViewerProps) {
-  const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set([0]));
+  const [expandedChunks, setExpandedChunks] = useState<Set<number>>(
+    new Set(file.chunks.map((_, index) => index))
+  );
   const { onAddComment } = useComments();
 
   // Set filename for syntax highlighter
