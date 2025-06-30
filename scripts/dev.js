@@ -8,7 +8,7 @@ console.log('🚀 Starting CLI server...');
 
 // Start CLI server
 const cliProcess = spawn('pnpm', ['run', 'dev:cli', commitish, '--no-open'], {
-  // Pipe stdout to detect server readiness
+  // Pipe stdout to capture CLI server ready
   stdio: ['inherit', 'pipe', 'inherit'],
   shell: true,
 });
