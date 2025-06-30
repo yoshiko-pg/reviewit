@@ -1,6 +1,3 @@
-import { DiffFile, Comment } from '../../types/diff';
-import { DiffChunk } from './DiffChunk';
-import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import {
   FileText,
   FilePlus,
@@ -12,6 +9,11 @@ import {
   Check,
   Square,
 } from 'lucide-react';
+
+import { type DiffFile, type Comment } from '../../types/diff';
+
+import { DiffChunk } from './DiffChunk';
+import { setCurrentFilename } from './PrismSyntaxHighlighter';
 
 interface DiffViewerProps {
   file: DiffFile;

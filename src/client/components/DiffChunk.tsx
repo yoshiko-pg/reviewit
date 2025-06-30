@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
+
+import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '../../types/diff';
+
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
-import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
+import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 
 interface DiffChunkProps {
   chunk: DiffChunkType;

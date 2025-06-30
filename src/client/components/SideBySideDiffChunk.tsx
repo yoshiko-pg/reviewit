@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { DiffChunk as DiffChunkType, DiffLine, Comment } from '../../types/diff';
+
+import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '../../types/diff';
+
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
@@ -62,6 +64,10 @@ export function SideBySideDiffChunk({
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
+      if (!line) {
+        i++;
+        continue;
+      }
 
       if (line.type === 'normal') {
         result.push({
@@ -76,7 +82,7 @@ export function SideBySideDiffChunk({
       } else if (line.type === 'delete') {
         // Look ahead for corresponding add
         let j = i + 1;
-        while (j < lines.length && lines[j].type === 'delete') {
+        while (j < lines.length && lines[j]?.type === 'delete') {
           j++;
         }
 
@@ -84,8 +90,11 @@ export function SideBySideDiffChunk({
         const addLines: DiffLine[] = [];
 
         // Collect corresponding add lines
-        while (j < lines.length && lines[j].type === 'add') {
-          addLines.push(lines[j]);
+        while (j < lines.length && lines[j]?.type === 'add') {
+          const addLine = lines[j];
+          if (addLine) {
+            addLines.push(addLine);
+          }
           j++;
         }
 

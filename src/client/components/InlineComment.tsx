@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Comment } from '../../types/diff';
 import { Trash2, Edit2, Save, X } from 'lucide-react';
+import { useState } from 'react';
+
+import { type Comment } from '../../types/diff';
 
 interface InlineCommentProps {
   comment: Comment;

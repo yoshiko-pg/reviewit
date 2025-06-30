@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Comment } from '../../types/diff';
+
+import { type Comment } from '../../types/diff';
 
 export function useLocalComments(commitHash?: string) {
   const [comments, setComments] = useState<Comment[]>([]);

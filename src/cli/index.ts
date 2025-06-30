@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+
 import { startServer } from '../server/server.js';
+
 import { validateCommitish } from './utils.js';
 
 const program = new Command();

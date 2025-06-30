@@ -1,5 +1,6 @@
-import { createContext, useContext, ReactNode } from 'react';
-import { Comment } from '../../types/diff';
+import { createContext, useContext, type ReactNode } from 'react';
+
+import { type Comment } from '../../types/diff';
 
 interface CommentContextType {
   comments: Comment[];

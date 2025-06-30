@@ -1,5 +1,6 @@
-import { simpleGit, SimpleGit } from 'simple-git';
-import { DiffFile, DiffChunk, DiffLine, DiffResponse } from '../types/diff.js';
+import { simpleGit, type SimpleGit } from 'simple-git';
+
+import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
 
 export class GitDiffParser {
   private git: SimpleGit;
@@ -30,7 +31,7 @@ export class GitDiffParser {
       const diffSummary = await this.git.diffSummary(diffArgs);
       const diffRaw = await this.git.diff(diffArgs);
 
-      const files = await this.parseUnifiedDiff(diffRaw, diffSummary.files);
+      const files = this.parseUnifiedDiff(diffRaw, diffSummary.files);
 
       return {
         commit: resolvedCommit,
@@ -43,7 +44,7 @@ export class GitDiffParser {
     }
   }
 
-  private async parseUnifiedDiff(diffText: string, summary: any[]): Promise<DiffFile[]> {
+  private parseUnifiedDiff(diffText: string, summary: any[]): DiffFile[] {
     const files: DiffFile[] = [];
     const fileBlocks = diffText.split(/^diff --git /m).slice(1);
 

@@ -1,6 +1,3 @@
-import { DiffFile, Comment } from '../../types/diff';
-import { useState } from 'react';
-import { Checkbox } from './Checkbox';
 import {
   ChevronRight,
   ChevronDown,
@@ -13,6 +10,11 @@ import {
   Search,
   MessageCircle,
 } from 'lucide-react';
+import { useState } from 'react';
+
+import { type DiffFile, type Comment } from '../../types/diff';
+
+import { Checkbox } from './Checkbox';
 
 interface FileListProps {
   files: DiffFile[];
@@ -44,6 +46,8 @@ function buildFileTree(files: DiffFile[]): TreeNode {
 
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
+      if (!part) continue;
+
       const isLast = i === parts.length - 1;
       const pathSoFar = parts.slice(0, i + 1).join('/');
 
@@ -107,7 +111,7 @@ export function FileList({
     if (node.isDirectory && node.children) {
       const filteredChildren = node.children
         .map((child) => filterTreeNode(child))
-        .filter((child) => child !== null) as TreeNode[];
+        .filter((child) => child !== null);
 
       if (filteredChildren.length > 0) {
         return { ...node, children: filteredChildren };

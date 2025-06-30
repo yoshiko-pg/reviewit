@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { DiffResponse } from '../types/diff';
-import { FileList } from './components/FileList';
-import { DiffViewer } from './components/DiffViewer';
-import { useLocalComments } from './hooks/useLocalComments';
-import { Checkbox } from './components/Checkbox';
 import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { type DiffResponse } from '../types/diff';
+
+import { Checkbox } from './components/Checkbox';
+import { DiffViewer } from './components/DiffViewer';
+import { FileList } from './components/FileList';
+import { useLocalComments } from './hooks/useLocalComments';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -45,7 +47,7 @@ function App() {
   };
 
   useEffect(() => {
-    fetchDiffData();
+    void fetchDiffData();
   }, [ignoreWhitespace]);
 
   // Check if file is a lock file that should be collapsed by default
@@ -88,13 +90,14 @@ function App() {
     }
   };
 
-  const handleAddComment = async (
+  const handleAddComment = (
     file: string,
     line: number,
     body: string,
     codeContent?: string
-  ) => {
+  ): Promise<void> => {
     addComment(file, line, body, codeContent);
+    return Promise.resolve();
   };
 
   const handleCopyAllComments = async () => {
