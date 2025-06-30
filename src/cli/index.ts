@@ -8,6 +8,15 @@ import { startServer } from '../server/server.js';
 
 import { validateCommitish } from './utils.js';
 
+interface CliOptions {
+  port?: number;
+  open: boolean;
+  mode: string;
+  tui?: boolean;
+  staged?: boolean;
+  dirty?: boolean;
+}
+
 const program = new Command();
 
 program
@@ -25,7 +34,7 @@ program
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--staged', 'show staged changes only (TUI mode)')
   .option('--dirty', 'show unstaged changes only (TUI mode, default)')
-  .action(async (commitish: string, options) => {
+  .action(async (commitish: string, options: CliOptions) => {
     try {
       if (options.tui) {
         // Check if we're in a TTY environment
