@@ -29,6 +29,50 @@ export function validateCommitish(commitish: string): boolean {
   return validPatterns.some((pattern) => pattern.test(trimmed));
 }
 
+export function shortHash(hash: string): string {
+  return hash.substring(0, 7);
+}
+
+export function validateDiffArguments(
+  targetCommitish: string,
+  baseCommitish?: string
+): { valid: boolean; error?: string } {
+  // Validate target commitish format
+  if (!validateCommitish(targetCommitish)) {
+    return { valid: false, error: 'Invalid target commit-ish format' };
+  }
+
+  // Validate base commitish format if provided
+  if (baseCommitish !== undefined && !validateCommitish(baseCommitish)) {
+    return { valid: false, error: 'Invalid base commit-ish format' };
+  }
+
+  // Special arguments are only allowed in target, not base
+  const specialArgs = ['working', 'staged', '.'];
+  if (baseCommitish && specialArgs.includes(baseCommitish)) {
+    return {
+      valid: false,
+      error: `Special arguments (working, staged, .) are only allowed as target, not base. Got base: ${baseCommitish}`,
+    };
+  }
+
+  // Cannot compare same values
+  if (targetCommitish === baseCommitish) {
+    return { valid: false, error: `Cannot compare ${targetCommitish} with itself` };
+  }
+
+  // "working" shows unstaged changes and cannot be compared with another commit
+  if (targetCommitish === 'working' && baseCommitish) {
+    return {
+      valid: false,
+      error:
+        '"working" shows unstaged changes and cannot be compared with another commit. Use "." instead to compare all uncommitted changes with a specific commit.',
+    };
+  }
+
+  return { valid: true };
+}
+
 type PromptCallbacks = {
   onYes: () => Promise<void> | void;
   onNo: () => Promise<void> | void;

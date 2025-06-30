@@ -8,10 +8,11 @@ import StatusBar from './components/StatusBar.js';
 import { FileDiff } from '../types/diff.js';
 
 interface AppProps {
-  commitish: string;
+  targetCommitish: string;
+  baseCommitish: string;
 }
 
-const App: React.FC<AppProps> = ({ commitish }) => {
+const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish }) => {
   const [files, setFiles] = useState<FileDiff[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -23,7 +24,7 @@ const App: React.FC<AppProps> = ({ commitish }) => {
     setLoading(true);
     setError(null);
     try {
-      const fileDiffs = await loadGitDiff(commitish);
+      const fileDiffs = await loadGitDiff(targetCommitish, baseCommitish);
       setFiles(fileDiffs);
       setLoading(false);
     } catch (err) {
@@ -35,7 +36,7 @@ const App: React.FC<AppProps> = ({ commitish }) => {
   useEffect(() => {
     loadDiff();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commitish]);
+  }, [targetCommitish, baseCommitish]);
 
   useInput(
     (input, key) => {
@@ -72,7 +73,7 @@ const App: React.FC<AppProps> = ({ commitish }) => {
   );
 
   if (loading) {
-    return <Text>Loading diff for {commitish}...</Text>;
+    return <Text>Loading diff for {targetCommitish}...</Text>;
   }
 
   if (error) {
@@ -82,9 +83,9 @@ const App: React.FC<AppProps> = ({ commitish }) => {
   if (files.length === 0) {
     return (
       <Box flexDirection="column">
-        <StatusBar commitish={commitish} totalFiles={0} currentMode="list" />
+        <StatusBar commitish={targetCommitish} totalFiles={0} currentMode="list" />
         <Box marginTop={1}>
-          <Text color="yellow">No changes found for {commitish}</Text>
+          <Text color="yellow">No changes found for {targetCommitish}</Text>
         </Box>
         <Box marginTop={1}>
           <Text dimColor>Press 'q' to quit</Text>
@@ -95,7 +96,7 @@ const App: React.FC<AppProps> = ({ commitish }) => {
 
   return (
     <Box flexDirection="column" height={process.stdout.rows}>
-      <StatusBar commitish={commitish} totalFiles={files.length} currentMode={viewMode} />
+      <StatusBar commitish={targetCommitish} totalFiles={files.length} currentMode={viewMode} />
       <Box flexGrow={1} flexDirection="column">
         {viewMode === 'list' ? (
           <FileList files={files} selectedIndex={selectedFileIndex} />

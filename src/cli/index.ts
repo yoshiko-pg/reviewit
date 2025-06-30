@@ -11,8 +11,14 @@ import {
   findUntrackedFiles,
   markFilesIntentToAdd,
   promptUser,
-  validateCommitish,
+  validateDiffArguments,
 } from './utils.js';
+
+type SpecialArg = 'working' | 'staged' | '.';
+
+function isSpecialArg(arg: string): arg is SpecialArg {
+  return arg === 'working' || arg === 'staged' || arg === '.';
+}
 
 interface CliOptions {
   port?: number;
@@ -34,22 +40,30 @@ program
     'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
     'HEAD'
   )
+  .argument(
+    '[compare-with]',
+    'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
+  )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
-  .action(async (commitish: string, options: CliOptions) => {
+  .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
-      // Determine what to show
+      // Determine target and base commitish
       let targetCommitish = commitish;
+      let baseCommitish: string;
 
-      // Handle special arguments
-      if (commitish === 'working') {
-        targetCommitish = 'working';
-      } else if (commitish === 'staged') {
-        targetCommitish = 'staged';
-      } else if (commitish === '.') {
-        targetCommitish = '.';
+      if (compareWith) {
+        // If compareWith is provided, use it as base
+        baseCommitish = compareWith;
+      } else {
+        // Handle special arguments
+        if (isSpecialArg(commitish)) {
+          baseCommitish = 'HEAD';
+        } else {
+          baseCommitish = commitish + '^';
+        }
       }
 
       if (targetCommitish === 'working' || targetCommitish === '.') {
@@ -69,17 +83,19 @@ program
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');
 
-        render(React.createElement(TuiApp, { commitish: targetCommitish }));
+        render(React.createElement(TuiApp, { targetCommitish, baseCommitish }));
         return;
       }
 
-      if (!validateCommitish(targetCommitish)) {
-        console.error('Error: Invalid commit-ish format');
+      const validation = validateDiffArguments(targetCommitish, compareWith);
+      if (!validation.valid) {
+        console.error(`Error: ${validation.error}`);
         process.exit(1);
       }
 
       const { url } = await startServer({
-        commitish: targetCommitish,
+        targetCommitish,
+        baseCommitish,
         preferredPort: options.port,
         openBrowser: options.open,
         mode: options.mode,

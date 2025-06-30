@@ -1,28 +1,38 @@
 import simpleGit from 'simple-git';
 
+import { validateDiffArguments } from '../cli/utils.js';
 import type { FileDiff } from '../types/diff.js';
 
-export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
-  const git = simpleGit();
+export async function loadGitDiff(
+  targetCommitish: string,
+  baseCommitish: string
+): Promise<FileDiff[]> {
+  // Validate arguments
+  const validation = validateDiffArguments(targetCommitish, baseCommitish);
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
 
+  const git = simpleGit();
   let diff: string;
 
-  if (commitish.toLowerCase() === 'working') {
-    // Show uncommitted changes
+  // Handle target special chars (base is always a regular commit)
+  if (targetCommitish === 'working') {
+    // Show unstaged changes (working vs staged)
     diff = await git.diff(['--name-status']);
-  } else if (commitish.toLowerCase() === 'staged') {
-    // Show staged changes
-    diff = await git.diff(['--cached', '--name-status']);
-  } else if (commitish === '.') {
-    // Show all changes (both staged and unstaged) compared to HEAD
-    diff = await git.diff(['HEAD', '--name-status']);
+  } else if (targetCommitish === 'staged') {
+    // Show staged changes against base commit
+    diff = await git.diff(['--cached', baseCommitish, '--name-status']);
+  } else if (targetCommitish === '.') {
+    // Show all uncommitted changes against base commit
+    diff = await git.diff([baseCommitish, '--name-status']);
   } else {
-    // Get list of changed files for a specific commit
-    diff = await git.diff([`${commitish}^..${commitish}`, '--name-status']);
+    // Both are regular commits: standard commit-to-commit comparison
+    diff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--name-status']);
 
     if (!diff.trim()) {
       // Try without parent (for initial commit)
-      const diffInitial = await git.diff([commitish, '--name-status']);
+      const diffInitial = await git.diff([targetCommitish, '--name-status']);
       if (!diffInitial.trim()) {
         throw new Error('No changes found in this commit');
       }
@@ -44,22 +54,23 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
     fileChanges.map(async ({ status, path }) => {
       let fileDiff = '';
 
-      if (commitish.toLowerCase() === 'working') {
-        // Get unstaged changes
+      // Handle individual file diffs (base is always a regular commit)
+      if (targetCommitish === 'working') {
+        // Show unstaged changes (working vs staged)
         fileDiff = await git.diff(['--', path]);
-      } else if (commitish.toLowerCase() === 'staged') {
-        // Get staged changes
-        fileDiff = await git.diff(['--cached', '--', path]);
-      } else if (commitish === '.') {
-        // Get all changes (both staged and unstaged) compared to HEAD
-        fileDiff = await git.diff(['HEAD', '--', path]);
+      } else if (targetCommitish === 'staged') {
+        // Show staged changes against base commit
+        fileDiff = await git.diff(['--cached', baseCommitish, '--', path]);
+      } else if (targetCommitish === '.') {
+        // Show all uncommitted changes against base commit
+        fileDiff = await git.diff([baseCommitish, '--', path]);
       } else {
         try {
-          // Get diff for specific file in commit
-          fileDiff = await git.diff([`${commitish}^..${commitish}`, '--', path]);
+          // Both are regular commits: standard commit-to-commit comparison
+          fileDiff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--', path]);
         } catch {
           // For new files or if parent doesn't exist
-          fileDiff = await git.diff([commitish, '--', path]);
+          fileDiff = await git.diff([targetCommitish, '--', path]);
         }
       }
 
