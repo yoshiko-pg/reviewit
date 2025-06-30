@@ -1,5 +1,8 @@
 import { Highlight, themes } from 'prism-react-renderer';
 
+import { useHighlightedCode } from '../hooks/useHighlightedCode';
+import Prism from '../utils/prism';
+
 interface PrismSyntaxHighlighterProps {
   code: string;
   language?: string;
@@ -79,9 +82,10 @@ export function setCurrentFilename(filename: string) {
 
 export function PrismSyntaxHighlighter({ code, language, className }: PrismSyntaxHighlighterProps) {
   const detectedLang = language || detectLanguage(currentFilename);
+  const { actualLang } = useHighlightedCode(code, detectedLang);
 
   return (
-    <Highlight code={code} language={detectedLang as any} theme={themes.nightOwl}>
+    <Highlight code={code} language={actualLang as any} theme={themes.nightOwl} prism={Prism}>
       {({ style, tokens, getLineProps, getTokenProps }) => (
         <span className={className} style={{ ...style, background: 'transparent' }}>
           {tokens.map((line, i) => (
