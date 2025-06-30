@@ -1,9 +1,9 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 
 import simpleGit from 'simple-git';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface PullRequestInfo {
   owner: string;
@@ -75,9 +75,15 @@ export async function preparePRForDiff(
     // Get PR info using GitHub API (we'll use gh command for simplicity)
     let baseBranch = 'main';
     try {
-      const { stdout } = await execAsync(
-        `gh pr view ${prInfo.number} --repo ${prInfo.owner}/${prInfo.repo} --json baseRefName,headRefName`
-      );
+      const { stdout } = await execFileAsync('gh', [
+        'pr',
+        'view',
+        String(prInfo.number),
+        '--repo',
+        `${prInfo.owner}/${prInfo.repo}`,
+        '--json',
+        'baseRefName,headRefName',
+      ]);
       const prData = JSON.parse(stdout);
       baseBranch = prData.baseRefName;
 
