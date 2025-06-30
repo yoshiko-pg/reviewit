@@ -58,6 +58,44 @@ npx reviewit .  # uncommitted changes
 
 > **Note**: Use `.` as the commit-ish to review uncommitted changes in your working directory!
 
+## 💬 Comment System
+
+ReviewIt includes an inline commenting system that integrates with Claude Code:
+
+1. **Add Comments**: Click on any diff line to add a comment
+2. **Edit Comments**: Edit existing comments with the edit button
+3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
+4. **Copy All**: Use "Copy All Prompt" to copy all comments in a structured format
+5. **Persistent Storage**: Comments are saved in browser localStorage per commit
+
+### Comment Prompt Format
+
+```
+File: src/components/Button.tsx
+Line: 42
+Comment: This function name should probably be more specific
+```
+
+## 🎨 Syntax Highlighting
+
+ReviewIt supports syntax highlighting for multiple programming languages with dynamic loading:
+
+### Supported Languages
+
+- **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
+- **Web Technologies**: HTML, CSS, JSON, XML, Markdown
+- **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
+- **Backend Languages**: PHP, SQL, Ruby, Java
+- **Systems Languages**: C, C++, Rust, Go
+- **Others**: Python, Swift, Kotlin, YAML
+
+### Dynamic Language Loading
+
+- Languages are loaded on-demand for better performance
+- Automatic language detection from file extensions
+- Fallback to plain text for unsupported languages
+- Safe dependency resolution (e.g., PHP requires markup-templating)
+
 ## 🛠️ Development
 
 ```bash
@@ -94,42 +132,6 @@ pnpm run typecheck
 - **`pnpm run start <commit>`**: Builds everything and starts production server (for testing final build)
 - **Development mode**: Uses Vite's dev server for hot reload and fast development
 - **Production mode**: Serves built static files (used by npx and production builds)
-
-## 💬 Comment System
-
-ReviewIt includes an inline commenting system that integrates with Claude Code:
-
-1. **Add Comments**: Click on any diff line to add a comment
-2. **Edit Comments**: Edit existing comments with the edit button
-3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
-4. **Copy All**: Use "Copy All Prompt" to copy all comments in a structured format
-5. **Persistent Storage**: Comments are saved in browser localStorage per commit
-
-### Comment Prompt Format
-
-```
-File: src/components/Button.tsx
-Line: 42
-Comment: This function name should probably be more specific
-```
-
-## 🎨 Syntax Highlighting
-
-ReviewIt supports syntax highlighting for multiple programming languages with dynamic loading:
-
-### Supported Languages
-- **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
-- **Web Technologies**: HTML, CSS, JSON, XML, Markdown
-- **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
-- **Backend Languages**: PHP, SQL, Ruby, Java
-- **Systems Languages**: C, C++, Rust, Go
-- **Others**: Python, Swift, Kotlin, YAML
-
-### Dynamic Language Loading
-- Languages are loaded on-demand for better performance
-- Automatic language detection from file extensions
-- Fallback to plain text for unsupported languages
-- Safe dependency resolution (e.g., PHP requires markup-templating)
 
 ## 🏗️ Architecture
 
