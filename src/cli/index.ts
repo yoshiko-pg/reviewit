@@ -8,6 +8,12 @@ import { startServer } from '../server/server.js';
 
 import { validateCommitish } from './utils.js';
 
+type SpecialArg = 'working' | 'staged' | '.';
+
+function isSpecialArg(arg: string): arg is SpecialArg {
+  return arg === 'working' || arg === 'staged' || arg === '.';
+}
+
 interface CliOptions {
   port?: number;
   open: boolean;
@@ -34,16 +40,15 @@ program
   .option('--tui', 'use terminal UI instead of web interface')
   .action(async (commitish: string, options: CliOptions) => {
     try {
-      // Determine what to show
+      // Determine target and base commitish
       let targetCommitish = commitish;
+      let baseCommitish: string;
 
       // Handle special arguments
-      if (commitish === 'working') {
-        targetCommitish = 'working';
-      } else if (commitish === 'staged') {
-        targetCommitish = 'staged';
-      } else if (commitish === '.') {
-        targetCommitish = '.';
+      if (isSpecialArg(commitish)) {
+        baseCommitish = 'HEAD';
+      } else {
+        baseCommitish = commitish + '^';
       }
 
       if (options.tui) {
@@ -58,7 +63,7 @@ program
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');
 
-        render(React.createElement(TuiApp, { commitish: targetCommitish }));
+        render(React.createElement(TuiApp, { targetCommitish, baseCommitish }));
         return;
       }
 
@@ -68,7 +73,8 @@ program
       }
 
       const { url } = await startServer({
-        commitish: targetCommitish,
+        targetCommitish,
+        baseCommitish,
         preferredPort: options.port,
         openBrowser: options.open,
         mode: options.mode,

@@ -9,31 +9,35 @@ export class GitDiffParser {
     this.git = simpleGit(repoPath);
   }
 
-  async parseDiff(commitish: string, ignoreWhitespace = false): Promise<DiffResponse> {
+  async parseDiff(
+    targetCommitish: string,
+    baseCommitish: string,
+    ignoreWhitespace = false
+  ): Promise<DiffResponse> {
     try {
       let resolvedCommit: string;
       let diffArgs: string[];
 
-      if (commitish === '.') {
+      if (targetCommitish === '.') {
         // Show diff between HEAD and working directory (all uncommitted changes)
         resolvedCommit = 'Working Directory (all uncommitted changes)';
-        diffArgs = ['HEAD'];
-      } else if (commitish === 'working') {
+        diffArgs = [baseCommitish];
+      } else if (targetCommitish === 'working') {
         // Show only unstaged changes
         resolvedCommit = 'Working Directory (unstaged changes)';
         diffArgs = [];
-      } else if (commitish === 'staged') {
+      } else if (targetCommitish === 'staged') {
         // Show only staged changes
         resolvedCommit = 'Staging Area (staged changes)';
         diffArgs = ['--cached'];
       } else {
         // Resolve commitish to actual commit hash and get short version
-        const fullHash = await this.git.revparse([commitish]);
+        const fullHash = await this.git.revparse([targetCommitish]);
         const shortHash = fullHash.substring(0, 7);
-        const parentHash = await this.git.revparse([`${commitish}^`]);
-        const shortParentHash = parentHash.substring(0, 7);
-        resolvedCommit = `${shortParentHash}..${shortHash}`;
-        diffArgs = [`${commitish}^`, commitish];
+        const baseHash = await this.git.revparse([baseCommitish]);
+        const shortBaseHash = baseHash.substring(0, 7);
+        resolvedCommit = `${shortBaseHash}..${shortHash}`;
+        diffArgs = [baseCommitish, targetCommitish];
       }
 
       if (ignoreWhitespace) {
@@ -52,7 +56,7 @@ export class GitDiffParser {
       };
     } catch (error) {
       throw new Error(
-        `Failed to parse diff for ${commitish}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to parse diff for ${targetCommitish} vs ${baseCommitish}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

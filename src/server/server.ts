@@ -9,7 +9,8 @@ const __dirname = dirname(__filename);
 import { GitDiffParser } from './git-diff.js';
 
 interface ServerOptions {
-  commitish: string;
+  targetCommitish: string;
+  baseCommitish: string;
   preferredPort?: number;
   openBrowser?: boolean;
   mode?: string;
@@ -32,19 +33,27 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     next();
   });
 
-  const isValidCommit = await parser.validateCommit(options.commitish);
+  const isValidCommit = await parser.validateCommit(options.targetCommitish);
   if (!isValidCommit) {
-    throw new Error(`Invalid or non-existent commit: ${options.commitish}`);
+    throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
   }
 
-  diffData = await parser.parseDiff(options.commitish, currentIgnoreWhitespace);
+  diffData = await parser.parseDiff(
+    options.targetCommitish,
+    options.baseCommitish,
+    currentIgnoreWhitespace
+  );
 
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
     if (ignoreWhitespace !== currentIgnoreWhitespace) {
       currentIgnoreWhitespace = ignoreWhitespace;
-      diffData = await parser.parseDiff(options.commitish, ignoreWhitespace);
+      diffData = await parser.parseDiff(
+        options.targetCommitish,
+        options.baseCommitish,
+        ignoreWhitespace
+      );
     }
 
     res.json({ ...diffData, ignoreWhitespace });

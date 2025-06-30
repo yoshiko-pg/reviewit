@@ -2,27 +2,30 @@ import simpleGit from 'simple-git';
 
 import type { FileDiff } from '../types/diff.js';
 
-export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
+export async function loadGitDiff(
+  targetCommitish: string,
+  baseCommitish: string
+): Promise<FileDiff[]> {
   const git = simpleGit();
 
   let diff: string;
 
-  if (commitish.toLowerCase() === 'working') {
+  if (targetCommitish.toLowerCase() === 'working') {
     // Show uncommitted changes
     diff = await git.diff(['--name-status']);
-  } else if (commitish.toLowerCase() === 'staged') {
+  } else if (targetCommitish.toLowerCase() === 'staged') {
     // Show staged changes
     diff = await git.diff(['--cached', '--name-status']);
-  } else if (commitish === '.') {
-    // Show all changes (both staged and unstaged) compared to HEAD
-    diff = await git.diff(['HEAD', '--name-status']);
+  } else if (targetCommitish === '.') {
+    // Show all changes (both staged and unstaged) compared to base
+    diff = await git.diff([baseCommitish, '--name-status']);
   } else {
-    // Get list of changed files for a specific commit
-    diff = await git.diff([`${commitish}^..${commitish}`, '--name-status']);
+    // Get list of changed files for a specific commit range
+    diff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--name-status']);
 
     if (!diff.trim()) {
       // Try without parent (for initial commit)
-      const diffInitial = await git.diff([commitish, '--name-status']);
+      const diffInitial = await git.diff([targetCommitish, '--name-status']);
       if (!diffInitial.trim()) {
         throw new Error('No changes found in this commit');
       }
@@ -44,22 +47,22 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
     fileChanges.map(async ({ status, path }) => {
       let fileDiff = '';
 
-      if (commitish.toLowerCase() === 'working') {
+      if (targetCommitish.toLowerCase() === 'working') {
         // Get unstaged changes
         fileDiff = await git.diff(['--', path]);
-      } else if (commitish.toLowerCase() === 'staged') {
+      } else if (targetCommitish.toLowerCase() === 'staged') {
         // Get staged changes
         fileDiff = await git.diff(['--cached', '--', path]);
-      } else if (commitish === '.') {
-        // Get all changes (both staged and unstaged) compared to HEAD
-        fileDiff = await git.diff(['HEAD', '--', path]);
+      } else if (targetCommitish === '.') {
+        // Get all changes (both staged and unstaged) compared to base
+        fileDiff = await git.diff([baseCommitish, '--', path]);
       } else {
         try {
-          // Get diff for specific file in commit
-          fileDiff = await git.diff([`${commitish}^..${commitish}`, '--', path]);
+          // Get diff for specific file in commit range
+          fileDiff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--', path]);
         } catch {
           // For new files or if parent doesn't exist
-          fileDiff = await git.diff([commitish, '--', path]);
+          fileDiff = await git.diff([targetCommitish, '--', path]);
         }
       }
 
