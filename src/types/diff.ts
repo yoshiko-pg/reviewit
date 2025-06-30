@@ -7,6 +7,14 @@ export interface DiffFile {
   chunks: DiffChunk[];
 }
 
+export interface FileDiff {
+  path: string;
+  status: 'A' | 'M' | 'D';
+  diff: string;
+  additions: number;
+  deletions: number;
+}
+
 export interface DiffChunk {
   header: string;
   oldStart: number;
@@ -17,10 +25,14 @@ export interface DiffChunk {
 }
 
 export interface DiffLine {
-  type: 'add' | 'delete' | 'normal' | 'hunk';
+  type: 'add' | 'delete' | 'normal' | 'hunk' | 'remove' | 'context' | 'header';
   content: string;
   oldLineNumber?: number;
   newLineNumber?: number;
+}
+
+export interface ParsedDiff {
+  chunks: DiffChunk[];
 }
 
 export interface DiffResponse {

@@ -1,11 +1,21 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import React from 'react';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
 import { validateCommitish } from './utils.js';
+
+interface CliOptions {
+  port?: number;
+  open: boolean;
+  mode: string;
+  tui?: boolean;
+  staged?: boolean;
+  dirty?: boolean;
+}
 
 const program = new Command();
 
@@ -13,12 +23,42 @@ program
   .name('reviewit')
   .description('A lightweight Git diff viewer with GitHub-like interface')
   .version(pkg.version)
-  .argument('[commit-ish]', 'Git commit, tag, branch, or HEAD~n reference (default: HEAD)', 'HEAD')
+  .argument(
+    '[commit-ish]',
+    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged" (default: working)',
+    'working'
+  )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
-  .action(async (commitish: string, options) => {
+  .option('--tui', 'use terminal UI instead of web interface')
+  .option('--staged', 'show staged changes only (TUI mode)')
+  .option('--dirty', 'show unstaged changes only (TUI mode, default)')
+  .action(async (commitish: string, options: CliOptions) => {
     try {
+      if (options.tui) {
+        // Check if we're in a TTY environment
+        if (!process.stdin.isTTY) {
+          console.error('Error: TUI mode requires an interactive terminal (TTY).');
+          console.error('Try running the command directly in your terminal without piping.');
+          process.exit(1);
+        }
+
+        // Dynamic import for TUI mode
+        const { render } = await import('ink');
+        const { default: TuiApp } = await import('../tui/App.js');
+
+        // Determine what to show
+        let targetCommitish = commitish;
+        if (options.staged) {
+          targetCommitish = 'staged';
+        } else if (options.dirty || commitish === 'working') {
+          targetCommitish = 'working';
+        }
+
+        render(React.createElement(TuiApp, { commitish: targetCommitish }));
+        return;
+      }
       if (!validateCommitish(commitish)) {
         console.error('Error: Invalid commit-ish format');
         process.exit(1);
