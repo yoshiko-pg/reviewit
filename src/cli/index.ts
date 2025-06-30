@@ -1,11 +1,55 @@
 #!/usr/bin/env node
+import * as readline from 'readline';
 
 import { Command } from 'commander';
+import { simpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
 import { validateCommitish } from './utils.js';
+
+async function checkUntrackedFiles(): Promise<void> {
+  const git = simpleGit();
+
+  try {
+    const status = await git.status();
+    const untrackedFiles = status.not_added;
+
+    if (untrackedFiles.length === 0) {
+      return;
+    }
+
+    console.log(`\n📝 Found ${untrackedFiles.length} untracked file(s):`);
+    untrackedFiles.forEach((file) => console.log(`   ${file}`));
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    const answer = await new Promise<string>((resolve) => {
+      rl.question(
+        '\n❓ Add these files to index with --intent-to-add to include them in diff? (y/N): ',
+        resolve
+      );
+    });
+
+    rl.close();
+
+    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+      await git.add(['--intent-to-add', ...untrackedFiles]);
+      console.log('✅ Files added with --intent-to-add');
+    } else {
+      console.log('ℹ️  Untracked files will not be shown in diff');
+    }
+  } catch (error) {
+    console.warn(
+      '⚠️  Could not check for untracked files:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+  }
+}
 
 const program = new Command();
 
@@ -23,6 +67,9 @@ program
         console.error('Error: Invalid commit-ish format');
         process.exit(1);
       }
+
+      // Check for untracked files and optionally add them with --intent-to-add
+      await checkUntrackedFiles();
 
       const { url } = await startServer({
         commitish,
