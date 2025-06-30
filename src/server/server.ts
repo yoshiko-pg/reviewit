@@ -14,6 +14,7 @@ interface ServerOptions {
   openBrowser?: boolean;
   mode?: string;
   ignoreWhitespace?: boolean;
+  baseBranch?: string;
 }
 
 export async function startServer(options: ServerOptions): Promise<{ port: number; url: string }> {
@@ -37,14 +38,14 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     throw new Error(`Invalid or non-existent commit: ${options.commitish}`);
   }
 
-  diffData = await parser.parseDiff(options.commitish, currentIgnoreWhitespace);
+  diffData = await parser.parseDiff(options.commitish, currentIgnoreWhitespace, options.baseBranch);
 
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
     if (ignoreWhitespace !== currentIgnoreWhitespace) {
       currentIgnoreWhitespace = ignoreWhitespace;
-      diffData = await parser.parseDiff(options.commitish, ignoreWhitespace);
+      diffData = await parser.parseDiff(options.commitish, ignoreWhitespace, options.baseBranch);
     }
 
     res.json({ ...diffData, ignoreWhitespace });

@@ -2,7 +2,7 @@ import simpleGit from 'simple-git';
 
 import type { FileDiff } from '../types/diff.js';
 
-export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
+export async function loadGitDiff(commitish: string, baseBranch?: string): Promise<FileDiff[]> {
   const git = simpleGit();
 
   let diff: string;
@@ -16,6 +16,9 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
   } else if (commitish === '.') {
     // Show all changes (both staged and unstaged) compared to HEAD
     diff = await git.diff(['HEAD', '--name-status']);
+  } else if (baseBranch) {
+    // Get diff between base and head branches (for PRs)
+    diff = await git.diff([`${baseBranch}...${commitish}`, '--name-status']);
   } else {
     // Get list of changed files for a specific commit
     diff = await git.diff([`${commitish}^..${commitish}`, '--name-status']);
@@ -44,7 +47,10 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
     fileChanges.map(async ({ status, path }) => {
       let fileDiff = '';
 
-      if (commitish.toLowerCase() === 'working') {
+      if (baseBranch) {
+        // Get diff for PR
+        fileDiff = await git.diff([`${baseBranch}...${commitish}`, '--', path]);
+      } else if (commitish.toLowerCase() === 'working') {
         // Get unstaged changes
         fileDiff = await git.diff(['--', path]);
       } else if (commitish.toLowerCase() === 'staged') {

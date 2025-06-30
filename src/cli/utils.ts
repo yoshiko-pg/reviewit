@@ -16,6 +16,11 @@ export function validateCommitish(commitish: string): boolean {
     return true; // Allow special keywords for working directory and staging area diff
   }
 
+  // GitHub PR URL pattern
+  if (/^https?:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/.test(trimmed)) {
+    return true;
+  }
+
   const validPatterns = [
     /^[a-f0-9]{4,40}$/i, // SHA hashes
     /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.

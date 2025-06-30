@@ -9,9 +9,10 @@ import { FileDiff } from '../types/diff.js';
 
 interface AppProps {
   commitish: string;
+  baseBranch?: string;
 }
 
-const App: React.FC<AppProps> = ({ commitish }) => {
+const App: React.FC<AppProps> = ({ commitish, baseBranch }) => {
   const [files, setFiles] = useState<FileDiff[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -23,7 +24,7 @@ const App: React.FC<AppProps> = ({ commitish }) => {
     setLoading(true);
     setError(null);
     try {
-      const fileDiffs = await loadGitDiff(commitish);
+      const fileDiffs = await loadGitDiff(commitish, baseBranch);
       setFiles(fileDiffs);
       setLoading(false);
     } catch (err) {

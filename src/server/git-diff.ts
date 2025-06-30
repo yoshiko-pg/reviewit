@@ -9,7 +9,11 @@ export class GitDiffParser {
     this.git = simpleGit(repoPath);
   }
 
-  async parseDiff(commitish: string, ignoreWhitespace = false): Promise<DiffResponse> {
+  async parseDiff(
+    commitish: string,
+    ignoreWhitespace = false,
+    baseBranch?: string
+  ): Promise<DiffResponse> {
     try {
       let resolvedCommit: string;
       let diffArgs: string[];
@@ -26,6 +30,14 @@ export class GitDiffParser {
         // Show only staged changes
         resolvedCommit = 'Staging Area (staged changes)';
         diffArgs = ['--cached'];
+      } else if (baseBranch) {
+        // For PR diffs, show diff between base and head branches
+        const baseHash = await this.git.revparse([baseBranch]);
+        const headHash = await this.git.revparse([commitish]);
+        const shortBaseHash = baseHash.substring(0, 7);
+        const shortHeadHash = headHash.substring(0, 7);
+        resolvedCommit = `${shortBaseHash}...${shortHeadHash} (PR diff)`;
+        diffArgs = [`${baseBranch}...${commitish}`];
       } else {
         // Resolve commitish to actual commit hash and get short version
         const fullHash = await this.git.revparse([commitish]);
