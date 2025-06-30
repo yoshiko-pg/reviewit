@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 
+import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
 import { validateCommitish } from './utils.js';
@@ -11,7 +12,7 @@ const program = new Command();
 program
   .name('reviewit')
   .description('A lightweight Git diff viewer with GitHub-like interface')
-  .version('0.1.0')
+  .version(pkg.version)
   .argument('[commit-ish]', 'Git commit, tag, branch, or HEAD~n reference (default: HEAD)', 'HEAD')
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
