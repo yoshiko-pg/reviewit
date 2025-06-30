@@ -40,7 +40,7 @@ npx reviewit HEAD^
 npx reviewit HEAD~3
 
 # Special Arguments
-npx reviewit staging  # staging area changes
+npx reviewit staged   # staging area changes
 npx reviewit working  # working directory changes
 npx reviewit .        # uncommited all changes
 
@@ -68,8 +68,8 @@ ReviewIt supports special arguments for common diff scenarios:
 
 | Keyword   | Description                                            |
 | --------- | ------------------------------------------------------ |
-| `working` | Shows unstaged changes in your working directory       |
 | `staged`  | Shows staged changes ready to be committed             |
+| `working` | Shows unstaged changes in your working directory       |
 | `.`       | Shows all uncommitted changes (both staged & unstaged) |
 
 ## 💬 Comment System
