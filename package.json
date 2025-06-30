@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "node scripts/dev.js",
     "dev:cli": "tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js",
-    "build": "tsc && vite build",
+    "build": "pnpm run build:cli && tsc && vite build",
     "build:cli": "tsc --project tsconfig.cli.json",
     "start": "pnpm run build && pnpm run build:cli && node dist/cli/index.js",
     "lint": "eslint .",
