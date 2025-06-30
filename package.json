@@ -21,17 +21,17 @@
   "scripts": {
     "dev": "node scripts/dev.js",
     "dev:cli": "tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js",
-    "build": "pnpm run build:cli && tsc && vite build",
+    "build": "tsc -b && vite build",
     "build:cli": "tsc --project tsconfig.cli.json",
-    "start": "pnpm run build && pnpm run build:cli && node dist/cli/index.js",
+    "start": "pnpm run build && node dist/cli/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install",
-    "prepublishOnly": "NODE_ENV=production pnpm run build && pnpm run build:cli"
+    "prepublishOnly": "NODE_ENV=production pnpm run build"
   },
   "dependencies": {
     "commander": "^11.1.0",
