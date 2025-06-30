@@ -14,6 +14,7 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
 - 🔐 **Local Only**: Never exposes data over network - runs on localhost only
 - 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
+- 🎨 **Syntax Highlighting**: Dynamic language loading for Bash, PHP, SQL, Ruby, Java, and more
 - ✨ **100% vibe coding**: Built with pure coding energy and good vibes
 
 ## 📦 Installation
@@ -112,12 +113,31 @@ Line: 42
 Comment: This function name should probably be more specific
 ```
 
+## 🎨 Syntax Highlighting
+
+ReviewIt supports syntax highlighting for multiple programming languages with dynamic loading:
+
+### Supported Languages
+- **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
+- **Web Technologies**: HTML, CSS, JSON, XML, Markdown
+- **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
+- **Backend Languages**: PHP, SQL, Ruby, Java
+- **Systems Languages**: C, C++, Rust, Go
+- **Others**: Python, Swift, Kotlin, YAML
+
+### Dynamic Language Loading
+- Languages are loaded on-demand for better performance
+- Automatic language detection from file extensions
+- Fallback to plain text for unsupported languages
+- Safe dependency resolution (e.g., PHP requires markup-templating)
+
 ## 🏗️ Architecture
 
 - **CLI**: Commander.js for argument parsing
 - **Backend**: Express server with simple-git for diff processing
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 with GitHub-like dark theme
+- **Syntax Highlighting**: Prism.js with dynamic language loading
 - **Testing**: Vitest for unit tests
 - **Quality**: ESLint, Prettier, lefthook pre-commit hooks
 
