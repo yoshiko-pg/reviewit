@@ -15,9 +15,17 @@ export class GitDiffParser {
       let diffArgs: string[];
 
       if (commitish === '.') {
-        // Show diff between HEAD and working directory (uncommitted changes)
-        resolvedCommit = 'Working Directory (uncommitted changes)';
+        // Show diff between HEAD and working directory (all uncommitted changes)
+        resolvedCommit = 'Working Directory (all uncommitted changes)';
         diffArgs = ['HEAD'];
+      } else if (commitish === 'working') {
+        // Show only unstaged changes
+        resolvedCommit = 'Working Directory (unstaged changes)';
+        diffArgs = [];
+      } else if (commitish === 'staged') {
+        // Show only staged changes
+        resolvedCommit = 'Staging Area (staged changes)';
+        diffArgs = ['--cached'];
       } else {
         // Resolve commitish to actual commit hash and get short version
         const fullHash = await this.git.revparse([commitish]);
@@ -162,8 +170,8 @@ export class GitDiffParser {
 
   async validateCommit(commitish: string): Promise<boolean> {
     try {
-      if (commitish === '.') {
-        // For working directory, just check if we're in a git repo
+      if (commitish === '.' || commitish === 'working' || commitish === 'staged') {
+        // For working directory or staging area, just check if we're in a git repo
         await this.git.status();
         return true;
       }

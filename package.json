@@ -1,6 +1,6 @@
 {
   "name": "reviewit",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
   "engines": {
@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "node scripts/dev.js",
     "dev:cli": "tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js",
-    "build": "tsc && vite build",
+    "build": "pnpm run build:cli && tsc && vite build",
     "build:cli": "tsc --project tsconfig.cli.json",
     "start": "pnpm run build && pnpm run build:cli && node dist/cli/index.js",
     "lint": "eslint .",
@@ -36,6 +36,7 @@
   "dependencies": {
     "commander": "^11.1.0",
     "express": "^4.18.2",
+    "ink": "^5.2.1",
     "lucide-react": "^0.525.0",
     "open": "^10.0.3",
     "prism-react-renderer": "^2.4.1",
