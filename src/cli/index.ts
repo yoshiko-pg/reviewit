@@ -52,6 +52,11 @@ program
         targetCommitish = '.';
       }
 
+      if (targetCommitish === 'working' || targetCommitish === '.') {
+        const git = simpleGit();
+        await handleUntrackedFiles(git);
+      }
+
       if (options.tui) {
         // Check if we're in a TTY environment
         if (!process.stdin.isTTY) {
@@ -72,9 +77,6 @@ program
         console.error('Error: Invalid commit-ish format');
         process.exit(1);
       }
-
-      const git = simpleGit();
-      await handleUntrackedFiles(git, commitish);
 
       const { url } = await startServer({
         commitish: targetCommitish,
@@ -105,12 +107,7 @@ program
 program.parse();
 
 // Check for untracked files and prompt user to add them for diff visibility
-// Only applies when viewing working directory changes (commitish = '.')
-async function handleUntrackedFiles(git: SimpleGit, commitish: string): Promise<void> {
-  if (commitish !== '.') {
-    return;
-  }
-
+async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
   const files = await findUntrackedFiles(git);
   if (files.length === 0) {
     return;
@@ -120,7 +117,7 @@ async function handleUntrackedFiles(git: SimpleGit, commitish: string): Promise<
   if (userConsent) {
     await markFilesIntentToAdd(git, files);
     console.log('✅ Files added with --intent-to-add');
-    console.log(`   💡 To undo this, run \`git restore --staged ${files.join(' ')}\``);
+    console.log(`   💡 To undo this, run \`git reset --mixed\``);
   } else {
     console.log('ℹ️ Untracked files will not be shown in diff');
   }
