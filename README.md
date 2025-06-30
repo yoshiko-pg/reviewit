@@ -11,6 +11,7 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - 🌙 **GitHub-like UI**: Familiar dark theme file list and diff interface
 - 💬 **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
 - 🔄 **Side-by-Side & Inline Views**: Choose your preferred diff viewing mode
+- 🖥️ **Terminal UI Mode**: View diffs directly in your terminal with `--tui` flag
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
 - 🔐 **Local Only**: Never exposes data over network - runs on localhost only
 - 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
@@ -20,43 +21,56 @@ A lightweight command-line tool that spins up a local web server to display Git 
 ## 📦 Installation
 
 ```bash
-# Global install
-npm install -g reviewit
-
-# Or use npx (no installation needed)
+# use npx (no installation needed)
 npx reviewit <commit-ish>
+
+# or Global install
+npm install -g reviewit
 ```
 
 ## 🚀 Usage
 
 ```bash
-# Review a specific commit
-reviewit 6f4a9b7
+# default: HEAD commit changes
+npx reviewit
 
-# Review HEAD~3
-reviewit HEAD~3
+# Review a specific commit changes
+npx reviewit 6f4a9b7
+npx reviewit HEAD^
+npx reviewit HEAD~3
 
-# Review uncommitted changes (working directory)
-reviewit .
+# Special Arguments
+npx reviewit staging  # staging area changes
+npx reviewit working  # working directory changes
+npx reviewit .        # uncommited all changes
 
 # Custom port, don't auto-open browser
-reviewit 6f4a9b7 --port 4300 --no-open
+npx reviewit 6f4a9b7 --port 4300 --no-open
 
-# Via npx
-npx reviewit main~1
-npx reviewit .  # uncommitted changes
+# Terminal UI mode (no browser)
+npx reviewit --tui
+npx reviewit working --tui
 ```
 
 ### ⚙️ CLI Options
 
-| Flag           | Default    | Description                                          |
-| -------------- | ---------- | ---------------------------------------------------- |
-| `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch, or `.` |
-| `--port`       | auto       | Preferred port; falls back if occupied               |
-| `--no-open`    | false      | Don't automatically open browser                     |
-| `--mode`       | inline     | Diff mode: `inline` or `side-by-side`                |
+| Flag           | Default      | Description                                                        |
+| -------------- | ------------ | ------------------------------------------------------------------ |
+| `<commit-ish>` | (required)   | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments |
+| `--port`       | auto         | Preferred port; falls back if occupied                             |
+| `--no-open`    | false        | Don't automatically open browser                                   |
+| `--mode`       | side-by-side | Diff mode: `inline` or `side-by-side`                              |
+| `--tui`        | false        | Use terminal UI mode instead of web interface                      |
 
-> **Note**: Use `.` as the commit-ish to review uncommitted changes in your working directory!
+### 🔑 Special Arguments
+
+ReviewIt supports special arguments for common diff scenarios:
+
+| Keyword   | Description                                            |
+| --------- | ------------------------------------------------------ |
+| `working` | Shows unstaged changes in your working directory       |
+| `staged`  | Shows staged changes ready to be committed             |
+| `.`       | Shows all uncommitted changes (both staged & unstaged) |
 
 ## 💬 Comment System
 
