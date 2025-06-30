@@ -52,17 +52,7 @@ export function useLocalComments(commitHash?: string) {
   };
 
   const generatePrompt = (comment: Comment): string => {
-    console.log('Generating prompt for comment:', comment);
-    const parts = [`File: ${comment.file}`, `Line: ${comment.line}`];
-
-    if (comment.codeContent) {
-      parts.push('', 'Code Context:', '```', comment.codeContent, '```');
-    } else {
-      console.log('No codeContent found for comment:', comment.id);
-    }
-
-    parts.push(`Comment: ${comment.body}`);
-    return parts.join('\n');
+    return `${comment.file}:${comment.line}\n${comment.body}`;
   };
 
   const generateAllCommentsPrompt = (): string => {
@@ -70,17 +60,11 @@ export function useLocalComments(commitHash?: string) {
       return 'No comments available.';
     }
 
-    const prompts = comments.map((comment, index) => {
-      const individualPrompt = generatePrompt(comment);
-      return [`## Comment ${index + 1}`, individualPrompt].join('\n');
+    const prompts = comments.map((comment) => {
+      return `${comment.file}:${comment.line}\n${comment.body}`;
     });
 
-    return [
-      `All Code Review Comments (${comments.length} total)`,
-      '='.repeat(50),
-      '',
-      ...prompts,
-    ].join('\n\n');
+    return prompts.join('\n=====\n');
   };
 
   return {
