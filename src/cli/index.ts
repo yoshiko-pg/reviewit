@@ -1,55 +1,17 @@
 #!/usr/bin/env node
-import * as readline from 'readline';
 
 import { Command } from 'commander';
-import { simpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
-import { validateCommitish } from './utils.js';
-
-async function checkUntrackedFiles(): Promise<void> {
-  const git = simpleGit();
-
-  try {
-    const status = await git.status();
-    const untrackedFiles = status.not_added;
-
-    if (untrackedFiles.length === 0) {
-      return;
-    }
-
-    console.log(`\n📝 Found ${untrackedFiles.length} untracked file(s):`);
-    untrackedFiles.forEach((file) => console.log(`   ${file}`));
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    const answer = await new Promise<string>((resolve) => {
-      rl.question(
-        '\n❓ Add these files to index with --intent-to-add to include them in diff? (y/N): ',
-        resolve
-      );
-    });
-
-    rl.close();
-
-    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
-      await git.add(['--intent-to-add', ...untrackedFiles]);
-      console.log('✅ Files added with --intent-to-add');
-    } else {
-      console.log('ℹ️  Untracked files will not be shown in diff');
-    }
-  } catch (error) {
-    console.warn(
-      '⚠️  Could not check for untracked files:',
-      error instanceof Error ? error.message : 'Unknown error'
-    );
-  }
-}
+import {
+  findUntrackedFiles,
+  markFilesIntentToAdd,
+  promptUser,
+  validateCommitish,
+} from './utils.js';
 
 const program = new Command();
 
@@ -68,8 +30,8 @@ program
         process.exit(1);
       }
 
-      // Check for untracked files and optionally add them with --intent-to-add
-      await checkUntrackedFiles();
+      const git = simpleGit();
+      await handleUntrackedFiles(git, commitish);
 
       const { url } = await startServer({
         commitish,
@@ -98,3 +60,36 @@ program
   });
 
 program.parse();
+
+// Check for untracked files and prompt user to add them for diff visibility
+// Only applies when viewing working directory changes (commitish = '.')
+async function handleUntrackedFiles(git: SimpleGit, commitish: string): Promise<void> {
+  if (commitish !== '.') {
+    return;
+  }
+
+  const files = await findUntrackedFiles(git);
+  if (files.length === 0) {
+    return;
+  }
+
+  const userConsent = await promptUserToIncludeUntracked(files);
+  if (userConsent) {
+    await markFilesIntentToAdd(git, files);
+    console.log('✅ Files added with --intent-to-add');
+    console.log(`   💡 To undo this, run \`git restore --staged ${files.join(' ')}\``);
+  } else {
+    console.log('ℹ️ Untracked files will not be shown in diff');
+  }
+}
+
+async function promptUserToIncludeUntracked(files: string[]): Promise<boolean> {
+  console.log(`\n📝 Found ${files.length} untracked file(s):`);
+  for (const file of files) {
+    console.log(`    - ${file}`);
+  }
+
+  return await promptUser(
+    '\n❓ Would you like to include these untracked files in the diff review? (y/N): '
+  );
+}
