@@ -17,7 +17,7 @@ export class GitDiffParser {
       if (commitish === '.') {
         // Show diff between HEAD and working directory (uncommitted changes)
         resolvedCommit = 'Working Directory (uncommitted changes)';
-        diffArgs = [];
+        diffArgs = ['HEAD'];
       } else {
         // Resolve commitish to actual commit hash and get short version
         const fullHash = await this.git.revparse([commitish]);
@@ -32,8 +32,9 @@ export class GitDiffParser {
         diffArgs.push('-w');
       }
 
+      // Add --color=never to ensure plain text output without ANSI escape sequences
       const diffSummary = await this.git.diffSummary(diffArgs);
-      const diffRaw = await this.git.diff(diffArgs);
+      const diffRaw = await this.git.diff(['--color=never', ...diffArgs]);
 
       const files = this.parseUnifiedDiff(diffRaw, diffSummary.files);
 
@@ -71,7 +72,7 @@ export class GitDiffParser {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
-    const pathMatch = headerLine.match(/^diff --git a\/(.+) b\/(.+)$/);
+    const pathMatch = headerLine.match(/^diff --git [a-z]\/(.+) [a-z]\/(.+)$/);
     if (!pathMatch) return null;
 
     const oldPath = pathMatch[1];
