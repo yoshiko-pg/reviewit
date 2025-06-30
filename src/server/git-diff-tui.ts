@@ -10,10 +10,10 @@ export async function loadGitDiff(
 
   let diff: string;
 
-  if (targetCommitish.toLowerCase() === 'working') {
+  if (targetCommitish === 'working') {
     // Show uncommitted changes
     diff = await git.diff(['--name-status']);
-  } else if (targetCommitish.toLowerCase() === 'staged') {
+  } else if (targetCommitish === 'staged') {
     // Show staged changes
     diff = await git.diff(['--cached', '--name-status']);
   } else if (targetCommitish === '.') {
@@ -47,10 +47,10 @@ export async function loadGitDiff(
     fileChanges.map(async ({ status, path }) => {
       let fileDiff = '';
 
-      if (targetCommitish.toLowerCase() === 'working') {
+      if (targetCommitish === 'working') {
         // Get unstaged changes
         fileDiff = await git.diff(['--', path]);
-      } else if (targetCommitish.toLowerCase() === 'staged') {
+      } else if (targetCommitish === 'staged') {
         // Get staged changes
         fileDiff = await git.diff(['--cached', '--', path]);
       } else if (targetCommitish === '.') {
