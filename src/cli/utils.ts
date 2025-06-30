@@ -12,8 +12,8 @@ export function validateCommitish(commitish: string): boolean {
   if (trimmed === 'HEAD~') {
     return false;
   }
-  if (trimmed === '.') {
-    return true; // Allow '.' for working directory diff
+  if (trimmed === '.' || trimmed === 'working' || trimmed === 'staged') {
+    return true; // Allow special keywords for working directory and staging area diff
   }
 
   const validPatterns = [

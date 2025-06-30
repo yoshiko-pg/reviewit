@@ -7,12 +7,15 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
 
   let diff: string;
 
-  if (commitish.toLowerCase() === 'working' || commitish.toLowerCase() === 'unstaged') {
+  if (commitish.toLowerCase() === 'working') {
     // Show uncommitted changes
     diff = await git.diff(['--name-status']);
   } else if (commitish.toLowerCase() === 'staged') {
     // Show staged changes
     diff = await git.diff(['--cached', '--name-status']);
+  } else if (commitish === '.') {
+    // Show all changes (both staged and unstaged) compared to HEAD
+    diff = await git.diff(['HEAD', '--name-status']);
   } else {
     // Get list of changed files for a specific commit
     diff = await git.diff([`${commitish}^..${commitish}`, '--name-status']);
@@ -41,12 +44,15 @@ export async function loadGitDiff(commitish: string): Promise<FileDiff[]> {
     fileChanges.map(async ({ status, path }) => {
       let fileDiff = '';
 
-      if (commitish.toLowerCase() === 'working' || commitish.toLowerCase() === 'unstaged') {
+      if (commitish.toLowerCase() === 'working') {
         // Get unstaged changes
         fileDiff = await git.diff(['--', path]);
       } else if (commitish.toLowerCase() === 'staged') {
         // Get staged changes
         fileDiff = await git.diff(['--cached', '--', path]);
+      } else if (commitish === '.') {
+        // Get all changes (both staged and unstaged) compared to HEAD
+        fileDiff = await git.diff(['HEAD', '--', path]);
       } else {
         try {
           // Get diff for specific file in commit

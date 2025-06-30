@@ -25,17 +25,27 @@ program
   .version(pkg.version)
   .argument(
     '[commit-ish]',
-    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged" (default: working)',
-    'working'
+    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
+    'HEAD'
   )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
-  .option('--staged', 'show staged changes only (TUI mode)')
-  .option('--dirty', 'show unstaged changes only (TUI mode, default)')
   .action(async (commitish: string, options: CliOptions) => {
     try {
+      // Determine what to show
+      let targetCommitish = commitish;
+
+      // Handle special arguments
+      if (commitish === 'working') {
+        targetCommitish = 'working';
+      } else if (commitish === 'staged') {
+        targetCommitish = 'staged';
+      } else if (commitish === '.') {
+        targetCommitish = '.';
+      }
+
       if (options.tui) {
         // Check if we're in a TTY environment
         if (!process.stdin.isTTY) {
@@ -48,31 +58,24 @@ program
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');
 
-        // Determine what to show
-        let targetCommitish = commitish;
-        if (options.staged) {
-          targetCommitish = 'staged';
-        } else if (options.dirty || commitish === 'working') {
-          targetCommitish = 'working';
-        }
-
         render(React.createElement(TuiApp, { commitish: targetCommitish }));
         return;
       }
-      if (!validateCommitish(commitish)) {
+
+      if (!validateCommitish(targetCommitish)) {
         console.error('Error: Invalid commit-ish format');
         process.exit(1);
       }
 
       const { url } = await startServer({
-        commitish,
+        commitish: targetCommitish,
         preferredPort: options.port,
         openBrowser: options.open,
         mode: options.mode,
       });
 
       console.log(`\n🚀 ReviewIt server started on ${url}`);
-      console.log(`📋 Reviewing: ${commitish}`);
+      console.log(`📋 Reviewing: ${targetCommitish}`);
 
       if (options.open) {
         console.log('🌐 Opening browser...\n');
