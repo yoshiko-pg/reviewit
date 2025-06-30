@@ -186,7 +186,12 @@ export function FileList({
               ) : (
                 <Folder size={16} className="text-github-text-secondary" />
               )}
-              <span className="text-sm text-github-text-primary font-medium">{node.name}</span>
+              <span
+                className="text-sm text-github-text-primary font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                title={node.name}
+              >
+                {node.name}
+              </span>
               {dirHasComments && (
                 <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
                   <MessageCircle size={12} />
