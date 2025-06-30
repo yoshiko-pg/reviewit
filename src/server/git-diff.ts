@@ -19,8 +19,12 @@ export class GitDiffParser {
         resolvedCommit = 'Working Directory (uncommitted changes)';
         diffArgs = ['HEAD'];
       } else {
-        // Resolve commitish to actual commit hash
-        resolvedCommit = await this.git.revparse([commitish]);
+        // Resolve commitish to actual commit hash and get short version
+        const fullHash = await this.git.revparse([commitish]);
+        const shortHash = fullHash.substring(0, 7);
+        const parentHash = await this.git.revparse([`${commitish}^`]);
+        const shortParentHash = parentHash.substring(0, 7);
+        resolvedCommit = `${shortParentHash}..${shortHash}`;
         diffArgs = [`${commitish}^`, commitish];
       }
 
