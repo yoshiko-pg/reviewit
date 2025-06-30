@@ -17,7 +17,7 @@ export class GitDiffParser {
       if (commitish === '.') {
         // Show diff between HEAD and working directory (uncommitted changes)
         resolvedCommit = 'Working Directory (uncommitted changes)';
-        diffArgs = ['HEAD'];
+        diffArgs = [];
       } else {
         // Resolve commitish to actual commit hash and get short version
         const fullHash = await this.git.revparse([commitish]);
