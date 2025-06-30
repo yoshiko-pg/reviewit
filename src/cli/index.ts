@@ -28,6 +28,13 @@ program
   .action(async (commitish: string, options) => {
     try {
       if (options.tui) {
+        // Check if we're in a TTY environment
+        if (!process.stdin.isTTY) {
+          console.error('Error: TUI mode requires an interactive terminal (TTY).');
+          console.error('Try running the command directly in your terminal without piping.');
+          process.exit(1);
+        }
+
         // Dynamic import for TUI mode
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');

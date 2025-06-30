@@ -70,6 +70,20 @@ const App: React.FC<AppProps> = ({ commitish }) => {
     return <Text color="red">Error: {error}</Text>;
   }
 
+  if (files.length === 0) {
+    return (
+      <Box flexDirection="column">
+        <StatusBar commitish={commitish} totalFiles={0} currentMode="list" />
+        <Box marginTop={1}>
+          <Text color="yellow">No changes found for {commitish}</Text>
+        </Box>
+        <Box marginTop={1}>
+          <Text dimColor>Press 'q' to quit</Text>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box flexDirection="column" height={process.stdout.rows}>
       <StatusBar commitish={commitish} totalFiles={files.length} currentMode={viewMode} />

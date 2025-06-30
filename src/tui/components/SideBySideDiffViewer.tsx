@@ -18,6 +18,18 @@ const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
   const [scrollOffset, setScrollOffset] = useState(0);
 
   const currentFile = files[currentFileIndex];
+
+  if (!currentFile || files.length === 0) {
+    return (
+      <Box flexDirection="column" flexGrow={1}>
+        <Text color="yellow">No files to display</Text>
+        <Box marginTop={1}>
+          <Text dimColor>Press ESC or 'b' to go back</Text>
+        </Box>
+      </Box>
+    );
+  }
+
   const parsedDiff = parseDiff(currentFile.diff);
 
   // Calculate total lines for current file
