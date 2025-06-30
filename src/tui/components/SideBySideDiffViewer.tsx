@@ -101,7 +101,7 @@ const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
     }
   });
 
-  const viewportHeight = Math.max(10, (process.stdout.rows || 24) - 7); // StatusBar(3) + footer(3) + margin(1)
+  const viewportHeight = Math.max(10, (process.stdout.rows || 24) - 10); // StatusBar(3) + file nav(3) + footer(3) + margin(1)
   const maxScroll = Math.max(0, allLines.length - viewportHeight);
 
   const { exit } = useApp();
@@ -183,12 +183,72 @@ const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
             - {currentFile.additions} additions, {currentFile.deletions} deletions
           </Text>
         </Box>
-        <Box>
-          <Text dimColor>
-            {currentFileIndex > 0 && `← ${files[currentFileIndex - 1].path}`}
-            {currentFileIndex > 0 && currentFileIndex < files.length - 1 && ' | '}
-            {currentFileIndex < files.length - 1 && `${files[currentFileIndex + 1].path} →`}
-          </Text>
+        {/* File navigation preview */}
+        <Box height={2} overflow="hidden" flexDirection="column">
+          {(() => {
+            const terminalWidth = process.stdout.columns || 80;
+            const maxWidth = terminalWidth - 4; // Leave some margin
+
+            // Generate file list with current file highlighted
+            const fileItems: Array<{ text: string; isActive: boolean }> = [];
+
+            // Add files before current
+            for (let i = Math.max(0, currentFileIndex - 2); i < currentFileIndex; i++) {
+              fileItems.push({
+                text: files[i].path,
+                isActive: false,
+              });
+            }
+
+            // Add current file
+            fileItems.push({
+              text: `[${files[currentFileIndex].path}]`,
+              isActive: true,
+            });
+
+            // Add files after current
+            for (
+              let i = currentFileIndex + 1;
+              i < Math.min(files.length, currentFileIndex + 3);
+              i++
+            ) {
+              fileItems.push({
+                text: files[i].path,
+                isActive: false,
+              });
+            }
+
+            // Build lines (max 2 lines)
+            const lines: Array<Array<{ text: string; isActive: boolean }>> = [[]];
+            let currentLineWidth = 0;
+
+            for (const item of fileItems) {
+              const itemWidth = item.text.length + 3; // Include separator
+
+              if (currentLineWidth + itemWidth > maxWidth && lines.length < 2) {
+                lines.push([]);
+                currentLineWidth = 0;
+              }
+
+              if (lines.length <= 2) {
+                lines[lines.length - 1].push(item);
+                currentLineWidth += itemWidth;
+              }
+            }
+
+            return lines.map((line, lineIndex) => (
+              <Box key={lineIndex}>
+                {line.map((item, itemIndex) => (
+                  <React.Fragment key={itemIndex}>
+                    {itemIndex > 0 && <Text dimColor> | </Text>}
+                    <Text color={item.isActive ? 'cyan' : undefined} dimColor={!item.isActive}>
+                      {item.text}
+                    </Text>
+                  </React.Fragment>
+                ))}
+              </Box>
+            ));
+          })()}
         </Box>
       </Box>
 

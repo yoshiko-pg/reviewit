@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
-import { loadGitDiff } from '../server/git-diff-simple.js';
+import { loadGitDiff } from '../server/git-diff-tui.js';
 import FileList from './components/FileList.js';
 import DiffViewer from './components/DiffViewer.js';
 import SideBySideDiffViewer from './components/SideBySideDiffViewer.js';
@@ -19,25 +19,34 @@ const App: React.FC<AppProps> = ({ commitish }) => {
   const [viewMode, setViewMode] = useState<'list' | 'diff' | 'side-by-side'>('side-by-side');
   const { exit } = useApp();
 
-  useEffect(() => {
-    const loadDiff = async () => {
-      try {
-        const fileDiffs = await loadGitDiff(commitish);
-        setFiles(fileDiffs);
-        setLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-        setLoading(false);
-      }
-    };
+  const loadDiff = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const fileDiffs = await loadGitDiff(commitish);
+      setFiles(fileDiffs);
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadDiff();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commitish]);
 
   useInput(
     (input, key) => {
       if (input === 'q' || (key.ctrl && input === 'c')) {
         exit();
+      }
+
+      // Reload on 'r' key
+      if (input === 'r') {
+        loadDiff();
+        return;
       }
 
       if (viewMode === 'list') {
@@ -107,10 +116,10 @@ const App: React.FC<AppProps> = ({ commitish }) => {
       <Box borderStyle="single" paddingX={1}>
         <Text dimColor>
           {viewMode === 'list'
-            ? '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: unified diff | q: quit'
+            ? '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: unified diff | r: reload | q: quit'
             : viewMode === 'side-by-side'
-              ? 'Tab: next file | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | q: quit'
-              : 'Tab: next | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | q: quit'}
+              ? 'Tab: next file | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'
+              : 'Tab: next | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'}
         </Text>
       </Box>
     </Box>
