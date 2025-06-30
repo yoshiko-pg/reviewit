@@ -35,21 +35,27 @@ reviewit 6f4a9b7
 # Review HEAD~3
 reviewit HEAD~3
 
+# Review uncommitted changes (working directory)
+reviewit .
+
 # Custom port, don't auto-open browser
 reviewit 6f4a9b7 --port 4300 --no-open
 
 # Via npx
 npx reviewit main~1
+npx reviewit .  # uncommitted changes
 ```
 
 ### ⚙️ CLI Options
 
-| Flag           | Default    | Description                                  |
-| -------------- | ---------- | -------------------------------------------- |
-| `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch |
-| `--port`       | auto       | Preferred port; falls back if occupied       |
-| `--no-open`    | false      | Don't automatically open browser             |
-| `--mode`       | inline     | Diff mode: `inline` or `side-by-side`        |
+| Flag           | Default    | Description                                          |
+| -------------- | ---------- | ---------------------------------------------------- |
+| `<commit-ish>` | (required) | Any Git reference: hash, tag, HEAD~n, branch, or `.` |
+| `--port`       | auto       | Preferred port; falls back if occupied               |
+| `--no-open`    | false      | Don't automatically open browser                     |
+| `--mode`       | inline     | Diff mode: `inline` or `side-by-side`                |
+
+> **Note**: Use `.` as the commit-ish to review uncommitted changes in your working directory!
 
 ## 🛠️ Development
 
