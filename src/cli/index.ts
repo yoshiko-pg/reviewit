@@ -6,7 +6,7 @@ import React from 'react';
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
-import { validateCommitish } from './utils.js';
+import { validateDiffArguments } from './utils.js';
 
 type SpecialArg = 'working' | 'staged' | '.';
 
@@ -34,21 +34,30 @@ program
     'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
     'HEAD'
   )
+  .argument(
+    '[compare-with]',
+    'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
+  )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
-  .action(async (commitish: string, options: CliOptions) => {
+  .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Determine target and base commitish
       let targetCommitish = commitish;
       let baseCommitish: string;
 
-      // Handle special arguments
-      if (isSpecialArg(commitish)) {
-        baseCommitish = 'HEAD';
+      if (compareWith) {
+        // If compareWith is provided, use it as base
+        baseCommitish = compareWith;
       } else {
-        baseCommitish = commitish + '^';
+        // Handle special arguments
+        if (isSpecialArg(commitish)) {
+          baseCommitish = 'HEAD';
+        } else {
+          baseCommitish = commitish + '^';
+        }
       }
 
       if (options.tui) {
@@ -67,8 +76,9 @@ program
         return;
       }
 
-      if (!validateCommitish(targetCommitish)) {
-        console.error('Error: Invalid commit-ish format');
+      const validation = validateDiffArguments(targetCommitish, compareWith);
+      if (!validation.valid) {
+        console.error(`Error: ${validation.error}`);
         process.exit(1);
       }
 

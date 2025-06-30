@@ -1,5 +1,6 @@
 import { simpleGit, type SimpleGit } from 'simple-git';
 
+import { validateDiffArguments, shortHash } from '../cli/utils.js';
 import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
 
 export class GitDiffParser {
@@ -15,28 +16,35 @@ export class GitDiffParser {
     ignoreWhitespace = false
   ): Promise<DiffResponse> {
     try {
+      // Validate arguments
+      const validation = validateDiffArguments(targetCommitish, baseCommitish);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       let resolvedCommit: string;
       let diffArgs: string[];
 
-      if (targetCommitish === '.') {
-        // Show diff between HEAD and working directory (all uncommitted changes)
-        resolvedCommit = 'Working Directory (all uncommitted changes)';
-        diffArgs = [baseCommitish];
-      } else if (targetCommitish === 'working') {
-        // Show only unstaged changes
+      // Handle target special chars (base is always a regular commit)
+      if (targetCommitish === 'working') {
+        // Show unstaged changes (working vs staged)
         resolvedCommit = 'Working Directory (unstaged changes)';
         diffArgs = [];
       } else if (targetCommitish === 'staged') {
-        // Show only staged changes
-        resolvedCommit = 'Staging Area (staged changes)';
-        diffArgs = ['--cached'];
-      } else {
-        // Resolve commitish to actual commit hash and get short version
-        const fullHash = await this.git.revparse([targetCommitish]);
-        const shortHash = fullHash.substring(0, 7);
+        // Show staged changes against base commit
         const baseHash = await this.git.revparse([baseCommitish]);
-        const shortBaseHash = baseHash.substring(0, 7);
-        resolvedCommit = `${shortBaseHash}..${shortHash}`;
+        resolvedCommit = `${shortHash(baseHash)} vs Staging Area (staged changes)`;
+        diffArgs = ['--cached', baseCommitish];
+      } else if (targetCommitish === '.') {
+        // Show all uncommitted changes against base commit
+        const baseHash = await this.git.revparse([baseCommitish]);
+        resolvedCommit = `${shortHash(baseHash)} vs Working Directory (all uncommitted changes)`;
+        diffArgs = [baseCommitish];
+      } else {
+        // Both are regular commits: standard commit-to-commit comparison
+        const targetHash = await this.git.revparse([targetCommitish]);
+        const baseHash = await this.git.revparse([baseCommitish]);
+        resolvedCommit = `${shortHash(baseHash)}..${shortHash(targetHash)}`;
         diffArgs = [baseCommitish, targetCommitish];
       }
 
