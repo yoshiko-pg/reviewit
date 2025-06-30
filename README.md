@@ -18,59 +18,64 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - 🎨 **Syntax Highlighting**: Dynamic language loading for Bash, PHP, SQL, Ruby, Java, and more
 - ✨ **100% vibe coding**: Built with pure coding energy and good vibes
 
-## 📦 Installation
+## ⚡ Quick Start
 
 ```bash
-# use npx (no installation needed)
-npx reviewit <commit-ish>
-
-# or Global install
-npm install -g reviewit
+npx reviewit    # View HEAD commit changes in a beautiful diff viewer
 ```
 
 ## 🚀 Usage
 
+### Basic Usage
+
 ```bash
-# default: HEAD commit changes
-npx reviewit
-
-# Review a specific commit changes
-npx reviewit 6f4a9b7
-npx reviewit HEAD^
-npx reviewit HEAD~3
-
-# Special Arguments
-npx reviewit staged   # staging area changes
-npx reviewit working  # working directory changes
-npx reviewit .        # uncommited all changes
-
-# Custom port, don't auto-open browser
-npx reviewit 6f4a9b7 --port 4300 --no-open
-
-# Terminal UI mode (no browser)
-npx reviewit --tui
-npx reviewit working --tui
+npx reviewit <commit-ish>                # View single commit diff
+npx reviewit <commit-ish> [compare-with] # Compare two commits/branches
 ```
+
+### Single commit review
+
+```bash
+npx reviewit 6f4a9b7  # Specific commit
+npx reviewit HEAD^    # Previous commit
+npx reviewit feature  # Latest commit on branch
+```
+
+### Compare two commits
+
+```bash
+npx reviewit HEAD main      # Compare HEAD with main branch
+npx reviewit feature main   # Compare branches
+npx reviewit . origin/main  # Compare working directory with remote main
+```
+
+### Special Arguments
+
+ReviewIt supports special keywords for common diff scenarios:
+
+```bash
+npx reviewit          # HEAD commit changes
+npx reviewit .        # All uncommitted changes (staged + unstaged)
+npx reviewit staged   # Staged changes ready for commit
+npx reviewit working  # Unstaged changes only (cannot use compare-with)
+```
+
+| Keyword   | Description                                            | Compare-with Support |
+| --------- | ------------------------------------------------------ | -------------------- |
+| `.`       | Shows all uncommitted changes (both staged & unstaged) | ✅ Yes               |
+| `staged`  | Shows staged changes ready to be committed             | ✅ Yes               |
+| `working` | Shows unstaged changes in your working directory       | ❌ No                |
 
 ### ⚙️ CLI Options
 
-| Flag           | Default      | Description                                                        |
-| -------------- | ------------ | ------------------------------------------------------------------ |
-| `<commit-ish>` | (required)   | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments |
-| `--port`       | auto         | Preferred port; falls back if occupied                             |
-| `--no-open`    | false        | Don't automatically open browser                                   |
-| `--mode`       | side-by-side | Diff mode: `inline` or `side-by-side`                              |
-| `--tui`        | false        | Use terminal UI mode instead of web interface                      |
-
-### 🔑 Special Arguments
-
-ReviewIt supports special arguments for common diff scenarios:
-
-| Keyword   | Description                                            |
-| --------- | ------------------------------------------------------ |
-| `staged`  | Shows staged changes ready to be committed             |
-| `working` | Shows unstaged changes in your working directory       |
-| `.`       | Shows all uncommitted changes (both staged & unstaged) |
+| Flag             | Default      | Description                                                         |
+| ---------------- | ------------ | ------------------------------------------------------------------- |
+| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments  |
+| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two) |
+| `--port`         | auto         | Preferred port; falls back if occupied                              |
+| `--no-open`      | false        | Don't automatically open browser                                    |
+| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                               |
+| `--tui`          | false        | Use terminal UI mode instead of web interface                       |
 
 ## 💬 Comment System
 
@@ -118,15 +123,10 @@ pnpm install
 
 # Start development server (with hot reload)
 # This runs both Vite dev server and CLI with NODE_ENV=development
-pnpm run dev                    # defaults to HEAD
-pnpm run dev HEAD~3            # review HEAD~3
-pnpm run dev main              # review main branch
-
-# For development CLI only (connects to separate Vite server)
-pnpm run dev:cli <commit-ish>
+pnpm run dev
 
 # Build and start production server
-pnpm run start HEAD
+pnpm run start <commit-ish>
 
 # Build for production
 pnpm run build
@@ -143,19 +143,26 @@ pnpm run typecheck
 ### Development Workflow
 
 - **`pnpm run dev`**: Starts both Vite dev server (with hot reload) and CLI server simultaneously
-- **`pnpm run start <commit>`**: Builds everything and starts production server (for testing final build)
+- **`pnpm run start <commit-ish>`**: Builds everything and starts production server (for testing final build)
 - **Development mode**: Uses Vite's dev server for hot reload and fast development
 - **Production mode**: Serves built static files (used by npx and production builds)
 
 ## 🏗️ Architecture
 
-- **CLI**: Commander.js for argument parsing
+- **CLI**: Commander.js for argument parsing with comprehensive validation
 - **Backend**: Express server with simple-git for diff processing
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 with GitHub-like dark theme
 - **Syntax Highlighting**: Prism.js with dynamic language loading
-- **Testing**: Vitest for unit tests
+- **Testing**: Vitest for unit tests with co-located test files
 - **Quality**: ESLint, Prettier, lefthook pre-commit hooks
+
+### Key Components
+
+- **Validation System**: Unified validation logic for CLI arguments with comprehensive error handling
+- **Dual Parameter System**: Internal refactoring splits commitish into targetCommitish and baseCommitish for flexibility
+- **Special Argument Support**: Working directory, staging area, and uncommitted changes detection
+- **Hash Utilities**: Consistent short hash generation for commit display
 
 ## 📋 Requirements
 
