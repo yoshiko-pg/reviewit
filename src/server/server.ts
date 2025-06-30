@@ -50,6 +50,31 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     res.json({ ...diffData, ignoreWhitespace });
   });
 
+  // SSE endpoint to detect when tab is closed
+  app.get('/api/heartbeat', (req, res) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    });
+
+    // Send initial heartbeat
+    res.write('data: connected\n\n');
+
+    // Send heartbeat every 5 seconds
+    const heartbeatInterval = setInterval(() => {
+      res.write('data: heartbeat\n\n');
+    }, 5000);
+
+    // When client disconnects (tab closed, navigation, etc.)
+    req.on('close', () => {
+      clearInterval(heartbeatInterval);
+      console.log('Client disconnected, shutting down server...');
+      process.exit(0);
+    });
+  });
+
   // Always runs in production mode when distributed as a CLI tool
   const isProduction =
     process.env.NODE_ENV === 'production' || process.env.NODE_ENV !== 'development';

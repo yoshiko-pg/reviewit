@@ -50,6 +50,25 @@ function App() {
     void fetchDiffData();
   }, [ignoreWhitespace]);
 
+  // Establish SSE connection for tab close detection
+  useEffect(() => {
+    const eventSource = new EventSource('/api/heartbeat');
+
+    eventSource.onopen = () => {
+      console.log('Connected to server heartbeat');
+    };
+
+    eventSource.onerror = () => {
+      console.log('Server connection lost');
+      eventSource.close();
+    };
+
+    // Cleanup on unmount
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   // Check if file is a lock file that should be collapsed by default
   const isLockFile = (filePath: string): boolean => {
     const lockFiles = [
