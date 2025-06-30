@@ -66,7 +66,7 @@ program
         }
       }
 
-      if (targetCommitish === 'working' || targetCommitish === '.') {
+      if (commitish === 'working' || commitish === '.') {
         const git = simpleGit();
         await handleUntrackedFiles(git);
       }
@@ -133,7 +133,8 @@ async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
   if (userConsent) {
     await markFilesIntentToAdd(git, files);
     console.log('✅ Files added with --intent-to-add');
-    console.log(`   💡 To undo this, run \`git reset --mixed\``);
+    const filesAsArgs = files.join(' ');
+    console.log(`   💡 To undo this, run \`git reset -- ${filesAsArgs}\``);
   } else {
     console.log('ℹ️ Untracked files will not be shown in diff');
   }
