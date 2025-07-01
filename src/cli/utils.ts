@@ -18,6 +18,8 @@ export function validateCommitish(commitish: string): boolean {
 
   const validPatterns = [
     /^[a-f0-9]{4,40}$/i, // SHA hashes
+    /^[a-f0-9]{4,40}\^+$/i, // SHA hashes with ^ suffix (parent references)
+    /^[a-f0-9]{4,40}~\d+$/i, // SHA hashes with ~N suffix (ancestor references)
     /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.
     /^[a-zA-Z][a-zA-Z0-9_\-/.]*$/, // branch names, tags (must start with letter, no ^ or ~ in middle)
   ];

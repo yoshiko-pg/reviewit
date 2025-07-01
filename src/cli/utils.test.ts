@@ -9,6 +9,20 @@ describe('CLI Utils', () => {
       expect(validateCommitish('abc123')).toBe(true);
     });
 
+    it('should validate SHA hashes with parent references', () => {
+      expect(validateCommitish('a1b2c3d4e5f6789012345678901234567890abcd^')).toBe(true);
+      expect(validateCommitish('abc123^')).toBe(true);
+      expect(validateCommitish('abc123^^')).toBe(true);
+      expect(validateCommitish('bd4b7513e075b5b245284c38fd23427b9bd0f42e^')).toBe(true);
+    });
+
+    it('should validate SHA hashes with ancestor references', () => {
+      expect(validateCommitish('a1b2c3d4e5f6789012345678901234567890abcd~1')).toBe(true);
+      expect(validateCommitish('abc123~5')).toBe(true);
+      expect(validateCommitish('abc123~10')).toBe(true);
+      expect(validateCommitish('bd4b7513e075b5b245284c38fd23427b9bd0f42e~2')).toBe(true);
+    });
+
     it('should validate HEAD references', () => {
       expect(validateCommitish('HEAD')).toBe(true);
       expect(validateCommitish('HEAD~1')).toBe(true);
@@ -169,6 +183,17 @@ describe('CLI Utils', () => {
         expect(validateDiffArguments('HEAD~2', 'HEAD~3')).toEqual({ valid: true });
         expect(validateDiffArguments('HEAD^1', 'HEAD^2')).toEqual({ valid: true });
         expect(validateDiffArguments('feature/branch-name', 'origin/main')).toEqual({
+          valid: true,
+        });
+      });
+
+      it('should handle SHA hashes with parent/ancestor references', () => {
+        expect(
+          validateDiffArguments('bd4b7513e075b5b245284c38fd23427b9bd0f42e^', 'abc123')
+        ).toEqual({ valid: true });
+        expect(validateDiffArguments('abc123', 'def456^')).toEqual({ valid: true });
+        expect(validateDiffArguments('abc123~1', 'def456~2')).toEqual({ valid: true });
+        expect(validateDiffArguments('a1b2c3d4e5f6789012345678901234567890abcd^', 'HEAD')).toEqual({
           valid: true,
         });
       });
