@@ -111,7 +111,7 @@ ReviewIt supports syntax highlighting for multiple programming languages with dy
 - **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
 - **Web Technologies**: HTML, CSS, JSON, XML, Markdown
 - **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
-- **Backend Languages**: PHP, SQL, Ruby, Java
+- **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, Rust, Go
 - **Others**: Python, Swift, Kotlin, YAML
 
