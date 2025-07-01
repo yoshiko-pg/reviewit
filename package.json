@@ -34,6 +34,7 @@
     "prepublishOnly": "NODE_ENV=production pnpm run build"
   },
   "dependencies": {
+    "@octokit/rest": "^22.0.0",
     "commander": "^14.0.0",
     "express": "^5.1.0",
     "ink": "^6.0.1",

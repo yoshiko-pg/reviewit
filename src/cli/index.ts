@@ -6,7 +6,7 @@ import React from 'react';
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
-import { validateDiffArguments } from './utils.js';
+import { validateDiffArguments, resolvePrCommits } from './utils.js';
 
 type SpecialArg = 'working' | 'staged' | '.';
 
@@ -21,6 +21,7 @@ interface CliOptions {
   tui?: boolean;
   staged?: boolean;
   dirty?: boolean;
+  pr?: string;
 }
 
 const program = new Command();
@@ -42,13 +43,35 @@ program
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
+  .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Determine target and base commitish
       let targetCommitish = commitish;
       let baseCommitish: string;
 
-      if (compareWith) {
+      // Handle PR URL option
+      if (options.pr) {
+        if (commitish !== 'HEAD' || compareWith) {
+          console.error('Error: --pr option cannot be used with positional arguments');
+          process.exit(1);
+        }
+
+        try {
+          const prCommits = await resolvePrCommits(options.pr);
+          targetCommitish = prCommits.targetCommitish;
+          baseCommitish = prCommits.baseCommitish;
+
+          console.log(`📋 Reviewing PR: ${options.pr}`);
+          console.log(`🎯 Target commit: ${targetCommitish.substring(0, 7)}`);
+          console.log(`📍 Base commit: ${baseCommitish.substring(0, 7)}`);
+        } catch (error) {
+          console.error(
+            `Error resolving PR: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          process.exit(1);
+        }
+      } else if (compareWith) {
         // If compareWith is provided, use it as base
         baseCommitish = compareWith;
       } else {
@@ -79,10 +102,13 @@ program
         return;
       }
 
-      const validation = validateDiffArguments(targetCommitish, compareWith);
-      if (!validation.valid) {
-        console.error(`Error: ${validation.error}`);
-        process.exit(1);
+      // Skip validation for PR URLs as they're already resolved to valid commits
+      if (!options.pr) {
+        const validation = validateDiffArguments(targetCommitish, compareWith);
+        if (!validation.valid) {
+          console.error(`Error: ${validation.error}`);
+          process.exit(1);
+        }
       }
 
       const { url, port } = await startServer({

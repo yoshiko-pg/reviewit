@@ -12,6 +12,7 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - 💬 **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
 - 🔄 **Side-by-Side & Inline Views**: Choose your preferred diff viewing mode
 - 🖥️ **Terminal UI Mode**: View diffs directly in your terminal with `--tui` flag
+- 🔗 **GitHub PR Support**: Review pull requests directly by URL with automatic authentication
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
 - 🔐 **Local Only**: Never exposes data over network - runs on localhost only
 - 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
@@ -30,6 +31,7 @@ npx reviewit    # View HEAD commit changes in a beautiful diff viewer
 ```bash
 npx reviewit <commit-ish>                # View single commit diff
 npx reviewit <commit-ish> [compare-with] # Compare two commits/branches
+npx reviewit --pr <github-pr-url>        # Review GitHub pull request
 ```
 
 ### Single commit review
@@ -65,16 +67,29 @@ npx reviewit working  # Unstaged changes only (cannot use compare-with)
 | `staged`  | Shows staged changes ready to be committed             | ✅ Yes               |
 | `working` | Shows unstaged changes in your working directory       | ❌ No                |
 
-### ⚙️ CLI Options
+### GitHub PR
 
-| Flag             | Default      | Description                                                         |
-| ---------------- | ------------ | ------------------------------------------------------------------- |
-| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments  |
-| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two) |
-| `--port`         | auto         | Preferred port; falls back if occupied                              |
-| `--no-open`      | false        | Don't automatically open browser                                    |
-| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                               |
-| `--tui`          | false        | Use terminal UI mode instead of web interface                       |
+```bash
+npx reviewit --pr https://github.com/owner/repo/pull/123
+```
+
+ReviewIt automatically handles GitHub authentication using:
+
+1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, ReviewIt uses your existing credentials
+2. **Environment Variable**: Set `GITHUB_TOKEN` environment variable
+3. **No Authentication**: Public repositories work without authentication (rate-limited)
+
+## ⚙️ CLI Options
+
+| Flag             | Default      | Description                                                            |
+| ---------------- | ------------ | ---------------------------------------------------------------------- |
+| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments     |
+| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two)    |
+| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123) |
+| `--port`         | auto         | Preferred port; falls back if occupied                                 |
+| `--no-open`      | false        | Don't automatically open browser                                       |
+| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                                  |
+| `--tui`          | false        | Use terminal UI mode instead of web interface                          |
 
 ## 💬 Comment System
 
@@ -150,6 +165,7 @@ pnpm run typecheck
 
 - **CLI**: Commander.js for argument parsing with comprehensive validation
 - **Backend**: Express server with simple-git for diff processing
+- **GitHub Integration**: Octokit for GitHub API with automatic authentication (GitHub CLI + env vars)
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 with GitHub-like dark theme
 - **Syntax Highlighting**: Prism.js with dynamic language loading
@@ -161,6 +177,7 @@ pnpm run typecheck
 - **Validation System**: Unified validation logic for CLI arguments with comprehensive error handling
 - **Dual Parameter System**: Internal refactoring splits commitish into targetCommitish and baseCommitish for flexibility
 - **Special Argument Support**: Working directory, staging area, and uncommitted changes detection
+- **GitHub PR Integration**: URL parsing, API integration, and local commit resolution with helpful error messages
 - **Hash Utilities**: Consistent short hash generation for commit display
 
 ## 📋 Requirements

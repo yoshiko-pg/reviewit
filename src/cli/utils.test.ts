@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { validateCommitish, validateDiffArguments, shortHash } from './utils';
+import { validateCommitish, validateDiffArguments, shortHash, parseGitHubPrUrl } from './utils';
 
 describe('CLI Utils', () => {
   describe('validateCommitish', () => {
@@ -185,6 +185,59 @@ describe('CLI Utils', () => {
     it('should handle short hashes', () => {
       expect(shortHash('abc')).toBe('abc');
       expect(shortHash('')).toBe('');
+    });
+  });
+
+  describe('parseGitHubPrUrl', () => {
+    it('should parse valid GitHub PR URLs', () => {
+      const result = parseGitHubPrUrl('https://github.com/owner/repo/pull/123');
+      expect(result).toEqual({
+        owner: 'owner',
+        repo: 'repo',
+        pullNumber: 123,
+      });
+    });
+
+    it('should parse GitHub PR URLs with additional path segments', () => {
+      const result = parseGitHubPrUrl('https://github.com/owner/repo/pull/456/files');
+      expect(result).toEqual({
+        owner: 'owner',
+        repo: 'repo',
+        pullNumber: 456,
+      });
+    });
+
+    it('should parse GitHub PR URLs with query parameters', () => {
+      const result = parseGitHubPrUrl('https://github.com/owner/repo/pull/789?tab=files');
+      expect(result).toEqual({
+        owner: 'owner',
+        repo: 'repo',
+        pullNumber: 789,
+      });
+    });
+
+    it('should handle URLs with hyphens and underscores in owner/repo names', () => {
+      const result = parseGitHubPrUrl('https://github.com/owner-name/repo_name/pull/123');
+      expect(result).toEqual({
+        owner: 'owner-name',
+        repo: 'repo_name',
+        pullNumber: 123,
+      });
+    });
+
+    it('should return null for invalid URLs', () => {
+      expect(parseGitHubPrUrl('not-a-url')).toBe(null);
+      expect(parseGitHubPrUrl('https://example.com/owner/repo/pull/123')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com/owner/repo/issues/123')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com/owner/repo')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com/owner/repo/pull/abc')).toBe(null);
+    });
+
+    it('should handle malformed URLs gracefully', () => {
+      expect(parseGitHubPrUrl('')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com/owner')).toBe(null);
+      expect(parseGitHubPrUrl('https://github.com/owner/repo/pull')).toBe(null);
     });
   });
 });
