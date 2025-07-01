@@ -93,7 +93,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     const distPath = join(__dirname, '..', 'client');
     app.use(express.static(distPath));
 
-    app.get('*', (_req, res) => {
+    app.get('/{*splat}', (_req, res) => {
       res.sendFile(join(distPath, 'index.html'));
     });
   } else {
