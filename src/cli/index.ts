@@ -19,8 +19,6 @@ interface CliOptions {
   open: boolean;
   mode: string;
   tui?: boolean;
-  staged?: boolean;
-  dirty?: boolean;
   pr?: string;
 }
 
