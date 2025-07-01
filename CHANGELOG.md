@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.4] - 2025-07-01
+
+### Fixed
+
+- Fix frontend display to correctly split on three dots (...) instead of two dots (..)
+- Fix git diff arguments to use resolvedCommit string instead of individual commitish values
+
 ## [1.1.3] - 2025-07-01
 
 ### Changed
@@ -112,7 +119,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.0...v1.1.1
