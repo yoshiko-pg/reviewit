@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.2] - 2025-07-01
+
+### Added
+
+- Comment export feature on process termination (#9)
+- /release command for automated release workflow
+- CI workflow for pull requests
+
+### Changed
+
+- Package dependencies updated
+- Improved lint configuration
+- Enhanced pre-commit hooks setup
+
 ## [1.1.1] - 2025-06-30
 
 ### Added
@@ -87,7 +101,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.8...v1.1.0
 [1.0.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.7...v1.0.8
