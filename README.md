@@ -166,7 +166,7 @@ pnpm run typecheck
 
 ## 📋 Requirements
 
-- Node.js ≥ 18.0.0
+- Node.js ≥ 21.0.0
 - Git repository with commits to review
 
 ## 📄 License
