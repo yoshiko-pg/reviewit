@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.8] - 2025-07-01
+
+### Fixed
+
+- Fixed port fallback behavior to prevent displaying `localhost:undefined` when the initial port is in use
+
+### Thanks
+
+- [@arayaryoma](https://github.com/arayaryoma) for fixing port fallback behavior #15
+
 ## [1.1.7] - 2025-07-01
 
 ### Added
@@ -164,7 +174,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.7...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...v1.1.5
