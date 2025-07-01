@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.5] - 2025-07-01
+
+### Added
+
+- MIT License
+- Line-type specific comment positioning
+  - Delete lines: comments positioned on left half
+  - Add lines: comments positioned on right half
+  - Unchanged lines: comments positioned full width
+
+### Changed
+
+- Comment display format simplified to file:line (removed timestamp)
+
 ## [1.1.4] - 2025-07-01
 
 ### Fixed
@@ -119,7 +133,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.5...HEAD
+[1.1.5]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.1...v1.1.2
