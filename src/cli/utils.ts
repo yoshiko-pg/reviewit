@@ -29,6 +29,10 @@ export function shortHash(hash: string): string {
   return hash.substring(0, 7);
 }
 
+export function createCommitRangeString(baseHash: string, targetHash: string): string {
+  return `${baseHash}...${targetHash}`;
+}
+
 export function validateDiffArguments(
   targetCommitish: string,
   baseCommitish?: string
