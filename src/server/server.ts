@@ -190,20 +190,35 @@ async function startServerWithFallback(
   preferredPort: number
 ): Promise<{ port: number; url: string }> {
   return new Promise((resolve, reject) => {
-    const server = app.listen(preferredPort, '127.0.0.1', () => {
-      const port = server.address()?.port;
-      const url = `http://localhost:${port}`;
-      resolve({ port, url });
-    });
+    // express's listen() method uses listen() method in node:net Server instance internally
+    // https://expressjs.com/en/5x/api.html#app.listen
+    // so, an error will be an instance of NodeJS.ErrnoException
+    app.listen(preferredPort, '127.0.0.1', (err: NodeJS.ErrnoException | undefined) => {
+      const url = `http://localhost:${preferredPort}`;
+      if (!err) {
+        resolve({ port: preferredPort, url });
+        return;
+      }
 
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
-        startServerWithFallback(app, preferredPort + 1)
-          .then(resolve)
-          .catch(reject);
-      } else {
-        reject(new Error(`Server error: ${err instanceof Error ? err.message : String(err)}`));
+      // Handling errors when failed to launch a server
+      switch (err.code) {
+        // Try another port until it succeeds
+        case 'EADDRINUSE': {
+          console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
+          return startServerWithFallback(app, preferredPort + 1)
+            .then(({ port, url }) => {
+              resolve({ port, url });
+            })
+            .catch(reject);
+        }
+        default: {
+          // TODO: Use Error.isError() utility function to check if the error is an instance of Error after upgrading to Node.js to v24.0.0
+          reject(
+            new Error(
+              `Failed to launch a server: ${err instanceof Error ? err.message : String(err)}`
+            )
+          );
+        }
       }
     });
   });
