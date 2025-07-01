@@ -53,7 +53,10 @@ program
         baseCommitish = compareWith;
       } else {
         // Handle special arguments
-        if (isSpecialArg(commitish)) {
+        if (commitish === 'working') {
+          // working compares working directory with staging area
+          baseCommitish = 'staged';
+        } else if (isSpecialArg(commitish)) {
           baseCommitish = 'HEAD';
         } else {
           baseCommitish = commitish + '^';

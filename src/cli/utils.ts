@@ -47,13 +47,18 @@ export function validateDiffArguments(
     return { valid: false, error: 'Invalid base commit-ish format' };
   }
 
-  // Special arguments are only allowed in target, not base
+  // Special arguments are only allowed in target, not base (except staged with working)
   const specialArgs = ['working', 'staged', '.'];
   if (baseCommitish && specialArgs.includes(baseCommitish)) {
-    return {
-      valid: false,
-      error: `Special arguments (working, staged, .) are only allowed as target, not base. Got base: ${baseCommitish}`,
-    };
+    // Allow 'staged' as base only when target is 'working'
+    if (baseCommitish === 'staged' && targetCommitish === 'working') {
+      // This is valid: working vs staged
+    } else {
+      return {
+        valid: false,
+        error: `Special arguments (working, staged, .) are only allowed as target, not base. Got base: ${baseCommitish}`,
+      };
+    }
   }
 
   // Cannot compare same values
@@ -61,8 +66,8 @@ export function validateDiffArguments(
     return { valid: false, error: `Cannot compare ${targetCommitish} with itself` };
   }
 
-  // "working" shows unstaged changes and cannot be compared with another commit
-  if (targetCommitish === 'working' && baseCommitish) {
+  // "working" shows unstaged changes and can only be compared with staging area
+  if (targetCommitish === 'working' && baseCommitish && baseCommitish !== 'staged') {
     return {
       valid: false,
       error:
