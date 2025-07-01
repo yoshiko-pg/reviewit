@@ -49,10 +49,10 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
     setLocalSettings(settings);
   }, [settings]);
 
-  const handleSave = () => {
+  // Apply changes immediately for real-time preview
+  useEffect(() => {
     onSettingsChange(localSettings);
-    onClose();
-  };
+  }, [localSettings, onSettingsChange]);
 
   const handleReset = () => {
     setLocalSettings(DEFAULT_SETTINGS);
@@ -61,7 +61,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-github-bg-secondary border border-github-border rounded-lg w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-4 border-b border-github-border">
           <h2 className="text-lg font-semibold text-github-text-primary flex items-center gap-2">
@@ -169,20 +169,12 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
           >
             Reset to Default
           </button>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-github-text-secondary hover:text-github-text-primary border border-github-border rounded"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 text-sm bg-github-accent text-white rounded hover:bg-green-600"
-            >
-              Save
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-github-accent text-white rounded hover:bg-green-600"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
