@@ -19,6 +19,11 @@ export function loadPrismLanguage(lang: string): Promise<void> {
       sql: () => import('prismjs/components/prism-sql.js'),
       ruby: () => import('prismjs/components/prism-ruby.js'),
       java: () => import('prismjs/components/prism-java.js'),
+      scala: async () => {
+        // Scala requires java
+        await loadPrismLanguage('java');
+        return import('prismjs/components/prism-scala.js');
+      },
     };
 
     const importFn = languageImports[lang];
