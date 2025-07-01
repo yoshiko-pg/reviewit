@@ -7,6 +7,7 @@ The categories are as follows:
 - `Removed` for now removed features.
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
+- `Thanks` for contributors mention, contribute summary and PR number
 
 Then inform the user in Japanese about the added content and ask for confirmation with say command.
 
