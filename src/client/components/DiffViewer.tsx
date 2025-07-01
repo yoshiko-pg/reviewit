@@ -14,6 +14,7 @@ import { type DiffFile, type Comment } from '../../types/diff';
 
 import { DiffChunk } from './DiffChunk';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
+import type { AppearanceSettings } from './SettingsModal';
 
 interface DiffViewerProps {
   file: DiffFile;
@@ -25,6 +26,7 @@ interface DiffViewerProps {
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
+  syntaxTheme?: AppearanceSettings['syntaxTheme'];
 }
 
 export function DiffViewer({
@@ -37,6 +39,7 @@ export function DiffViewer({
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
+  syntaxTheme,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
 
@@ -141,6 +144,7 @@ export function DiffViewer({
                 onRemoveComment={onRemoveComment}
                 onUpdateComment={onUpdateComment}
                 mode={diffMode}
+                syntaxTheme={syntaxTheme}
               />
             </div>
           ))}

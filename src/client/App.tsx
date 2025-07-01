@@ -340,6 +340,7 @@ function App() {
                 onGeneratePrompt={generatePrompt}
                 onRemoveComment={removeComment}
                 onUpdateComment={updateComment}
+                syntaxTheme={settings.syntaxTheme}
               />
             </div>
           ))}

@@ -1,11 +1,13 @@
 import { Settings, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { LIGHT_THEMES, DARK_THEMES } from '../utils/themeLoader';
+
 interface AppearanceSettings {
   fontSize: number;
   fontFamily: string;
   theme: 'light' | 'dark' | 'auto';
-  syntaxTheme: 'github-dark' | 'github-light' | 'monokai' | 'dracula';
+  syntaxTheme: string;
 }
 
 interface SettingsModalProps {
@@ -20,7 +22,7 @@ const DEFAULT_SETTINGS: AppearanceSettings = {
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
   theme: 'dark',
-  syntaxTheme: 'github-dark',
+  syntaxTheme: 'vsDark',
 };
 
 const FONT_FAMILIES = [
@@ -35,13 +37,6 @@ const FONT_FAMILIES = [
   { name: 'JetBrains Mono', value: '"JetBrains Mono", "Courier New", monospace' },
 ];
 
-const SYNTAX_THEMES = [
-  { name: 'GitHub Dark', value: 'github-dark' },
-  { name: 'GitHub Light', value: 'github-light' },
-  { name: 'Monokai', value: 'monokai' },
-  { name: 'Dracula', value: 'dracula' },
-];
-
 export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: SettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<AppearanceSettings>(settings);
 
@@ -53,6 +48,47 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
   useEffect(() => {
     onSettingsChange(localSettings);
   }, [localSettings, onSettingsChange]);
+
+  // Get current theme (resolve 'auto' to actual theme)
+  const getCurrentTheme = (): 'light' | 'dark' => {
+    if (localSettings.theme === 'auto') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return localSettings.theme;
+  };
+
+  // Get available themes based on current background color
+  const getAvailableThemes = () => {
+    const currentTheme = getCurrentTheme();
+    return currentTheme === 'light' ? LIGHT_THEMES : DARK_THEMES;
+  };
+
+  // Handle theme change and auto-select valid syntax theme
+  const handleThemeChange = (theme: 'light' | 'dark' | 'auto') => {
+    const newSettings = { ...localSettings, theme };
+
+    // Determine the effective theme
+    const effectiveTheme =
+      theme === 'auto'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : theme;
+
+    // Check if current syntax theme is valid for the new theme
+    const availableThemes = effectiveTheme === 'light' ? LIGHT_THEMES : DARK_THEMES;
+    const isCurrentThemeValid = availableThemes.some((t) => t.id === localSettings.syntaxTheme);
+
+    // If current theme becomes invalid, auto-select first item
+    if (!isCurrentThemeValid && availableThemes.length > 0) {
+      const firstTheme = availableThemes[0];
+      if (firstTheme) {
+        newSettings.syntaxTheme = firstTheme.id;
+      }
+    }
+
+    setLocalSettings(newSettings);
+  };
 
   const handleReset = () => {
     setLocalSettings(DEFAULT_SETTINGS);
@@ -125,7 +161,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
               {(['light', 'dark', 'auto'] as const).map((theme) => (
                 <button
                   key={theme}
-                  onClick={() => setLocalSettings({ ...localSettings, theme })}
+                  onClick={() => handleThemeChange(theme)}
                   className={`px-3 py-2 text-sm rounded border transition-colors ${
                     localSettings.theme === theme
                       ? 'bg-github-accent text-white border-github-accent'
@@ -148,14 +184,14 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
               onChange={(e) =>
                 setLocalSettings({
                   ...localSettings,
-                  syntaxTheme: e.target.value as AppearanceSettings['syntaxTheme'],
+                  syntaxTheme: e.target.value,
                 })
               }
               className="w-full p-2 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary text-sm"
             >
-              {SYNTAX_THEMES.map((theme) => (
-                <option key={theme.value} value={theme.value}>
-                  {theme.name}
+              {getAvailableThemes().map((theme) => (
+                <option key={theme.id} value={theme.id}>
+                  {theme.label}
                 </option>
               ))}
             </select>

@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS: AppearanceSettings = {
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
   theme: 'dark',
-  syntaxTheme: 'github-dark',
+  syntaxTheme: 'vsDark',
 };
 
 const STORAGE_KEY = 'reviewit-appearance-settings';
