@@ -8,15 +8,9 @@ A lightweight command-line tool that spins up a local web server to display Git 
 
 ## ✨ Features
 
-- 🌙 **GitHub-like UI**: Familiar dark theme file list and diff interface
-- 💬 **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
-- 🔄 **Side-by-Side & Inline Views**: Choose your preferred diff viewing mode
-- 🖥️ **Terminal UI Mode**: View diffs directly in your terminal with `--tui` flag
-- 🔗 **GitHub PR Support**: Review pull requests directly by URL with automatic authentication
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
-- 🔐 **Local Only**: Never exposes data over network - runs on localhost only
-- 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
-- 🎨 **Syntax Highlighting**: Dynamic language loading for Bash, PHP, SQL, Ruby, Java, and more
+- 🌙 **Review for AI**: Add comments and generate Claude Code prompts
+- 🖥️ **Terminal UI**: View diffs directly in terminal with `--tui`
 
 ## ⚡ Quick Start
 
@@ -103,10 +97,9 @@ ReviewIt includes an inline commenting system that integrates with Claude Code:
 
 ### Comment Prompt Format
 
-```
-File: src/components/Button.tsx
-Line: 42
-Comment: This function name should probably be more specific
+```sh
+src/components/Button.tsx:42 # Automatically added this line
+This name should probably be more specific.
 ```
 
 ## 🎨 Syntax Highlighting
@@ -171,14 +164,6 @@ pnpm run typecheck
 - **Syntax Highlighting**: Prism.js with dynamic language loading
 - **Testing**: Vitest for unit tests with co-located test files
 - **Quality**: ESLint, Prettier, lefthook pre-commit hooks
-
-### Key Components
-
-- **Validation System**: Unified validation logic for CLI arguments with comprehensive error handling
-- **Dual Parameter System**: Internal refactoring splits commitish into targetCommitish and baseCommitish for flexibility
-- **Special Argument Support**: Working directory, staging area, and uncommitted changes detection
-- **GitHub PR Integration**: URL parsing, API integration, and local commit resolution with helpful error messages
-- **Hash Utilities**: Consistent short hash generation for commit display
 
 ## 📋 Requirements
 
