@@ -121,7 +121,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   if (options.openBrowser) {
     try {
       await open(url);
-    } catch (error) {
+    } catch {
       console.warn('Failed to open browser automatically');
     }
   }
@@ -147,7 +147,7 @@ async function startServerWithFallback(
           .then(resolve)
           .catch(reject);
       } else {
-        reject(err);
+        reject(new Error(`Server error: ${err instanceof Error ? err.message : String(err)}`));
       }
     });
   });
