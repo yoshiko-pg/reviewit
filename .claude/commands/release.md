@@ -29,6 +29,6 @@ If confirmed OK:
 - Commit CHANGELOG.md
 - create current version git tag
 - git push origin main --tags
-- create release on github with CHANGELOG.md target version section text
+- create release on github with CHANGELOG.md target version section text (to origin)
 
 Then ask the user to run npm publish with say command. (Do not execute npm publish yourself)
