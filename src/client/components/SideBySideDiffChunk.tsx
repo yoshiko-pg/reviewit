@@ -55,6 +55,23 @@ export function SideBySideDiffChunk({
     return comments.filter((c) => c.line === lineNumber);
   };
 
+  const getCommentLayout = (sideLine: SideBySideLine): 'left' | 'right' | 'full' => {
+    // サイドバイサイドでは、削除行側（左）にコメントがある場合は左半分、
+    // 追加行側（右）にコメントがある場合は右半分、
+    // 変更なし行の場合は全幅で表示
+    if (sideLine.oldLine?.type === 'delete' && sideLine.newLine?.type === 'add') {
+      // 変更行の場合、newLineNumberを使って判定
+      return sideLine.newLineNumber ? 'right' : 'left';
+    }
+    if (sideLine.oldLine?.type === 'delete') {
+      return 'left';
+    }
+    if (sideLine.newLine?.type === 'add') {
+      return 'right';
+    }
+    return 'full';
+  };
+
   // Convert unified diff to side-by-side format
   const convertToSideBySide = (lines: DiffLine[]): SideBySideLine[] => {
     const result: SideBySideLine[] = [];
@@ -219,15 +236,24 @@ export function SideBySideDiffChunk({
                 {allComments.length > 0 && (
                   <tr className="bg-github-bg-secondary">
                     <td colSpan={4} className="p-0 border-t border-github-border">
-                      {allComments.map((comment) => (
-                        <InlineComment
-                          key={comment.id}
-                          comment={comment}
-                          onGeneratePrompt={onGeneratePrompt}
-                          onRemoveComment={onRemoveComment}
-                          onUpdateComment={onUpdateComment}
-                        />
-                      ))}
+                      {allComments.map((comment) => {
+                        const layout = getCommentLayout(sideLine);
+                        return (
+                          <div
+                            key={comment.id}
+                            className={`flex ${layout === 'left' ? 'justify-start' : layout === 'right' ? 'justify-end' : 'justify-center'}`}
+                          >
+                            <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
+                              <InlineComment
+                                comment={comment}
+                                onGeneratePrompt={onGeneratePrompt}
+                                onRemoveComment={onRemoveComment}
+                                onUpdateComment={onUpdateComment}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </td>
                   </tr>
                 )}
@@ -241,10 +267,18 @@ export function SideBySideDiffChunk({
                         sideLine.newLine?.type === 'normal'))) && (
                     <tr className="bg-github-bg-secondary">
                       <td colSpan={4} className="p-0 border-t border-github-border">
-                        <CommentForm
-                          onSubmit={handleSubmitComment}
-                          onCancel={handleCancelComment}
-                        />
+                        <div
+                          className={`flex ${getCommentLayout(sideLine) === 'left' ? 'justify-start' : getCommentLayout(sideLine) === 'right' ? 'justify-end' : 'justify-center'}`}
+                        >
+                          <div
+                            className={`${getCommentLayout(sideLine) === 'full' ? 'w-full' : 'w-1/2'}`}
+                          >
+                            <CommentForm
+                              onSubmit={handleSubmitComment}
+                              onCancel={handleCancelComment}
+                            />
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   )}

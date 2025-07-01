@@ -93,7 +93,7 @@ program
         process.exit(1);
       }
 
-      const { url } = await startServer({
+      const { url, port } = await startServer({
         targetCommitish,
         baseCommitish,
         preferredPort: options.port,
@@ -110,8 +110,22 @@ program
         console.log('💡 Use --open to automatically open browser\n');
       }
 
-      process.on('SIGINT', () => {
+      process.on('SIGINT', async () => {
         console.log('\n👋 Shutting down ReviewIt server...');
+
+        // Try to fetch comments before shutting down
+        try {
+          const response = await fetch(`http://localhost:${port}/api/comments-output`);
+          if (response.ok) {
+            const data = await response.text();
+            if (data.trim()) {
+              console.log(data);
+            }
+          }
+        } catch {
+          // Silently ignore fetch errors during shutdown
+        }
+
         process.exit(0);
       });
     } catch (error) {

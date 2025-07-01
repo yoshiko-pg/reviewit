@@ -25,6 +25,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
 
   app.use(express.json());
+  app.use(express.text()); // For sendBeacon text/plain requests
 
   app.use((_req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'http://localhost:*');
@@ -59,6 +60,60 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     res.json({ ...diffData, ignoreWhitespace });
   });
 
+  // Store comments for final output
+  let finalComments: any[] = [];
+
+  app.post('/api/comments', (req, res) => {
+    try {
+      // Handle both JSON and text/plain content types (sendBeacon sends as text/plain)
+      let comments = [];
+      if (req.headers['content-type']?.includes('application/json')) {
+        comments = req.body.comments || [];
+      } else if (typeof req.body === 'string') {
+        const parsed = JSON.parse(req.body);
+        comments = parsed.comments || [];
+      } else {
+        comments = req.body.comments || [];
+      }
+      finalComments = comments;
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error parsing comments:', error);
+      res.status(400).json({ error: 'Invalid comment data' });
+    }
+  });
+
+  app.get('/api/comments-output', (_req, res) => {
+    if (finalComments.length > 0) {
+      const output = formatCommentsOutput(finalComments);
+      res.send(output);
+    } else {
+      res.send('');
+    }
+  });
+
+  // Function to format comments for output
+  function formatCommentsOutput(comments: any[]): string {
+    const prompts = comments.map((comment: any) => {
+      return `${comment.file}:${comment.line}\n${comment.body}`;
+    });
+
+    return [
+      '\n📝 Comments from review session:',
+      '='.repeat(50),
+      prompts.join('\n=====\n'),
+      '='.repeat(50),
+      `Total comments: ${comments.length}\n`,
+    ].join('\n');
+  }
+
+  // Function to output comments when server shuts down
+  function outputFinalComments() {
+    if (finalComments.length > 0) {
+      console.log(formatCommentsOutput(finalComments));
+    }
+  }
+
   // SSE endpoint to detect when tab is closed
   app.get('/api/heartbeat', (req, res) => {
     res.writeHead(200, {
@@ -80,6 +135,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     req.on('close', () => {
       clearInterval(heartbeatInterval);
       console.log('Client disconnected, shutting down server...');
+      outputFinalComments();
       process.exit(0);
     });
   });
@@ -93,7 +149,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     const distPath = join(__dirname, '..', 'client');
     app.use(express.static(distPath));
 
-    app.get('*', (_req, res) => {
+    app.get('/{*splat}', (_req, res) => {
       res.sendFile(join(distPath, 'index.html'));
     });
   } else {
@@ -121,7 +177,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   if (options.openBrowser) {
     try {
       await open(url);
-    } catch (error) {
+    } catch {
       console.warn('Failed to open browser automatically');
     }
   }
@@ -147,7 +203,7 @@ async function startServerWithFallback(
           .then(resolve)
           .catch(reject);
       } else {
-        reject(err);
+        reject(new Error(`Server error: ${err instanceof Error ? err.message : String(err)}`));
       }
     });
   });

@@ -1,10 +1,10 @@
 {
   "name": "reviewit",
-  "version": "1.1.1",
+  "version": "1.1.5",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=21.0.0"
   },
   "bin": {
     "reviewit": "./dist/cli/index.js"
@@ -34,17 +34,17 @@
     "prepublishOnly": "NODE_ENV=production pnpm run build"
   },
   "dependencies": {
-    "commander": "^11.1.0",
-    "express": "^4.18.2",
-    "ink": "^5.2.1",
+    "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "ink": "^6.0.1",
     "lucide-react": "^0.525.0",
-    "open": "^10.0.3",
+    "open": "^10.1.2",
     "prism-react-renderer": "^2.4.1",
     "prismjs": "^1.30.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "shiki": "^0.14.7",
-    "simple-git": "^3.20.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "shiki": "^3.7.0",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -52,28 +52,28 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.16",
     "@tsconfig/strictest": "^2.0.5",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.10.5",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.8",
     "@types/prismjs": "^1.26.5",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
-    "eslint": "^8.56.0",
+    "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.1.4",
-    "lefthook": "^1.5.5",
+    "lefthook": "^1.11.14",
     "postcss": "^8.5.6",
-    "prettier": "^3.1.1",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4.1.11",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.10",
-    "vitest": "^1.1.0"
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.4"
   },
   "files": [
     "dist",

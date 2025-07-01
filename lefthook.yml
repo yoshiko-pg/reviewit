@@ -2,24 +2,39 @@ pre-commit:
   parallel: true
   commands:
     lint:
-      glob: '*.{ts,tsx}'
+      glob:
+        - '*.{ts,tsx}'
+        - 'src/**/*.{ts,tsx}'
+        - 'package.json'
+        - 'eslint.config.mjs'
       run: npm run lint:fix
       stage_fixed: true
       fail_text: 'Linting failed. Please fix the issues and try again.'
 
     format:
-      glob: '*.{ts,tsx,js,jsx,json,css}'
+      glob:
+        - '*.{ts,tsx,js,jsx,json,css}'
+        - 'src/**/*.{ts,tsx,js,jsx,json,css}'
+        - '.prettierrc'
       run: npm run format
       stage_fixed: true
       fail_text: 'Code formatting failed. Please check the issues and try again.'
 
     typecheck:
-      glob: '*.{ts,tsx}'
+      glob:
+        - '*.{ts,tsx}'
+        - 'src/**/*.{ts,tsx}'
+        - 'package.json'
+        - 'tsconfig.json'
+        - 'tsconfig.*.json'
       run: npm run typecheck
       fail_text: 'TypeScript compilation failed. Please fix type errors and try again.'
 
     test:
-      glob: 'src/**/*.{ts,tsx}'
+      glob:
+        - 'src/**/*.{ts,tsx}'
+        - 'package.json'
+        - 'vitest.config.ts'
       run: npm test
       fail_text: 'Tests failed. Please fix failing tests and try again.'
 

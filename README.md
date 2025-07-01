@@ -16,7 +16,6 @@ A lightweight command-line tool that spins up a local web server to display Git 
 - 🔐 **Local Only**: Never exposes data over network - runs on localhost only
 - 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
 - 🎨 **Syntax Highlighting**: Dynamic language loading for Bash, PHP, SQL, Ruby, Java, and more
-- ✨ **100% vibe coding**: Built with pure coding energy and good vibes
 
 ## ⚡ Quick Start
 
@@ -166,7 +165,7 @@ pnpm run typecheck
 
 ## 📋 Requirements
 
-- Node.js ≥ 18.0.0
+- Node.js ≥ 21.0.0
 - Git repository with commits to review
 
 ## 📄 License

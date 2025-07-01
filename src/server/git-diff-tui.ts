@@ -1,6 +1,6 @@
 import simpleGit from 'simple-git';
 
-import { validateDiffArguments } from '../cli/utils.js';
+import { validateDiffArguments, createCommitRangeString } from '../cli/utils.js';
 import type { FileDiff } from '../types/diff.js';
 
 export async function loadGitDiff(
@@ -28,7 +28,10 @@ export async function loadGitDiff(
     diff = await git.diff([baseCommitish, '--name-status']);
   } else {
     // Both are regular commits: standard commit-to-commit comparison
-    diff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--name-status']);
+    diff = await git.diff([
+      createCommitRangeString(baseCommitish, targetCommitish),
+      '--name-status',
+    ]);
 
     if (!diff.trim()) {
       // Try without parent (for initial commit)
@@ -67,7 +70,11 @@ export async function loadGitDiff(
       } else {
         try {
           // Both are regular commits: standard commit-to-commit comparison
-          fileDiff = await git.diff([`${baseCommitish}..${targetCommitish}`, '--', path]);
+          fileDiff = await git.diff([
+            createCommitRangeString(baseCommitish, targetCommitish),
+            '--',
+            path,
+          ]);
         } catch {
           // For new files or if parent doesn't exist
           fileDiff = await git.diff([targetCommitish, '--', path]);

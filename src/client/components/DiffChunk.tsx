@@ -78,6 +78,17 @@ export function DiffChunk({
     return comments.filter((c) => c.line === lineNumber);
   };
 
+  const getCommentLayout = (line: DiffLine): 'left' | 'right' | 'full' => {
+    switch (line.type) {
+      case 'delete':
+        return 'left';
+      case 'add':
+        return 'right';
+      default:
+        return 'full';
+    }
+  };
+
   // Use side-by-side component for side-by-side mode
   if (mode === 'side-by-side') {
     return (
@@ -135,23 +146,43 @@ export function DiffChunk({
                   </td>
                 </tr>
 
-                {lineComments.map((comment) => (
-                  <tr key={comment.id} className="bg-github-bg-secondary">
-                    <td colSpan={3} className="p-0 border-t border-github-border">
-                      <InlineComment
-                        comment={comment}
-                        onGeneratePrompt={onGeneratePrompt}
-                        onRemoveComment={onRemoveComment}
-                        onUpdateComment={onUpdateComment}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {lineComments.map((comment) => {
+                  const layout = getCommentLayout(line);
+                  return (
+                    <tr key={comment.id} className="bg-github-bg-secondary">
+                      <td colSpan={3} className="p-0 border-t border-github-border">
+                        <div
+                          className={`flex ${layout === 'left' ? 'justify-start' : layout === 'right' ? 'justify-end' : 'justify-center'}`}
+                        >
+                          <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
+                            <InlineComment
+                              comment={comment}
+                              onGeneratePrompt={onGeneratePrompt}
+                              onRemoveComment={onRemoveComment}
+                              onUpdateComment={onUpdateComment}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {commentingLine === (line.newLineNumber || line.oldLineNumber) && (
                   <tr className="bg-[var(--bg-secondary)]">
                     <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
-                      <CommentForm onSubmit={handleSubmitComment} onCancel={handleCancelComment} />
+                      <div
+                        className={`flex ${getCommentLayout(line) === 'left' ? 'justify-start' : getCommentLayout(line) === 'right' ? 'justify-end' : 'justify-center'}`}
+                      >
+                        <div
+                          className={`${getCommentLayout(line) === 'full' ? 'w-full' : 'w-1/2'}`}
+                        >
+                          <CommentForm
+                            onSubmit={handleSubmitComment}
+                            onCancel={handleCancelComment}
+                          />
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 )}

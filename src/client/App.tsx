@@ -50,6 +50,25 @@ function App() {
     void fetchDiffData();
   }, [ignoreWhitespace]);
 
+  // Send comments to server before page unload
+  useEffect(() => {
+    const sendCommentsBeforeUnload = () => {
+      if (comments.length > 0) {
+        // Use sendBeacon for reliable delivery during page unload
+        const data = JSON.stringify({ comments });
+        navigator.sendBeacon('/api/comments', data);
+      }
+    };
+
+    window.addEventListener('beforeunload', sendCommentsBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', sendCommentsBeforeUnload);
+      // Also send comments when component unmounts
+      sendCommentsBeforeUnload();
+    };
+  }, [comments]);
+
   // Establish SSE connection for tab close detection
   useEffect(() => {
     const eventSource = new EventSource('/api/heartbeat');
@@ -241,12 +260,12 @@ function App() {
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
-                {diffData.commit.includes('..') ? (
+                {diffData.commit.includes('...') ? (
                   <>
                     <span className="text-github-text-secondary font-medium">
-                      {diffData.commit.split('..')[0]}..
+                      {diffData.commit.split('...')[0]}...
                     </span>
-                    <span className="font-medium">{diffData.commit.split('..')[1]}</span>
+                    <span className="font-medium">{diffData.commit.split('...')[1]}</span>
                   </>
                 ) : (
                   diffData.commit

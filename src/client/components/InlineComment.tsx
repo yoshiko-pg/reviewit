@@ -53,12 +53,8 @@ export function InlineComment({
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 text-xs text-gray-300 flex-1 min-w-0">
           <span className="font-mono bg-yellow-800/30 px-1 py-0.5 rounded text-yellow-200 overflow-hidden text-ellipsis whitespace-nowrap">
-            {comment.file}
+            {comment.file}:{comment.line}
           </span>
-          <span className="bg-yellow-800/30 px-1 py-0.5 rounded text-yellow-200 font-medium">
-            Line {comment.line}
-          </span>
-          <span className="text-gray-400">{new Date(comment.timestamp).toLocaleString()}</span>
         </div>
 
         <div className="flex items-center gap-2">

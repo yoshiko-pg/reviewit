@@ -1,6 +1,6 @@
 import { simpleGit, type SimpleGit } from 'simple-git';
 
-import { validateDiffArguments, shortHash } from '../cli/utils.js';
+import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
 import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
 
 export class GitDiffParser {
@@ -44,8 +44,8 @@ export class GitDiffParser {
         // Both are regular commits: standard commit-to-commit comparison
         const targetHash = await this.git.revparse([targetCommitish]);
         const baseHash = await this.git.revparse([baseCommitish]);
-        resolvedCommit = `${shortHash(baseHash)}..${shortHash(targetHash)}`;
-        diffArgs = [baseCommitish, targetCommitish];
+        resolvedCommit = createCommitRangeString(shortHash(baseHash), shortHash(targetHash));
+        diffArgs = [resolvedCommit];
       }
 
       if (ignoreWhitespace) {
