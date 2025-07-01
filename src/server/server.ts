@@ -211,13 +211,9 @@ async function startServerWithFallback(
             })
             .catch(reject);
         }
+        // Unexpected error
         default: {
-          // TODO: Use Error.isError() utility function to check if the error is an instance of Error after upgrading to Node.js to v24.0.0
-          reject(
-            new Error(
-              `Failed to launch a server: ${err instanceof Error ? err.message : String(err)}`
-            )
-          );
+          reject(new Error(`Failed to launch a server: ${err.message}`));
         }
       }
     });
