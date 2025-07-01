@@ -50,6 +50,25 @@ function App() {
     void fetchDiffData();
   }, [ignoreWhitespace]);
 
+  // Send comments to server before page unload
+  useEffect(() => {
+    const sendCommentsBeforeUnload = () => {
+      if (comments.length > 0) {
+        // Use sendBeacon for reliable delivery during page unload
+        const data = JSON.stringify({ comments });
+        navigator.sendBeacon('/api/comments', data);
+      }
+    };
+
+    window.addEventListener('beforeunload', sendCommentsBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', sendCommentsBeforeUnload);
+      // Also send comments when component unmounts
+      sendCommentsBeforeUnload();
+    };
+  }, [comments]);
+
   // Establish SSE connection for tab close detection
   useEffect(() => {
     const eventSource = new EventSource('/api/heartbeat');
