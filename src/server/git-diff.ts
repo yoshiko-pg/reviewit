@@ -45,7 +45,7 @@ export class GitDiffParser {
         const targetHash = await this.git.revparse([targetCommitish]);
         const baseHash = await this.git.revparse([baseCommitish]);
         resolvedCommit = createCommitRangeString(shortHash(baseHash), shortHash(targetHash));
-        diffArgs = [baseCommitish, targetCommitish];
+        diffArgs = [resolvedCommit];
       }
 
       if (ignoreWhitespace) {

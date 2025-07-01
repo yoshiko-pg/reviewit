@@ -260,12 +260,12 @@ function App() {
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
-                {diffData.commit.includes('..') ? (
+                {diffData.commit.includes('...') ? (
                   <>
                     <span className="text-github-text-secondary font-medium">
-                      {diffData.commit.split('..')[0]}..
+                      {diffData.commit.split('...')[0]}...
                     </span>
-                    <span className="font-medium">{diffData.commit.split('..')[1]}</span>
+                    <span className="font-medium">{diffData.commit.split('...')[1]}</span>
                   </>
                 ) : (
                   diffData.commit
