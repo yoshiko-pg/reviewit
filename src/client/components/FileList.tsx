@@ -161,16 +161,6 @@ export function FileList({
   const renderTreeNode = (node: TreeNode, depth: number = 0): React.ReactNode => {
     if (node.isDirectory && node.children) {
       const isExpanded = expandedDirs.has(node.path);
-      // Check if this directory or any subdirectory has comments
-      const hasComments = (node: TreeNode): boolean => {
-        if (node.file && getCommentCount(node.file.path) > 0) return true;
-        if (node.children) {
-          return node.children.some((child) => hasComments(child));
-        }
-        return false;
-      };
-
-      const dirHasComments = hasComments(node);
 
       return (
         <div key={node.path}>
@@ -192,11 +182,6 @@ export function FileList({
               >
                 {node.name}
               </span>
-              {dirHasComments && (
-                <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
-                  <MessageCircle size={12} />
-                </span>
-              )}
             </div>
           )}
           {(isExpanded || !node.name) &&
