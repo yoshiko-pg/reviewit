@@ -1,13 +1,23 @@
 import { simpleGit, type SimpleGit } from 'simple-git';
 
 import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
-import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
+import {
+  type DiffFile,
+  type DiffChunk,
+  type DiffLine,
+  type DiffResponse,
+  type NotebookDiffFile,
+} from '../types/diff.js';
+
+import { NotebookDiffParser } from './notebook-diff.js';
 
 export class GitDiffParser {
   private git: SimpleGit;
+  private notebookDiffParser: NotebookDiffParser;
 
   constructor(repoPath = process.cwd()) {
     this.git = simpleGit(repoPath);
+    this.notebookDiffParser = new NotebookDiffParser(repoPath);
   }
 
   async parseDiff(
@@ -56,7 +66,12 @@ export class GitDiffParser {
       const diffSummary = await this.git.diffSummary(diffArgs);
       const diffRaw = await this.git.diff(['--color=never', ...diffArgs]);
 
-      const files = this.parseUnifiedDiff(diffRaw, diffSummary.files);
+      const files = await this.parseUnifiedDiff(
+        diffRaw,
+        diffSummary.files,
+        targetCommitish,
+        baseCommitish
+      );
 
       return {
         commit: resolvedCommit,
@@ -69,8 +84,13 @@ export class GitDiffParser {
     }
   }
 
-  private parseUnifiedDiff(diffText: string, summary: any[]): DiffFile[] {
-    const files: DiffFile[] = [];
+  private async parseUnifiedDiff(
+    diffText: string,
+    summary: any[],
+    targetCommitish: string,
+    baseCommitish: string
+  ): Promise<(DiffFile | NotebookDiffFile)[]> {
+    const files: (DiffFile | NotebookDiffFile)[] = [];
     const fileBlocks = diffText.split(/^diff --git /m).slice(1);
 
     for (let i = 0; i < fileBlocks.length; i++) {
@@ -79,9 +99,31 @@ export class GitDiffParser {
 
       if (!summaryItem) continue;
 
-      const file = this.parseFileBlock(block, summaryItem);
-      if (file) {
-        files.push(file);
+      const filePath = summaryItem.file || summaryItem.to || summaryItem.from;
+
+      if (filePath && filePath.endsWith('.ipynb')) {
+        // Handle Jupyter notebook files
+        try {
+          const notebookFile = await this.notebookDiffParser.parseNotebookDiff(
+            targetCommitish,
+            baseCommitish,
+            filePath
+          );
+          files.push(notebookFile);
+        } catch {
+          console.error(`Failed to parse notebook ${filePath}`);
+          // Fallback to regular diff parsing
+          const file = this.parseFileBlock(block, summaryItem);
+          if (file) {
+            files.push(file);
+          }
+        }
+      } else {
+        // Handle regular text files
+        const file = this.parseFileBlock(block, summaryItem);
+        if (file) {
+          files.push(file);
+        }
       }
     }
 

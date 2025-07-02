@@ -37,7 +37,7 @@ export interface ParsedDiff {
 
 export interface DiffResponse {
   commit: string;
-  files: DiffFile[];
+  files: (DiffFile | NotebookDiffFile)[];
   ignoreWhitespace?: boolean;
 }
 
@@ -48,4 +48,58 @@ export interface Comment {
   body: string;
   timestamp: string;
   codeContent?: string; // The actual code content for this line
+}
+
+// Jupyter Notebook specific types
+export interface NotebookCell {
+  cell_type: 'code' | 'markdown' | 'raw';
+  source: string[] | string;
+  metadata?: Record<string, any>;
+  execution_count?: number | null;
+  outputs?: NotebookOutput[];
+}
+
+export interface NotebookOutput {
+  output_type: 'stream' | 'display_data' | 'execute_result' | 'error';
+  data?: Record<string, any>;
+  text?: string[];
+  name?: string;
+  ename?: string;
+  evalue?: string;
+  traceback?: string[];
+}
+
+export interface CellDiff {
+  cellIndex: number;
+  oldCellIndex?: number;
+  status: 'added' | 'deleted' | 'modified' | 'moved' | 'unchanged';
+  oldCell?: NotebookCell;
+  newCell?: NotebookCell;
+  sourceChanges?: DiffChunk[];
+  outputChanges?: {
+    added: NotebookOutput[];
+    deleted: NotebookOutput[];
+    modified: Array<{
+      old: NotebookOutput;
+      new: NotebookOutput;
+    }>;
+  };
+  outputDiffChunks?: DiffChunk[];
+  metadataChanged?: boolean;
+  executionCountChanged?: boolean;
+}
+
+export interface NotebookDiffFile {
+  path: string;
+  oldPath?: string;
+  status: 'modified' | 'added' | 'deleted' | 'renamed';
+  cellDiffs: CellDiff[];
+  metadataChanged?: boolean;
+  totalCellsAdded: number;
+  totalCellsDeleted: number;
+  totalCellsModified: number;
+}
+
+export interface NotebookDiff {
+  files: NotebookDiffFile[];
 }
