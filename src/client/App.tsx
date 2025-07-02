@@ -1,4 +1,4 @@
-import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
+import { ClipboardList, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -6,6 +6,8 @@ import { type DiffResponse } from '../types/diff';
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { SettingsModal } from './components/SettingsModal';
+import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useLocalComments } from './hooks/useLocalComments';
 
 function App() {
@@ -17,6 +19,9 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const { settings, updateSettings } = useAppearanceSettings();
 
   const {
     comments,
@@ -245,6 +250,13 @@ function App() {
               label="Ignore Whitespace"
               title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
             />
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title="Appearance Settings"
+            >
+              <Settings size={16} />
+            </button>
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
@@ -328,11 +340,19 @@ function App() {
                 onGeneratePrompt={generatePrompt}
                 onRemoveComment={removeComment}
                 onUpdateComment={updateComment}
+                syntaxTheme={settings.syntaxTheme}
               />
             </div>
           ))}
         </main>
       </div>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSettingsChange={updateSettings}
+      />
     </div>
   );
 }

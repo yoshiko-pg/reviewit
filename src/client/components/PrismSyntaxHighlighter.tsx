@@ -1,12 +1,16 @@
-import { Highlight, themes } from 'prism-react-renderer';
+import { Highlight } from 'prism-react-renderer';
 
 import { useHighlightedCode } from '../hooks/useHighlightedCode';
 import Prism from '../utils/prism';
+import { getSyntaxTheme } from '../utils/syntaxThemes';
+
+import type { AppearanceSettings } from './SettingsModal';
 
 interface PrismSyntaxHighlighterProps {
   code: string;
   language?: string;
   className?: string;
+  syntaxTheme?: AppearanceSettings['syntaxTheme'];
 }
 
 // Detect language from file extension
@@ -80,14 +84,23 @@ export function setCurrentFilename(filename: string) {
   currentFilename = filename;
 }
 
-export function PrismSyntaxHighlighter({ code, language, className }: PrismSyntaxHighlighterProps) {
+export function PrismSyntaxHighlighter({
+  code,
+  language,
+  className,
+  syntaxTheme = 'vsDark',
+}: PrismSyntaxHighlighterProps) {
   const detectedLang = language || detectLanguage(currentFilename);
   const { actualLang } = useHighlightedCode(code, detectedLang);
+  const theme = getSyntaxTheme(syntaxTheme);
 
   return (
-    <Highlight code={code} language={actualLang as any} theme={themes.nightOwl} prism={Prism}>
+    <Highlight code={code} language={actualLang as any} theme={theme} prism={Prism}>
       {({ style, tokens, getLineProps, getTokenProps }) => (
-        <span className={className} style={{ ...style, background: 'transparent' }}>
+        <span
+          className={className}
+          style={{ ...style, background: 'transparent', backgroundColor: 'transparent' }}
+        >
           {tokens.map((line, i) => (
             <span key={i} {...getLineProps({ line })}>
               {line.map((token, key) => (

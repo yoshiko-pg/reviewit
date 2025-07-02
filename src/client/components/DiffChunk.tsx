@@ -5,6 +5,7 @@ import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '..
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
+import type { AppearanceSettings } from './SettingsModal';
 import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 
 interface DiffChunkProps {
@@ -15,6 +16,7 @@ interface DiffChunkProps {
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
+  syntaxTheme?: AppearanceSettings['syntaxTheme'];
 }
 
 export function DiffChunk({
@@ -25,6 +27,7 @@ export function DiffChunk({
   onRemoveComment,
   onUpdateComment,
   mode = 'inline',
+  syntaxTheme,
 }: DiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
   const [commentingLineContent, setCommentingLineContent] = useState<string | null>(null);
@@ -99,6 +102,7 @@ export function DiffChunk({
         onGeneratePrompt={onGeneratePrompt}
         onRemoveComment={onRemoveComment}
         onUpdateComment={onUpdateComment}
+        syntaxTheme={syntaxTheme}
       />
     );
   }
@@ -141,6 +145,7 @@ export function DiffChunk({
                       <PrismSyntaxHighlighter
                         code={line.content}
                         className="flex-1 px-3 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                        syntaxTheme={syntaxTheme}
                       />
                     </div>
                   </td>
