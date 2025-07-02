@@ -1,4 +1,4 @@
-import { ClipboardList, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
+import { Search, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -205,7 +205,7 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border"
+          className="px-4 py-3 border-r border-github-border flex items-center justify-between"
           style={{
             width: `${sidebarWidth}px`,
             minWidth: '200px',
@@ -213,9 +213,16 @@ function App() {
           }}
         >
           <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
-            <ClipboardList size={20} />
+            <Search size={18} />
             ReviewIt
           </h1>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+            title="Appearance Settings"
+          >
+            <Settings size={18} />
+          </button>
         </div>
         <div className="w-1" />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
@@ -250,13 +257,6 @@ function App() {
               label="Ignore Whitespace"
               title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
             />
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
-              title="Appearance Settings"
-            >
-              <Settings size={16} />
-            </button>
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
