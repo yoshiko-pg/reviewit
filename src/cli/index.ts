@@ -30,7 +30,7 @@ program
   .version(pkg.version)
   .argument(
     '[commit-ish]',
-    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
+    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"."',
     'HEAD'
   )
   .argument(
