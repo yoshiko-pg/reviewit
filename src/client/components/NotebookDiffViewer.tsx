@@ -51,16 +51,16 @@ export function NotebookDiffViewer({
       case 'renamed':
         return <FilePen size={16} className="text-github-warning" />;
       default:
-        return <BookOpen size={16} className="text-purple-500" />;
+        return <FileText size={16} className="text-github-text-secondary" />;
     }
   };
 
   const getCellTypeIcon = (cellType: string) => {
     switch (cellType) {
       case 'code':
-        return <Code size={14} className="text-blue-500" />;
+        return <Code size={14} className="text-gray-500" />;
       case 'markdown':
-        return <FileType size={14} className="text-green-500" />;
+        return <FileType size={14} className="text-gray-500" />;
       case 'raw':
         return <FileText size={14} className="text-gray-500" />;
       default:
@@ -141,7 +141,7 @@ export function NotebookDiffViewer({
             )}
             {file.metadataChanged && (
               <span className="font-medium px-2 py-1 rounded text-blue-600 bg-blue-100/10 text-xs">
-                metadata
+                metadata changed
               </span>
             )}
           </div>
