@@ -52,6 +52,10 @@ export class GitDiffParser {
         diffArgs.push('-w');
       }
 
+      // Ignore external diff-tools to unify output.
+      // https://github.com/yoshiko-pg/reviewit/issues/19
+      diffArgs.push('--no-ext-diff', '--color=never');
+
       // Add --color=never to ensure plain text output without ANSI escape sequences
       const diffSummary = await this.git.diffSummary(diffArgs);
       const diffRaw = await this.git.diff(['--color=never', ...diffArgs]);
