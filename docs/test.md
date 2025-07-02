@@ -1,6 +1,7 @@
 # ReviewIt Test Structure and Design
 
 ## Overview
+
 This document describes the testing strategy for ReviewIt, including existing tests and planned test additions. The goal is to achieve comprehensive coverage of CLI parameter handling, Git operations, and server communication.
 
 ## Test Framework and Tools
@@ -15,6 +16,7 @@ This document describes the testing strategy for ReviewIt, including existing te
 ### 1. CLI Utilities (`src/cli/utils.test.ts`)
 
 #### Coverage Areas
+
 - **validateCommitish**: Format validation for Git references
   - SHA hashes (full and short)
   - Parent references (^, ^^)
@@ -22,18 +24,16 @@ This document describes the testing strategy for ReviewIt, including existing te
   - HEAD variations
   - Branch names
   - Special cases (".")
-  
 - **validateDiffArguments**: Argument combination validation
   - Format validation
   - Special argument restrictions
   - Same value comparison
   - Working directory restrictions
-  
 - **shortHash**: Hash truncation utility
-  
 - **parseGitHubPrUrl**: GitHub PR URL parsing
 
 #### Test Quality
+
 - Good coverage of edge cases
 - Input validation including null/undefined
 - Clear test descriptions
@@ -44,19 +44,21 @@ This document describes the testing strategy for ReviewIt, including existing te
 ### 1. CLI Integration Tests (`src/cli/index.test.ts`)
 
 #### Test Design
+
 ```typescript
 // Mock setup
 vi.mock('simple-git');
 vi.mock('../server/server.js');
 vi.mock('./utils.js', async () => ({
-  ...await vi.importActual('./utils.js'),
-  promptUser: vi.fn()
+  ...(await vi.importActual('./utils.js')),
+  promptUser: vi.fn(),
 }));
 ```
 
 #### Test Scenarios
 
 ##### A. Basic Argument Handling
+
 ```typescript
 describe('CLI argument processing', () => {
   test.each([
@@ -73,6 +75,7 @@ describe('CLI argument processing', () => {
 ```
 
 ##### B. Option Processing
+
 ```typescript
 describe('CLI options', () => {
   test.each([
@@ -88,16 +91,17 @@ describe('CLI options', () => {
 ```
 
 ##### C. SimpleGit Interactions
+
 ```typescript
 describe('Git operations', () => {
   test('handles untracked files for working/dot', async () => {
     const mockGit = {
       status: vi.fn().mockResolvedValue({
-        not_added: ['file1.js', 'file2.js']
+        not_added: ['file1.js', 'file2.js'],
       }),
-      add: vi.fn().mockResolvedValue(undefined)
+      add: vi.fn().mockResolvedValue(undefined),
     };
-    
+
     // Test prompt and intent-to-add flow
   });
 
@@ -108,6 +112,7 @@ describe('Git operations', () => {
 ```
 
 ##### D. PR Integration
+
 ```typescript
 describe('GitHub PR handling', () => {
   test('resolves PR commits', async () => {
@@ -122,6 +127,7 @@ describe('GitHub PR handling', () => {
 ```
 
 ##### E. Error Scenarios
+
 ```typescript
 describe('Error handling', () => {
   test.each([
@@ -137,26 +143,28 @@ describe('Error handling', () => {
 ### 2. Server Integration Tests (`src/server/server.test.ts`)
 
 #### Test Design
+
 ```typescript
 // Mock only Git operations, use real Express server
 vi.mock('./git-diff.js', () => ({
   GitDiffParser: vi.fn().mockImplementation(() => ({
     validateCommit: vi.fn().mockResolvedValue(true),
-    parseDiff: vi.fn().mockResolvedValue(mockDiffData)
-  }))
+    parseDiff: vi.fn().mockResolvedValue(mockDiffData),
+  })),
 }));
 ```
 
 #### Test Scenarios
 
 ##### A. Server Startup
+
 ```typescript
 describe('Server startup', () => {
   test('starts on preferred port', async () => {
     const { port, url } = await startServer({
       targetCommitish: 'HEAD',
       baseCommitish: 'HEAD^',
-      preferredPort: 3456
+      preferredPort: 3456,
     });
     expect(port).toBe(3456);
   });
@@ -167,7 +175,7 @@ describe('Server startup', () => {
 
   test('binds to specified host', async () => {
     const { url } = await startServer({
-      host: '0.0.0.0'
+      host: '0.0.0.0',
     });
     expect(url).toContain('localhost'); // Display host conversion
   });
@@ -175,6 +183,7 @@ describe('Server startup', () => {
 ```
 
 ##### B. API Endpoints
+
 ```typescript
 describe('API endpoints', () => {
   let server;
@@ -201,7 +210,7 @@ describe('API endpoints', () => {
     const res = await fetch(`http://localhost:${port}/api/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comments })
+      body: JSON.stringify({ comments }),
     });
     expect(res.ok).toBe(true);
   });
@@ -213,6 +222,7 @@ describe('API endpoints', () => {
 ```
 
 ##### C. Static File Serving
+
 ```typescript
 describe('Static files', () => {
   test('serves client in production', async () => {
@@ -230,11 +240,12 @@ describe('Static files', () => {
 ### 3. GitDiffParser Tests (`src/server/git-diff.test.ts`)
 
 #### Test Scenarios
+
 ```typescript
 describe('GitDiffParser', () => {
   test('validates commits', async () => {
     const mockGit = {
-      show: vi.fn().mockResolvedValue('file1.js\nfile2.js')
+      show: vi.fn().mockResolvedValue('file1.js\nfile2.js'),
     };
     // Test validation logic
   });
@@ -256,16 +267,19 @@ describe('GitDiffParser', () => {
 ## Test Execution Strategy
 
 ### 1. Unit Tests
+
 - Run in isolation with all dependencies mocked
 - Fast execution, no side effects
 - Focus on logic and edge cases
 
 ### 2. Integration Tests
+
 - Mock only external dependencies (Git, file system)
 - Test component interactions
 - Verify actual HTTP communication
 
 ### 3. Safety Measures
+
 - No actual Git operations (fully mocked)
 - Use random ports for server tests
 - Clean up all resources in afterEach
@@ -274,6 +288,7 @@ describe('GitDiffParser', () => {
 ## Test Data Fixtures
 
 ### Mock Diff Data
+
 ```typescript
 const mockDiffData = {
   targetCommit: 'abc123',
@@ -294,22 +309,25 @@ const mockDiffData = {
 ```
 
 ### Mock Git Status
+
 ```typescript
 const mockGitStatus = {
   not_added: ['newfile.js'],
   modified: ['existing.js'],
-  staged: ['staged.js']
+  staged: ['staged.js'],
 };
 ```
 
 ## Coverage Goals
 
 ### Target Coverage
+
 - Line coverage: >90%
 - Branch coverage: >85%
 - Function coverage: 100%
 
 ### Critical Paths
+
 1. All CLI argument combinations
 2. All error scenarios
 3. All API endpoints
@@ -319,6 +337,7 @@ const mockGitStatus = {
 ## CI/CD Integration
 
 ### Test Commands
+
 ```json
 {
   "test": "vitest run",
@@ -328,22 +347,26 @@ const mockGitStatus = {
 ```
 
 ### Pre-commit Hooks
+
 - Run affected tests only
 - Block commit on test failure
 
 ## Future Considerations
 
 ### E2E Tests
+
 - Full process spawn tests
 - Actual Git repository operations in temp dirs
 - Browser automation for UI testing
 
 ### Performance Tests
+
 - Large diff handling
 - Concurrent request handling
 - Memory usage monitoring
 
 ### Security Tests
+
 - Path traversal prevention
 - XSS prevention in diff display
 - CORS policy verification
