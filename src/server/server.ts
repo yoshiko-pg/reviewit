@@ -181,6 +181,13 @@ export async function startServer(
     options.host || '127.0.0.1'
   );
 
+  // Security warning for non-localhost binding
+  if (options.host && options.host !== '127.0.0.1' && options.host !== 'localhost') {
+    console.warn('\n⚠️  WARNING: Server is accessible from external network!');
+    console.warn(`   Binding to: ${options.host}:${port}`);
+    console.warn('   Make sure this is intended and your network is secure.\n');
+  }
+
   // Check if diff is empty and skip browser opening
   if (diffData.isEmpty) {
     // Don't open browser if no differences found
@@ -205,7 +212,8 @@ async function startServerWithFallback(
     // https://expressjs.com/en/5x/api.html#app.listen
     // so, an error will be an instance of NodeJS.ErrnoException
     app.listen(preferredPort, host, (err: NodeJS.ErrnoException | undefined) => {
-      const url = `http://localhost:${preferredPort}`;
+      const displayHost = host === '0.0.0.0' ? 'localhost' : host;
+      const url = `http://${displayHost}:${preferredPort}`;
       if (!err) {
         resolve({ port: preferredPort, url });
         return;
