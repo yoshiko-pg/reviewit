@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Untracked file detection with CLI prompt (#6)
+- --host option to configure server bind address (#13)
+
+### Fixed
+
+- Diff display issue when non-default git diff tool is set (#24)
+- Server URL to reflect --host option (#25)
+- Remove unnecessary default value in help (#22)
+
+### Thanks
+
+- [@umiyosh](https://github.com/umiyosh) for fixing diff display issue #24
+- [@mitsuru](https://github.com/mitsuru) for fixing server URL to reflect --host option #25
+- [@no-yan](https://github.com/no-yan) for adding untracked file detection with CLI prompt #6
+- [@yicrotkd](https://github.com/yicrotkd) for adding --host option to configure server bind address #13
+- [@kawarimidoll](https://github.com/kawarimidoll) for removing unnecessary default value in help #22
+
 ## [1.1.9] - 2025-07-02
 
 ### Added
