@@ -39,6 +39,7 @@ export interface DiffResponse {
   commit: string;
   files: DiffFile[];
   ignoreWhitespace?: boolean;
+  isEmpty?: boolean;
 }
 
 export interface Comment {

@@ -109,7 +109,7 @@ program
         }
       }
 
-      const { url, port } = await startServer({
+      const { url, port, isEmpty } = await startServer({
         targetCommitish,
         baseCommitish,
         preferredPort: options.port,
@@ -120,7 +120,12 @@ program
       console.log(`\n🚀 ReviewIt server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
 
-      if (options.open) {
+      if (isEmpty) {
+        console.log(
+          '\n⚠️ \x1b[33mNo differences found. Browser will not open automatically.\x1b[0m'
+        );
+        console.log(`   Server is running at ${url} if you want to check manually.\n`);
+      } else if (options.open) {
         console.log('🌐 Opening browser...\n');
       } else {
         console.log('💡 Use --open to automatically open browser\n');

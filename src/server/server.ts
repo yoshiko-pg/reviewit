@@ -17,7 +17,9 @@ interface ServerOptions {
   ignoreWhitespace?: boolean;
 }
 
-export async function startServer(options: ServerOptions): Promise<{ port: number; url: string }> {
+export async function startServer(
+  options: ServerOptions
+): Promise<{ port: number; url: string; isEmpty?: boolean }> {
   const app = express();
   const parser = new GitDiffParser();
 
@@ -174,7 +176,10 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
 
   const { port, url } = await startServerWithFallback(app, options.preferredPort || 3000);
 
-  if (options.openBrowser) {
+  // Check if diff is empty and skip browser opening
+  if (diffData.isEmpty) {
+    // Don't open browser if no differences found
+  } else if (options.openBrowser) {
     try {
       await open(url);
     } catch {
@@ -182,7 +187,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     }
   }
 
-  return { port, url };
+  return { port, url, isEmpty: diffData.isEmpty };
 }
 
 async function startServerWithFallback(
