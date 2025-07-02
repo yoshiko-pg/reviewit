@@ -97,8 +97,8 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-github-bg-secondary border border-github-border rounded-lg w-full max-w-md mx-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="bg-github-bg-secondary border border-github-border rounded-lg w-full max-w-md mx-4 pointer-events-auto">
         <div className="flex items-center justify-between p-4 border-b border-github-border">
           <h2 className="text-lg font-semibold text-github-text-primary flex items-center gap-2">
             <Settings size={20} />
