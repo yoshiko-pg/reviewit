@@ -2,11 +2,18 @@
 
 import { Command } from 'commander';
 import React from 'react';
+import { simpleGit, type SimpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
-import { validateDiffArguments, resolvePrCommits } from './utils.js';
+import {
+  findUntrackedFiles,
+  markFilesIntentToAdd,
+  promptUser,
+  validateDiffArguments,
+  resolvePrCommits,
+} from './utils.js';
 
 type SpecialArg = 'working' | 'staged' | '.';
 
@@ -86,6 +93,11 @@ program
         }
       }
 
+      if (commitish === 'working' || commitish === '.') {
+        const git = simpleGit();
+        await handleUntrackedFiles(git);
+      }
+
       if (options.tui) {
         // Check if we're in a TTY environment
         if (!process.stdin.isTTY) {
@@ -125,7 +137,7 @@ program
 
       if (isEmpty) {
         console.log(
-          '\n⚠️ \x1b[33mNo differences found. Browser will not open automatically.\x1b[0m'
+          '\n! \x1b[33mNo differences found. Browser will not open automatically.\x1b[0m'
         );
         console.log(`   Server is running at ${url} if you want to check manually.\n`);
       } else if (options.open) {
@@ -159,3 +171,32 @@ program
   });
 
 program.parse();
+
+// Check for untracked files and prompt user to add them for diff visibility
+async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
+  const files = await findUntrackedFiles(git);
+  if (files.length === 0) {
+    return;
+  }
+
+  const userConsent = await promptUserToIncludeUntracked(files);
+  if (userConsent) {
+    await markFilesIntentToAdd(git, files);
+    console.log('✅ Files added with --intent-to-add');
+    const filesAsArgs = files.join(' ');
+    console.log(`   💡 To undo this, run \`git reset -- ${filesAsArgs}\``);
+  } else {
+    console.log('i Untracked files will not be shown in diff');
+  }
+}
+
+async function promptUserToIncludeUntracked(files: string[]): Promise<boolean> {
+  console.log(`\n📝 Found ${files.length} untracked file(s):`);
+  for (const file of files) {
+    console.log(`    - ${file}`);
+  }
+
+  return await promptUser(
+    '\n❓ Would you like to include these untracked files in the diff review? (y/N): '
+  );
+}

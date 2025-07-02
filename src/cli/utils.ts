@@ -1,3 +1,9 @@
+import { execSync } from 'child_process';
+import { createInterface } from 'readline/promises';
+
+import { Octokit } from '@octokit/rest';
+import type { SimpleGit } from 'simple-git';
+
 export function validateCommitish(commitish: string): boolean {
   if (!commitish || typeof commitish !== 'string') {
     return false;
@@ -30,10 +36,6 @@ export function validateCommitish(commitish: string): boolean {
 export function shortHash(hash: string): string {
   return hash.substring(0, 7);
 }
-
-import { execSync } from 'child_process';
-
-import { Octokit } from '@octokit/rest';
 
 export function createCommitRangeString(baseHash: string, targetHash: string): string {
   return `${baseHash}...${targetHash}`;
@@ -222,4 +224,26 @@ export function validateDiffArguments(
   }
 
   return { valid: true };
+}
+
+export async function findUntrackedFiles(git: SimpleGit): Promise<string[]> {
+  const status = await git.status();
+  return status.not_added;
+}
+
+// Add files with --intent-to-add to make them visible in `git diff` without staging content
+export async function markFilesIntentToAdd(git: SimpleGit, files: string[]): Promise<void> {
+  await git.add(['--intent-to-add', ...files]);
+}
+
+export async function promptUser(message: string): Promise<boolean> {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const answer = await rl.question(message);
+  rl.close();
+
+  return ['y', 'yes'].includes(answer.trim().toLowerCase());
 }
