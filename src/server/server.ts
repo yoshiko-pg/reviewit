@@ -12,6 +12,7 @@ interface ServerOptions {
   targetCommitish: string;
   baseCommitish: string;
   preferredPort?: number;
+  host?: string;
   openBrowser?: boolean;
   mode?: string;
   ignoreWhitespace?: boolean;
@@ -174,7 +175,11 @@ export async function startServer(
     });
   }
 
-  const { port, url } = await startServerWithFallback(app, options.preferredPort || 3000);
+  const { port, url } = await startServerWithFallback(
+    app,
+    options.preferredPort || 3000,
+    options.host || '127.0.0.1'
+  );
 
   // Check if diff is empty and skip browser opening
   if (diffData.isEmpty) {
@@ -192,13 +197,14 @@ export async function startServer(
 
 async function startServerWithFallback(
   app: any,
-  preferredPort: number
+  preferredPort: number,
+  host: string
 ): Promise<{ port: number; url: string }> {
   return new Promise((resolve, reject) => {
     // express's listen() method uses listen() method in node:net Server instance internally
     // https://expressjs.com/en/5x/api.html#app.listen
     // so, an error will be an instance of NodeJS.ErrnoException
-    app.listen(preferredPort, '127.0.0.1', (err: NodeJS.ErrnoException | undefined) => {
+    app.listen(preferredPort, host, (err: NodeJS.ErrnoException | undefined) => {
       const url = `http://localhost:${preferredPort}`;
       if (!err) {
         resolve({ port: preferredPort, url });
@@ -210,7 +216,7 @@ async function startServerWithFallback(
         // Try another port until it succeeds
         case 'EADDRINUSE': {
           console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
-          return startServerWithFallback(app, preferredPort + 1)
+          return startServerWithFallback(app, preferredPort + 1, host)
             .then(({ port, url }) => {
               resolve({ port, url });
             })
