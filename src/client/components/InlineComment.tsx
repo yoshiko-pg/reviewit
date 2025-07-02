@@ -49,10 +49,16 @@ export function InlineComment({
   };
 
   return (
-    <div className="m-2 mx-4 p-3 bg-yellow-500/10 border border-yellow-400/30 rounded-md border-l-4 border-l-yellow-400 shadow-sm">
+    <div className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm">
       <div className="flex items-center justify-between mb-2 gap-3">
-        <div className="flex items-center gap-2 text-xs text-gray-300 flex-1 min-w-0">
-          <span className="font-mono bg-yellow-800/30 px-1 py-0.5 rounded text-yellow-200 overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
+          <span
+            className="font-mono px-1 py-0.5 rounded overflow-hidden text-ellipsis whitespace-nowrap"
+            style={{
+              backgroundColor: 'var(--color-yellow-path-bg)',
+              color: 'var(--color-yellow-path-text)',
+            }}
+          >
             {comment.file}:{comment.line}
           </span>
         </div>
@@ -62,14 +68,27 @@ export function InlineComment({
             <>
               <button
                 onClick={handleCopyPrompt}
-                className="text-xs px-2 py-1 bg-yellow-700/40 text-yellow-200 border border-yellow-600/50 rounded hover:bg-yellow-600/50 hover:border-yellow-500 transition-all whitespace-nowrap"
+                className="text-xs px-2 py-1 rounded transition-all whitespace-nowrap"
+                style={{
+                  backgroundColor: 'var(--color-yellow-btn-bg)',
+                  color: 'var(--color-yellow-btn-text)',
+                  border: '1px solid var(--color-yellow-btn-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                }}
                 title="Copy prompt for Claude Code"
               >
                 {isCopied ? 'Copied!' : 'Copy Prompt'}
               </button>
               <button
                 onClick={handleStartEdit}
-                className="text-xs p-1.5 bg-blue-700/40 text-blue-200 border border-blue-600/50 rounded hover:bg-blue-600/50 hover:border-blue-500 transition-all"
+                className="text-xs p-1.5 bg-github-bg-tertiary text-github-text-secondary border border-github-border rounded hover:text-github-text-primary hover:bg-github-bg-primary transition-all"
                 title="Edit comment"
               >
                 <Edit2 size={12} />
@@ -80,7 +99,7 @@ export function InlineComment({
                     onRemoveComment(comment.id);
                   }
                 }}
-                className="text-xs p-1.5 bg-red-700/40 text-red-200 border border-red-600/50 rounded hover:bg-red-600/50 hover:border-red-500 transition-all"
+                className="text-xs p-1.5 bg-github-bg-tertiary text-github-danger border border-github-border rounded hover:bg-red-500/10 hover:border-github-danger transition-all"
                 title="Delete comment"
               >
                 <Trash2 size={12} />
@@ -91,14 +110,14 @@ export function InlineComment({
             <>
               <button
                 onClick={handleSaveEdit}
-                className="text-xs p-1.5 bg-green-700/40 text-green-200 border border-green-600/50 rounded hover:bg-green-600/50 hover:border-green-500 transition-all"
+                className="text-xs p-1.5 bg-github-accent text-white border border-github-accent rounded hover:opacity-80 transition-all"
                 title="Save changes"
               >
                 <Save size={12} />
               </button>
               <button
                 onClick={handleCancelEdit}
-                className="text-xs p-1.5 bg-gray-700/40 text-gray-200 border border-gray-600/50 rounded hover:bg-gray-600/50 hover:border-gray-500 transition-all"
+                className="text-xs p-1.5 bg-github-bg-tertiary text-github-text-secondary border border-github-border rounded hover:text-github-text-primary hover:bg-github-bg-primary transition-all"
                 title="Cancel editing"
               >
                 <X size={12} />
@@ -109,12 +128,14 @@ export function InlineComment({
       </div>
 
       {!isEditing ? (
-        <div className="text-yellow-100 text-sm leading-6 whitespace-pre-wrap">{comment.body}</div>
+        <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
+          {comment.body}
+        </div>
       ) : (
         <textarea
           value={editedBody}
           onChange={(e) => setEditedBody(e.target.value)}
-          className="w-full text-yellow-100 text-sm leading-6 bg-yellow-900/20 border border-yellow-600/50 rounded px-2 py-1 resize-none focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
+          className="w-full text-github-text-primary text-sm leading-6 bg-github-bg-secondary border border-github-border rounded px-2 py-1 resize-none focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30"
           rows={Math.max(2, editedBody.split('\n').length)}
           placeholder="Edit your comment..."
           autoFocus

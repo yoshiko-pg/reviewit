@@ -14,6 +14,7 @@ import { type DiffFile, type Comment } from '../../types/diff';
 
 import { DiffChunk } from './DiffChunk';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
+import type { AppearanceSettings } from './SettingsModal';
 
 interface DiffViewerProps {
   file: DiffFile;
@@ -25,6 +26,7 @@ interface DiffViewerProps {
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
+  syntaxTheme?: AppearanceSettings['syntaxTheme'];
 }
 
 export function DiffViewer({
@@ -37,6 +39,7 @@ export function DiffViewer({
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
+  syntaxTheme,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
 
@@ -116,7 +119,7 @@ export function DiffViewer({
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
               reviewedFiles.has(file.path)
                 ? 'bg-github-accent text-white'
-                : 'bg-gray-600 text-gray-200 border border-gray-500 hover:bg-gray-500 hover:text-white'
+                : 'dark:bg-slate-600 dark:text-white dark:border-slate-500 dark:hover:bg-slate-500 dark:hover:border-slate-400 bg-github-bg-secondary text-github-text-primary border border-github-border hover:bg-github-bg-tertiary hover:border-github-text-muted'
             }`}
             title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
           >
@@ -141,6 +144,7 @@ export function DiffViewer({
                 onRemoveComment={onRemoveComment}
                 onUpdateComment={onUpdateComment}
                 mode={diffMode}
+                syntaxTheme={syntaxTheme}
               />
             </div>
           ))}

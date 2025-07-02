@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.9] - 2025-07-02
+
+### Added
+
+- Customizable appearance settings to Web UI with font size, font family, theme selection, and syntax highlighting options (#16)
+
+### Changed
+
+- Skip browser auto-launch when no differences are found, displaying informative CLI message instead
+
+### Fixed
+
+- Comment areas now use full width in inline mode for improved readability
+
+## [1.1.8] - 2025-07-01
+
+### Fixed
+
+- Fixed port fallback behavior to prevent displaying `localhost:undefined` when the initial port is in use
+
+### Thanks
+
+- [@arayaryoma](https://github.com/arayaryoma) for fixing port fallback behavior #15
+
+## [1.1.7] - 2025-07-01
+
+### Added
+
+- Scala syntax highlighting support
+
+### Fixed
+
+- Fixed error when specifying a specific commit hash that prevented the application from starting
+  - Now correctly validates commit formats like `abc123^` and `abc123~1`
+  - Resolves "Invalid base commit-ish format" error when using commit^ syntax
+
+### Thanks
+
+- [@rfkm](https://github.com/rfkm) for adding Scala syntax highlighting support #14
+
+## [1.1.6] - 2025-07-01
+
+### Added
+
+- GitHub PR URL support with `--pr <url>` option
+  - `npx reviewit --pr https://github.com/owner/repo/pull/123`
+
+### Changed
+
+- README.md features section simplified for better readability
+
+### Fixed
+
+- Fixed error when using `working` as target argument that was incorrectly causing validation failures
+
 ## [1.1.5] - 2025-07-01
 
 ### Added
@@ -133,7 +188,10 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.5...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.7...v1.1.8
+[1.1.7]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.6...v1.1.7
+[1.1.6]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.2...v1.1.3

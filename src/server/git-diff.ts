@@ -61,6 +61,7 @@ export class GitDiffParser {
       return {
         commit: resolvedCommit,
         files,
+        isEmpty: files.length === 0,
       };
     } catch (error) {
       throw new Error(

@@ -8,14 +8,9 @@ A lightweight command-line tool that spins up a local web server to display Git 
 
 ## ✨ Features
 
-- 🌙 **GitHub-like UI**: Familiar dark theme file list and diff interface
-- 💬 **Inline Comments**: Add comments to specific lines and generate Claude Code prompts
-- 🔄 **Side-by-Side & Inline Views**: Choose your preferred diff viewing mode
-- 🖥️ **Terminal UI Mode**: View diffs directly in your terminal with `--tui` flag
 - ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
-- 🔐 **Local Only**: Never exposes data over network - runs on localhost only
-- 🛠️ **Modern Stack**: React 18 + TypeScript + Tailwind CSS
-- 🎨 **Syntax Highlighting**: Dynamic language loading for Bash, PHP, SQL, Ruby, Java, and more
+- 🌙 **Review for AI**: Add comments and generate Claude Code prompts
+- 🖥️ **Terminal UI**: View diffs directly in terminal with `--tui`
 
 ## ⚡ Quick Start
 
@@ -30,6 +25,7 @@ npx reviewit    # View HEAD commit changes in a beautiful diff viewer
 ```bash
 npx reviewit <commit-ish>                # View single commit diff
 npx reviewit <commit-ish> [compare-with] # Compare two commits/branches
+npx reviewit --pr <github-pr-url>        # Review GitHub pull request
 ```
 
 ### Single commit review
@@ -65,16 +61,29 @@ npx reviewit working  # Unstaged changes only (cannot use compare-with)
 | `staged`  | Shows staged changes ready to be committed             | ✅ Yes               |
 | `working` | Shows unstaged changes in your working directory       | ❌ No                |
 
-### ⚙️ CLI Options
+### GitHub PR
 
-| Flag             | Default      | Description                                                         |
-| ---------------- | ------------ | ------------------------------------------------------------------- |
-| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments  |
-| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two) |
-| `--port`         | auto         | Preferred port; falls back if occupied                              |
-| `--no-open`      | false        | Don't automatically open browser                                    |
-| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                               |
-| `--tui`          | false        | Use terminal UI mode instead of web interface                       |
+```bash
+npx reviewit --pr https://github.com/owner/repo/pull/123
+```
+
+ReviewIt automatically handles GitHub authentication using:
+
+1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, ReviewIt uses your existing credentials
+2. **Environment Variable**: Set `GITHUB_TOKEN` environment variable
+3. **No Authentication**: Public repositories work without authentication (rate-limited)
+
+## ⚙️ CLI Options
+
+| Flag             | Default      | Description                                                            |
+| ---------------- | ------------ | ---------------------------------------------------------------------- |
+| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments     |
+| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two)    |
+| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123) |
+| `--port`         | auto         | Preferred port; falls back if occupied                                 |
+| `--no-open`      | false        | Don't automatically open browser                                       |
+| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                                  |
+| `--tui`          | false        | Use terminal UI mode instead of web interface                          |
 
 ## 💬 Comment System
 
@@ -88,10 +97,9 @@ ReviewIt includes an inline commenting system that integrates with Claude Code:
 
 ### Comment Prompt Format
 
-```
-File: src/components/Button.tsx
-Line: 42
-Comment: This function name should probably be more specific
+```sh
+src/components/Button.tsx:42 # Automatically added this line
+This name should probably be more specific.
 ```
 
 ## 🎨 Syntax Highlighting
@@ -103,7 +111,7 @@ ReviewIt supports syntax highlighting for multiple programming languages with dy
 - **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
 - **Web Technologies**: HTML, CSS, JSON, XML, Markdown
 - **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
-- **Backend Languages**: PHP, SQL, Ruby, Java
+- **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, Rust, Go
 - **Others**: Python, Swift, Kotlin, YAML
 
@@ -150,18 +158,12 @@ pnpm run typecheck
 
 - **CLI**: Commander.js for argument parsing with comprehensive validation
 - **Backend**: Express server with simple-git for diff processing
+- **GitHub Integration**: Octokit for GitHub API with automatic authentication (GitHub CLI + env vars)
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 with GitHub-like dark theme
 - **Syntax Highlighting**: Prism.js with dynamic language loading
 - **Testing**: Vitest for unit tests with co-located test files
 - **Quality**: ESLint, Prettier, lefthook pre-commit hooks
-
-### Key Components
-
-- **Validation System**: Unified validation logic for CLI arguments with comprehensive error handling
-- **Dual Parameter System**: Internal refactoring splits commitish into targetCommitish and baseCommitish for flexibility
-- **Special Argument Support**: Working directory, staging area, and uncommitted changes detection
-- **Hash Utilities**: Consistent short hash generation for commit display
 
 ## 📋 Requirements
 

@@ -12,6 +12,7 @@ import {
   markFilesIntentToAdd,
   promptUser,
   validateDiffArguments,
+  resolvePrCommits,
 } from './utils.js';
 
 type SpecialArg = 'working' | 'staged' | '.';
@@ -25,8 +26,7 @@ interface CliOptions {
   open: boolean;
   mode: string;
   tui?: boolean;
-  staged?: boolean;
-  dirty?: boolean;
+  pr?: string;
 }
 
 const program = new Command();
@@ -37,7 +37,7 @@ program
   .version(pkg.version)
   .argument(
     '[commit-ish]',
-    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
+    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"."',
     'HEAD'
   )
   .argument(
@@ -48,18 +48,43 @@ program
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
+  .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Determine target and base commitish
       let targetCommitish = commitish;
       let baseCommitish: string;
 
-      if (compareWith) {
+      // Handle PR URL option
+      if (options.pr) {
+        if (commitish !== 'HEAD' || compareWith) {
+          console.error('Error: --pr option cannot be used with positional arguments');
+          process.exit(1);
+        }
+
+        try {
+          const prCommits = await resolvePrCommits(options.pr);
+          targetCommitish = prCommits.targetCommitish;
+          baseCommitish = prCommits.baseCommitish;
+
+          console.log(`📋 Reviewing PR: ${options.pr}`);
+          console.log(`🎯 Target commit: ${targetCommitish.substring(0, 7)}`);
+          console.log(`📍 Base commit: ${baseCommitish.substring(0, 7)}`);
+        } catch (error) {
+          console.error(
+            `Error resolving PR: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          process.exit(1);
+        }
+      } else if (compareWith) {
         // If compareWith is provided, use it as base
         baseCommitish = compareWith;
       } else {
         // Handle special arguments
-        if (isSpecialArg(commitish)) {
+        if (commitish === 'working') {
+          // working compares working directory with staging area
+          baseCommitish = 'staged';
+        } else if (isSpecialArg(commitish)) {
           baseCommitish = 'HEAD';
         } else {
           baseCommitish = commitish + '^';
@@ -87,13 +112,16 @@ program
         return;
       }
 
-      const validation = validateDiffArguments(targetCommitish, compareWith);
-      if (!validation.valid) {
-        console.error(`Error: ${validation.error}`);
-        process.exit(1);
+      // Skip validation for PR URLs as they're already resolved to valid commits
+      if (!options.pr) {
+        const validation = validateDiffArguments(targetCommitish, compareWith);
+        if (!validation.valid) {
+          console.error(`Error: ${validation.error}`);
+          process.exit(1);
+        }
       }
 
-      const { url, port } = await startServer({
+      const { url, port, isEmpty } = await startServer({
         targetCommitish,
         baseCommitish,
         preferredPort: options.port,
@@ -104,7 +132,12 @@ program
       console.log(`\n🚀 ReviewIt server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
 
-      if (options.open) {
+      if (isEmpty) {
+        console.log(
+          '\n! \x1b[33mNo differences found. Browser will not open automatically.\x1b[0m'
+        );
+        console.log(`   Server is running at ${url} if you want to check manually.\n`);
+      } else if (options.open) {
         console.log('🌐 Opening browser...\n');
       } else {
         console.log('💡 Use --open to automatically open browser\n');
@@ -150,7 +183,7 @@ async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
     const filesAsArgs = files.join(' ');
     console.log(`   💡 To undo this, run \`git reset -- ${filesAsArgs}\``);
   } else {
-    console.log('ℹ️ Untracked files will not be shown in diff');
+    console.log('i Untracked files will not be shown in diff');
   }
 }
 

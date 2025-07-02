@@ -5,6 +5,7 @@ import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '..
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
+import type { AppearanceSettings } from './SettingsModal';
 
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
@@ -13,6 +14,7 @@ interface SideBySideDiffChunkProps {
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
+  syntaxTheme?: AppearanceSettings['syntaxTheme'];
 }
 
 interface SideBySideLine {
@@ -29,6 +31,7 @@ export function SideBySideDiffChunk({
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
+  syntaxTheme,
 }: SideBySideDiffChunkProps) {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
 
@@ -192,6 +195,7 @@ export function SideBySideDiffChunk({
                         <PrismSyntaxHighlighter
                           code={sideLine.oldLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          syntaxTheme={syntaxTheme}
                         />
                       </div>
                     )}
@@ -226,6 +230,7 @@ export function SideBySideDiffChunk({
                         <PrismSyntaxHighlighter
                           code={sideLine.newLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          syntaxTheme={syntaxTheme}
                         />
                       </div>
                     )}

@@ -1,4 +1,4 @@
-import { ClipboardList, Columns, AlignLeft, Copy } from 'lucide-react';
+import { Search, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -6,6 +6,8 @@ import { type DiffResponse } from '../types/diff';
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { SettingsModal } from './components/SettingsModal';
+import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useLocalComments } from './hooks/useLocalComments';
 
 function App() {
@@ -17,6 +19,9 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const { settings, updateSettings } = useAppearanceSettings();
 
   const {
     comments,
@@ -200,7 +205,7 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border"
+          className="px-4 py-3 border-r border-github-border flex items-center justify-between"
           style={{
             width: `${sidebarWidth}px`,
             minWidth: '200px',
@@ -208,9 +213,16 @@ function App() {
           }}
         >
           <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
-            <ClipboardList size={20} />
+            <Search size={18} />
             ReviewIt
           </h1>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+            title="Appearance Settings"
+          >
+            <Settings size={18} />
+          </button>
         </div>
         <div className="w-1" />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
@@ -250,7 +262,20 @@ function App() {
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}
-                className="text-xs px-3 py-1.5 bg-yellow-900/20 text-yellow-200 border border-yellow-600/50 rounded hover:bg-yellow-800/30 hover:border-yellow-500 transition-all whitespace-nowrap flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
+                style={{
+                  backgroundColor: 'var(--color-yellow-btn-bg)',
+                  color: 'var(--color-yellow-btn-text)',
+                  border: '1px solid var(--color-yellow-btn-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                }}
                 title={`Copy all ${comments.length} comments to Claude Code`}
               >
                 <Copy size={12} />
@@ -328,11 +353,19 @@ function App() {
                 onGeneratePrompt={generatePrompt}
                 onRemoveComment={removeComment}
                 onUpdateComment={updateComment}
+                syntaxTheme={settings.syntaxTheme}
               />
             </div>
           ))}
         </main>
       </div>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSettingsChange={updateSettings}
+      />
     </div>
   );
 }

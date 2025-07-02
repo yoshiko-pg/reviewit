@@ -17,7 +17,9 @@ interface ServerOptions {
   ignoreWhitespace?: boolean;
 }
 
-export async function startServer(options: ServerOptions): Promise<{ port: number; url: string }> {
+export async function startServer(
+  options: ServerOptions
+): Promise<{ port: number; url: string; isEmpty?: boolean }> {
   const app = express();
   const parser = new GitDiffParser();
 
@@ -174,7 +176,10 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
 
   const { port, url } = await startServerWithFallback(app, options.preferredPort || 3000);
 
-  if (options.openBrowser) {
+  // Check if diff is empty and skip browser opening
+  if (diffData.isEmpty) {
+    // Don't open browser if no differences found
+  } else if (options.openBrowser) {
     try {
       await open(url);
     } catch {
@@ -182,7 +187,7 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     }
   }
 
-  return { port, url };
+  return { port, url, isEmpty: diffData.isEmpty };
 }
 
 async function startServerWithFallback(
@@ -190,20 +195,31 @@ async function startServerWithFallback(
   preferredPort: number
 ): Promise<{ port: number; url: string }> {
   return new Promise((resolve, reject) => {
-    const server = app.listen(preferredPort, '127.0.0.1', () => {
-      const port = server.address()?.port;
-      const url = `http://localhost:${port}`;
-      resolve({ port, url });
-    });
+    // express's listen() method uses listen() method in node:net Server instance internally
+    // https://expressjs.com/en/5x/api.html#app.listen
+    // so, an error will be an instance of NodeJS.ErrnoException
+    app.listen(preferredPort, '127.0.0.1', (err: NodeJS.ErrnoException | undefined) => {
+      const url = `http://localhost:${preferredPort}`;
+      if (!err) {
+        resolve({ port: preferredPort, url });
+        return;
+      }
 
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
-        startServerWithFallback(app, preferredPort + 1)
-          .then(resolve)
-          .catch(reject);
-      } else {
-        reject(new Error(`Server error: ${err instanceof Error ? err.message : String(err)}`));
+      // Handling errors when failed to launch a server
+      switch (err.code) {
+        // Try another port until it succeeds
+        case 'EADDRINUSE': {
+          console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
+          return startServerWithFallback(app, preferredPort + 1)
+            .then(({ port, url }) => {
+              resolve({ port, url });
+            })
+            .catch(reject);
+        }
+        // Unexpected error
+        default: {
+          reject(new Error(`Failed to launch a server: ${err.message}`));
+        }
       }
     });
   });
