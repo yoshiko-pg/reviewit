@@ -17,6 +17,10 @@
   --color-diff-deletion-bg: #67060c;
   --color-diff-deletion-border: #da3633;
   --color-diff-neutral-bg: #21262d;
+
+  --color-comment-bg: #1c2128;
+  --color-comment-border: #373e47;
+  --color-comment-text: #e6edf3;
 }
 
 /* CSS Custom Properties for dynamic theming */

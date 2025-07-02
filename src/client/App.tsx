@@ -262,7 +262,20 @@ function App() {
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}
-                className="text-xs px-3 py-1.5 bg-yellow-900/20 text-yellow-200 border border-yellow-600/50 rounded hover:bg-yellow-800/30 hover:border-yellow-500 transition-all whitespace-nowrap flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
+                style={{
+                  backgroundColor: 'var(--color-yellow-btn-bg)',
+                  color: 'var(--color-yellow-btn-text)',
+                  border: '1px solid var(--color-yellow-btn-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                }}
                 title={`Copy all ${comments.length} comments to Claude Code`}
               >
                 <Copy size={12} />
