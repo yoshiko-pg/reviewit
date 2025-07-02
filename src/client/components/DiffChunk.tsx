@@ -82,6 +82,11 @@ export function DiffChunk({
   };
 
   const getCommentLayout = (line: DiffLine): 'left' | 'right' | 'full' => {
+    // In inline mode, always use full width for comments
+    if (mode === 'inline') {
+      return 'full';
+    }
+
     switch (line.type) {
       case 'delete':
         return 'left';
