@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.9] - 2025-07-02
+
+### Added
+
+- Customizable appearance settings to Web UI with font size, font family, theme selection, and syntax highlighting options (#16)
+
+### Changed
+
+- Skip browser auto-launch when no differences are found, displaying informative CLI message instead
+
+### Fixed
+
+- Comment areas now use full width in inline mode for improved readability
+
 ## [1.1.8] - 2025-07-01
 
 ### Fixed
