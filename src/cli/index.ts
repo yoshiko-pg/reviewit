@@ -46,9 +46,9 @@ program
     'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
   )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
-  .option('--host <host>', 'host address to bind to (default: 127.0.0.1)', '127.0.0.1')
+  .option('--host <host>', 'host address to bind', '127.0.0.1')
   .option('--no-open', 'do not automatically open browser')
-  .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
+  .option('--mode <mode>', 'diff mode (side-by-side or inline)', 'side-by-side')
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
