@@ -69,7 +69,7 @@ export function DiffViewer({
 
   return (
     <div className="bg-github-bg-primary">
-      <div className="bg-github-bg-secondary border-b border-github-border px-5 py-4 flex items-center justify-between flex-wrap gap-3 sticky top-0 z-10">
+      <div className="bg-github-bg-secondary border-t-2 border-t-github-accent border-b border-github-border px-5 py-4 flex items-center justify-between flex-wrap gap-3 sticky top-0 z-10">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
             onClick={() => onToggleReviewed(file.path)}
