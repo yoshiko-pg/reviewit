@@ -72,7 +72,32 @@ function buildFileTree(files: DiffFile[]): TreeNode {
     }
   });
 
-  return root;
+  // Collapse single child directories
+  const collapseDirectories = (node: TreeNode): TreeNode => {
+    if (!node.isDirectory || !node.children) {
+      return node;
+    }
+
+    // First, recursively collapse children
+    node.children = node.children.map(collapseDirectories);
+
+    // If this directory has only one child directory (no files), collapse them
+    if (node.children.length === 1 && node.children[0]?.isDirectory && node.children[0]?.children) {
+      const child = node.children[0];
+      if (child) {
+        return {
+          ...node,
+          name: node.name ? `${node.name}/${child.name}` : child.name,
+          path: child.path,
+          children: child.children,
+        };
+      }
+    }
+
+    return node;
+  };
+
+  return collapseDirectories(root);
 }
 
 export function FileList({
