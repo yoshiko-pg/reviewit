@@ -16,6 +16,7 @@ function isSpecialArg(arg: string): arg is SpecialArg {
 
 interface CliOptions {
   port?: number;
+  host?: string;
   open: boolean;
   mode: string;
   tui?: boolean;
@@ -38,6 +39,7 @@ program
     'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
   )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
+  .option('--host <host>', 'host address to bind to (default: 127.0.0.1)', '127.0.0.1')
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
   .option('--tui', 'use terminal UI instead of web interface')
@@ -113,6 +115,7 @@ program
         targetCommitish,
         baseCommitish,
         preferredPort: options.port,
+        host: options.host,
         openBrowser: options.open,
         mode: options.mode,
       });
