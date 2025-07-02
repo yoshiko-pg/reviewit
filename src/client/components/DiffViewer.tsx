@@ -9,6 +9,7 @@ import {
   Check,
   Square,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { type DiffFile, type Comment } from '../../types/diff';
 
@@ -42,6 +43,7 @@ export function DiffViewer({
   syntaxTheme,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
+  const [isCopied, setIsCopied] = useState(false);
 
   // Set filename for syntax highlighter immediately
   setCurrentFilename(file.path);
@@ -83,12 +85,18 @@ export function DiffViewer({
             {file.path}
           </h2>
           <button
-            className="bg-transparent border-none cursor-pointer px-1.5 py-1 rounded text-sm text-github-text-secondary transition-all hover:bg-github-bg-tertiary hover:text-github-text-primary"
+            className={`bg-transparent border-none cursor-pointer px-1.5 py-1 rounded text-sm transition-all hover:bg-github-bg-tertiary ${
+              isCopied
+                ? 'text-github-accent'
+                : 'text-github-text-secondary hover:text-github-text-primary'
+            }`}
             onClick={() => {
               navigator.clipboard
                 .writeText(file.path)
                 .then(() => {
                   console.log('File path copied to clipboard:', file.path);
+                  setIsCopied(true);
+                  setTimeout(() => setIsCopied(false), 2000);
                 })
                 .catch((err) => {
                   console.error('Failed to copy file path:', err);
@@ -96,7 +104,7 @@ export function DiffViewer({
             }}
             title="Copy file path"
           >
-            <Copy size={14} />
+            {isCopied ? <Check size={14} /> : <Copy size={14} />}
           </button>
           {file.oldPath && file.oldPath !== file.path && (
             <span className="text-xs text-github-text-muted italic">
