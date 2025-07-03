@@ -8,12 +8,14 @@ All notable changes to this project will be documented in this file.
 
 - Untracked file detection with CLI prompt (#6)
 - --host option to configure server bind address (#13)
+- Comprehensive CLI and server integration tests (#27)
 
 ### Fixed
 
 - Diff display issue when non-default git diff tool is set (#24)
 - Server URL to reflect --host option (#25)
 - Remove unnecessary default value in help (#22)
+- Mode option now working
 
 ### Thanks
 
