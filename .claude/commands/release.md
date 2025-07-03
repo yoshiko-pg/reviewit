@@ -26,6 +26,7 @@ If confirmed OK:
 
 - npm version --no-git-tag-version patch
 - Create a version section in CHANGELOG.md and move Unreleased section content there
+- Update the version links at the bottom of CHANGELOG.md (add new version links and update Unreleased link)
 - Commit CHANGELOG.md
 - create current version git tag
 - git push origin main --tags
