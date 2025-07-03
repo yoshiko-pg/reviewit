@@ -81,6 +81,7 @@ ReviewIt automatically handles GitHub authentication using:
 | `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two)    |
 | `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123) |
 | `--port`         | auto         | Preferred port; falls back if occupied                                 |
+| `--host`         | 127.0.0.1    | Host address to bind server to (use 0.0.0.0 for external access)       |
 | `--no-open`      | false        | Don't automatically open browser                                       |
 | `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                                  |
 | `--tui`          | false        | Use terminal UI mode instead of web interface                          |
