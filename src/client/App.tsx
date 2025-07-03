@@ -118,6 +118,11 @@ function App() {
       const data = await response.json();
       setDiffData(data);
 
+      // Set diff mode from server response if provided
+      if (data.mode) {
+        setDiffMode(data.mode as 'side-by-side' | 'inline');
+      }
+
       // Auto-collapse lock files
       const lockFilesToCollapse = data.files
         .filter((file: any) => isLockFile(file.path))

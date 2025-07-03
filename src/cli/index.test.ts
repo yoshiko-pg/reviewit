@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock all external dependencies
@@ -574,6 +575,228 @@ describe('CLI index.ts', () => {
           mode: 'side-by-side',
         })
       );
+    });
+  });
+
+  describe('TUI mode', () => {
+    let mockRender: any;
+    let mockTuiApp: any;
+
+    beforeEach(async () => {
+      // Mock ink and TUI components
+      mockRender = vi.fn();
+      mockTuiApp = vi.fn();
+
+      vi.doMock('ink', async () => ({
+        render: mockRender,
+      }));
+
+      vi.doMock('../tui/App.js', async () => ({
+        default: mockTuiApp,
+      }));
+
+      // Mock React.createElement for testing
+      vi.spyOn(React, 'createElement').mockImplementation(
+        (component, props) => ({ component, props }) as any
+      );
+
+      // Mock process.stdin.isTTY
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      vi.doUnmock('ink');
+      vi.doUnmock('../tui/App.js');
+      vi.restoreAllMocks();
+    });
+
+    it('passes arguments to TUI app correctly', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          if (options.tui) {
+            if (!process.stdin.isTTY) {
+              console.error('Error: TUI mode requires an interactive terminal (TTY).');
+              process.exit(1);
+            }
+
+            const { render } = await import('ink');
+            const { default: TuiApp } = await import('../tui/App.js');
+
+            render(
+              React.createElement(TuiApp, {
+                targetCommitish: commitish,
+                baseCommitish: commitish + '^',
+                mode: options.mode,
+              })
+            );
+            return;
+          }
+        });
+
+      await program.parseAsync(['main', '--tui'], { from: 'user' });
+
+      expect(mockRender).toHaveBeenCalledWith({
+        component: mockTuiApp,
+        props: {
+          targetCommitish: 'main',
+          baseCommitish: 'main^',
+          mode: 'side-by-side',
+        },
+      });
+    });
+
+    it('passes mode option to TUI app', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          if (options.tui) {
+            if (!process.stdin.isTTY) {
+              console.error('Error: TUI mode requires an interactive terminal (TTY).');
+              process.exit(1);
+            }
+
+            const { render } = await import('ink');
+            const { default: TuiApp } = await import('../tui/App.js');
+
+            render(
+              React.createElement(TuiApp, {
+                targetCommitish: commitish,
+                baseCommitish: commitish + '^',
+                mode: options.mode,
+              })
+            );
+            return;
+          }
+        });
+
+      await program.parseAsync(['--tui', '--mode', 'inline'], { from: 'user' });
+
+      expect(mockRender).toHaveBeenCalledWith({
+        component: mockTuiApp,
+        props: {
+          targetCommitish: 'HEAD',
+          baseCommitish: 'HEAD^',
+          mode: 'inline',
+        },
+      });
+    });
+
+    it('handles special arguments with TUI mode', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          if (options.tui) {
+            const { render } = await import('ink');
+            const { default: TuiApp } = await import('../tui/App.js');
+
+            let targetCommitish = commitish;
+            let baseCommitish: string;
+
+            if (commitish === 'working') {
+              baseCommitish = 'staged';
+            } else if (commitish === 'staged' || commitish === '.') {
+              baseCommitish = 'HEAD';
+            } else {
+              baseCommitish = commitish + '^';
+            }
+
+            render(
+              React.createElement(TuiApp, {
+                targetCommitish,
+                baseCommitish,
+                mode: options.mode,
+              })
+            );
+            return;
+          }
+        });
+
+      await program.parseAsync(['working', '--tui', '--mode', 'inline'], { from: 'user' });
+
+      expect(mockRender).toHaveBeenCalledWith({
+        component: mockTuiApp,
+        props: {
+          targetCommitish: 'working',
+          baseCommitish: 'staged',
+          mode: 'inline',
+        },
+      });
+    });
+
+    it('rejects TUI mode in non-TTY environment', async () => {
+      // Mock non-TTY environment
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: false,
+        configurable: true,
+      });
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (_commitish: string, _compareWith: string | undefined, options: any) => {
+          if (options.tui) {
+            if (!process.stdin.isTTY) {
+              console.error('Error: TUI mode requires an interactive terminal (TTY).');
+              console.error('Try running the command directly in your terminal without piping.');
+              process.exit(1);
+            }
+          }
+        });
+
+      await program.parseAsync(['--tui'], { from: 'user' });
+
+      expect(console.error).toHaveBeenCalledWith(
+        'Error: TUI mode requires an interactive terminal (TTY).'
+      );
+      expect(console.error).toHaveBeenCalledWith(
+        'Try running the command directly in your terminal without piping.'
+      );
+      expect(process.exit).toHaveBeenCalledWith(1);
     });
   });
 });

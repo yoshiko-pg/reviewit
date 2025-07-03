@@ -40,6 +40,7 @@ export interface DiffResponse {
   files: DiffFile[];
   ignoreWhitespace?: boolean;
   isEmpty?: boolean;
+  mode?: string;
 }
 
 export interface Comment {

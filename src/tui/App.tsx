@@ -10,14 +10,18 @@ import { FileDiff } from '../types/diff.js';
 interface AppProps {
   targetCommitish: string;
   baseCommitish: string;
+  mode?: string;
 }
 
-const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish }) => {
+const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
   const [files, setFiles] = useState<FileDiff[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'diff' | 'side-by-side'>('side-by-side');
+
+  const [viewMode, setViewMode] = useState<'list' | 'inline' | 'side-by-side'>(
+    mode === 'inline' ? 'inline' : 'side-by-side'
+  );
   const { exit } = useApp();
 
   const loadDiff = async () => {
@@ -61,7 +65,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish }) => {
           setViewMode('side-by-side');
         }
         if (input === 'd') {
-          setViewMode('diff');
+          setViewMode('inline');
         }
       } else {
         if (key.escape || input === 'b') {
@@ -117,7 +121,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish }) => {
       <Box borderStyle="single" paddingX={1}>
         <Text dimColor>
           {viewMode === 'list'
-            ? '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: unified diff | r: reload | q: quit'
+            ? '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: inline diff | r: reload | q: quit'
             : viewMode === 'side-by-side'
               ? 'Tab: next file | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'
               : 'Tab: next | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'}

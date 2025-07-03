@@ -110,7 +110,7 @@ program
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');
 
-        render(React.createElement(TuiApp, { targetCommitish, baseCommitish }));
+        render(React.createElement(TuiApp, { targetCommitish, baseCommitish, mode: options.mode }));
         return;
       }
 
