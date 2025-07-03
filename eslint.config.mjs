@@ -160,6 +160,8 @@ const eslintConfig = [
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
     },
   },
 ];

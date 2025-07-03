@@ -20,12 +20,13 @@ interface ServerOptions {
 
 export async function startServer(
   options: ServerOptions
-): Promise<{ port: number; url: string; isEmpty?: boolean }> {
+): Promise<{ port: number; url: string; isEmpty?: boolean; server?: any }> {
   const app = express();
   const parser = new GitDiffParser();
 
   let diffData: any = null;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
+  const diffMode = options.mode || 'side-by-side';
 
   app.use(express.json());
   app.use(express.text()); // For sendBeacon text/plain requests
@@ -60,7 +61,7 @@ export async function startServer(
       );
     }
 
-    res.json({ ...diffData, ignoreWhitespace });
+    res.json({ ...diffData, ignoreWhitespace, mode: diffMode });
   });
 
   // Store comments for final output
@@ -175,7 +176,7 @@ export async function startServer(
     });
   }
 
-  const { port, url } = await startServerWithFallback(
+  const { port, url, server } = await startServerWithFallback(
     app,
     options.preferredPort || 3000,
     options.host || '127.0.0.1'
@@ -199,23 +200,23 @@ export async function startServer(
     }
   }
 
-  return { port, url, isEmpty: diffData.isEmpty };
+  return { port, url, isEmpty: diffData.isEmpty, server };
 }
 
 async function startServerWithFallback(
   app: any,
   preferredPort: number,
   host: string
-): Promise<{ port: number; url: string }> {
+): Promise<{ port: number; url: string; server: any }> {
   return new Promise((resolve, reject) => {
     // express's listen() method uses listen() method in node:net Server instance internally
     // https://expressjs.com/en/5x/api.html#app.listen
     // so, an error will be an instance of NodeJS.ErrnoException
-    app.listen(preferredPort, host, (err: NodeJS.ErrnoException | undefined) => {
+    const server = app.listen(preferredPort, host, (err: NodeJS.ErrnoException | undefined) => {
       const displayHost = host === '0.0.0.0' ? 'localhost' : host;
       const url = `http://${displayHost}:${preferredPort}`;
       if (!err) {
-        resolve({ port: preferredPort, url });
+        resolve({ port: preferredPort, url, server });
         return;
       }
 
@@ -225,8 +226,8 @@ async function startServerWithFallback(
         case 'EADDRINUSE': {
           console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
           return startServerWithFallback(app, preferredPort + 1, host)
-            .then(({ port, url }) => {
-              resolve({ port, url });
+            .then(({ port, url, server }) => {
+              resolve({ port, url, server });
             })
             .catch(reject);
         }
