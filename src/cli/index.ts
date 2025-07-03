@@ -197,6 +197,6 @@ async function promptUserToIncludeUntracked(files: string[]): Promise<boolean> {
   }
 
   return await promptUser(
-    '\n❓ Would you like to include these untracked files in the diff review? (y/N): '
+    '\n❓ Would you like to include these untracked files in the diff review? (Y/n): '
   );
 }

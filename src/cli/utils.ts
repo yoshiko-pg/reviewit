@@ -245,5 +245,7 @@ export async function promptUser(message: string): Promise<boolean> {
   const answer = await rl.question(message);
   rl.close();
 
-  return ['y', 'yes'].includes(answer.trim().toLowerCase());
+  // Empty string (Enter) or 'y', 'yes' return true
+  const trimmed = answer.trim().toLowerCase();
+  return trimmed === '' || ['y', 'yes'].includes(trimmed);
 }
