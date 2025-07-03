@@ -10,6 +10,14 @@ All notable changes to this project will be documented in this file.
 - --host option to configure server bind address (#13)
 - Comprehensive CLI and server integration tests (#27)
 
+### Changed
+
+- UI misc
+  - Remove comment badges from directories in left pane
+  - Visual feedback for file path copy button
+  - Visible border on top of file header in right pane
+  - Directory path collapsing in left pane
+
 ### Fixed
 
 - Diff display issue when non-default git diff tool is set (#24)
