@@ -97,7 +97,7 @@ export class GitDiffParser {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
-    const pathMatch = headerLine.match(/^diff --git [a-z]\/(.+) [a-z]\/(.+)$/);
+    const pathMatch = headerLine.match(/^diff --git (?:[a-z]\/)?(.+) (?:[a-z]\/)?(.+)$/);
     if (!pathMatch) return null;
 
     const oldPath = pathMatch[1];
