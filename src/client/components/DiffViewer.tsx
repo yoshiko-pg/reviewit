@@ -11,14 +11,15 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type DiffFile, type Comment } from '../../types/diff';
+import { type DiffFile, type NotebookDiffFile, type Comment } from '../../types/diff';
 
 import { DiffChunk } from './DiffChunk';
+import { NotebookDiffViewer } from './NotebookDiffViewer';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import type { AppearanceSettings } from './SettingsModal';
 
 interface DiffViewerProps {
-  file: DiffFile;
+  file: DiffFile | NotebookDiffFile;
   comments: Comment[];
   diffMode: 'side-by-side' | 'inline';
   reviewedFiles: Set<string>;
@@ -28,6 +29,11 @@ interface DiffViewerProps {
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+}
+
+// Type guard to check if file is a NotebookDiffFile
+function isNotebookDiffFile(file: DiffFile | NotebookDiffFile): file is NotebookDiffFile {
+  return 'cellDiffs' in file;
 }
 
 export function DiffViewer({
@@ -42,6 +48,24 @@ export function DiffViewer({
   onUpdateComment,
   syntaxTheme,
 }: DiffViewerProps) {
+  // Check if this is a notebook file and render the appropriate component
+  if (isNotebookDiffFile(file)) {
+    return (
+      <NotebookDiffViewer
+        file={file}
+        comments={comments}
+        diffMode={diffMode}
+        reviewedFiles={reviewedFiles}
+        onToggleReviewed={onToggleReviewed}
+        onAddComment={onAddComment}
+        onGeneratePrompt={onGeneratePrompt}
+        onRemoveComment={onRemoveComment}
+        onUpdateComment={onUpdateComment}
+      />
+    );
+  }
+
+  // Regular file rendering (existing code)
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
 

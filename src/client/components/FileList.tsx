@@ -12,12 +12,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type DiffFile, type Comment } from '../../types/diff';
+import { type DiffFile, type NotebookDiffFile, type Comment } from '../../types/diff';
 
 import { Checkbox } from './Checkbox';
 
 interface FileListProps {
-  files: DiffFile[];
+  files: (DiffFile | NotebookDiffFile)[];
   onScrollToFile: (path: string) => void;
   comments: Comment[];
   reviewedFiles: Set<string>;
@@ -29,10 +29,10 @@ interface TreeNode {
   path: string;
   isDirectory: boolean;
   children?: TreeNode[];
-  file?: DiffFile;
+  file?: DiffFile | NotebookDiffFile;
 }
 
-function buildFileTree(files: DiffFile[]): TreeNode {
+function buildFileTree(files: (DiffFile | NotebookDiffFile)[]): TreeNode {
   const root: TreeNode = {
     name: '',
     path: '',
