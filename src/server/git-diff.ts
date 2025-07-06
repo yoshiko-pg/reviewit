@@ -105,9 +105,20 @@ export class GitDiffParser {
     const path = newPath;
 
     let status: DiffFile['status'] = 'modified';
-    // Don't skip binary files - we want to show them in the file list
 
-    if (oldPath !== newPath) {
+    // Check for new file mode (added files)
+    const newFileMode = lines.find((line) => line.startsWith('new file mode'));
+    const deletedFileMode = lines.find((line) => line.startsWith('deleted file mode'));
+
+    // Check for /dev/null which indicates added or deleted files
+    const minusLine = lines.find((line) => line.startsWith('--- '));
+    const plusLine = lines.find((line) => line.startsWith('+++ '));
+
+    if (newFileMode || (minusLine && minusLine.includes('/dev/null'))) {
+      status = 'added';
+    } else if (deletedFileMode || (plusLine && plusLine.includes('/dev/null'))) {
+      status = 'deleted';
+    } else if (oldPath !== newPath) {
       status = 'renamed';
     } else if (summary.insertions && !summary.deletions) {
       status = 'added';
