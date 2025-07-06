@@ -1,4 +1,12 @@
+import { useState } from 'react';
+
 import { type DiffFile } from '../../types/diff';
+
+interface ImageInfo {
+  width?: number;
+  height?: number;
+  size?: number;
+}
 
 interface ImageDiffChunkProps {
   file: DiffFile;
@@ -21,6 +29,45 @@ export function ImageDiffChunk({
   const baseRef = baseCommitish || 'HEAD~1';
   const targetRef = targetCommitish || 'HEAD';
 
+  // State for image information
+  const [oldImageInfo, setOldImageInfo] = useState<ImageInfo>({});
+  const [newImageInfo, setNewImageInfo] = useState<ImageInfo>({});
+
+  // Function to handle image load and get dimensions/file size
+  const handleImageLoad = async (
+    img: HTMLImageElement,
+    setImageInfo: (info: ImageInfo) => void
+  ) => {
+    try {
+      // Get image dimensions
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+
+      // Fetch the image to get file size
+      const response = await fetch(img.src);
+      const blob = await response.blob();
+      const size = blob.size;
+
+      setImageInfo({ width, height, size });
+    } catch (error) {
+      console.error('Failed to get image info:', error);
+    }
+  };
+
+  // Function to format file size
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Function to format image dimensions
+  const formatDimensions = (info: ImageInfo): string => {
+    if (!info.width || !info.height) return '';
+    return `W: ${info.width}px | H: ${info.height}px`;
+  };
+
   // Checkerboard background style for transparent images
   const checkerboardStyle = {
     backgroundImage: `
@@ -41,12 +88,15 @@ export function ImageDiffChunk({
             <span className="text-github-danger font-medium">Deleted Image</span>
           </div>
           <div className="inline-block border border-github-border rounded-md p-4 bg-github-bg-secondary">
-            <div className="text-github-text-muted mb-2">Previous version:</div>
+            <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+              Previous version:
+            </div>
             <img
               src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
               alt={`Previous version of ${file.oldPath || file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
               style={checkerboardStyle}
+              onLoad={(e) => handleImageLoad(e.currentTarget, setOldImageInfo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -56,6 +106,13 @@ export function ImageDiffChunk({
             <div className="hidden text-github-text-muted text-sm mt-2">
               Image could not be loaded
             </div>
+            {(oldImageInfo.width || oldImageInfo.size) && (
+              <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                {formatDimensions(oldImageInfo)}
+                {formatDimensions(oldImageInfo) && formatFileSize(oldImageInfo.size) && ' | '}
+                {formatFileSize(oldImageInfo.size)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -71,12 +128,15 @@ export function ImageDiffChunk({
             <span className="text-github-accent font-medium">Added Image</span>
           </div>
           <div className="inline-block border border-github-border rounded-md p-4 bg-github-bg-secondary">
-            <div className="text-github-text-muted mb-2">New file:</div>
+            <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+              New file:
+            </div>
             <img
               src={`/api/blob/${file.path}?ref=${targetRef}`}
               alt={`New image ${file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
               style={checkerboardStyle}
+              onLoad={(e) => handleImageLoad(e.currentTarget, setNewImageInfo)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -86,6 +146,13 @@ export function ImageDiffChunk({
             <div className="hidden text-github-text-muted text-sm mt-2">
               Image could not be loaded
             </div>
+            {(newImageInfo.width || newImageInfo.size) && (
+              <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                {formatDimensions(newImageInfo)}
+                {formatDimensions(newImageInfo) && formatFileSize(newImageInfo.size) && ' | '}
+                {formatFileSize(newImageInfo.size)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -104,12 +171,15 @@ export function ImageDiffChunk({
             {/* Old version */}
             <div className="text-center">
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary">
-                <div className="text-github-text-muted mb-2">Previous version:</div>
+                <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+                  Previous version:
+                </div>
                 <img
                   src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   style={checkerboardStyle}
+                  onLoad={(e) => handleImageLoad(e.currentTarget, setOldImageInfo)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -119,18 +189,28 @@ export function ImageDiffChunk({
                 <div className="hidden text-github-text-muted text-sm mt-2">
                   Image could not be loaded
                 </div>
+                {(oldImageInfo.width || oldImageInfo.size) && (
+                  <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                    {formatDimensions(oldImageInfo)}
+                    {formatDimensions(oldImageInfo) && formatFileSize(oldImageInfo.size) && ' | '}
+                    {formatFileSize(oldImageInfo.size)}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* New version */}
             <div className="text-center">
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary">
-                <div className="text-github-text-muted mb-2">Current version:</div>
+                <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+                  Current version:
+                </div>
                 <img
                   src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   style={checkerboardStyle}
+                  onLoad={(e) => handleImageLoad(e.currentTarget, setNewImageInfo)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -140,6 +220,13 @@ export function ImageDiffChunk({
                 <div className="hidden text-github-text-muted text-sm mt-2">
                   Image could not be loaded
                 </div>
+                {(newImageInfo.width || newImageInfo.size) && (
+                  <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                    {formatDimensions(newImageInfo)}
+                    {formatDimensions(newImageInfo) && formatFileSize(newImageInfo.size) && ' | '}
+                    {formatFileSize(newImageInfo.size)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -156,12 +243,15 @@ export function ImageDiffChunk({
             {/* Old version */}
             <div className="text-center">
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary inline-block">
-                <div className="text-github-text-muted mb-2">Previous version:</div>
+                <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+                  Previous version:
+                </div>
                 <img
                   src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
                   style={checkerboardStyle}
+                  onLoad={(e) => handleImageLoad(e.currentTarget, setOldImageInfo)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -171,18 +261,28 @@ export function ImageDiffChunk({
                 <div className="hidden text-github-text-muted text-sm mt-2">
                   Image could not be loaded
                 </div>
+                {(oldImageInfo.width || oldImageInfo.size) && (
+                  <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                    {formatDimensions(oldImageInfo)}
+                    {formatDimensions(oldImageInfo) && formatFileSize(oldImageInfo.size) && ' | '}
+                    {formatFileSize(oldImageInfo.size)}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* New version */}
             <div className="text-center">
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary inline-block">
-                <div className="text-github-text-muted mb-2">Current version:</div>
+                <div className="text-github-text-muted mb-2" style={{ fontSize: '14px' }}>
+                  Current version:
+                </div>
                 <img
                   src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
                   style={checkerboardStyle}
+                  onLoad={(e) => handleImageLoad(e.currentTarget, setNewImageInfo)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -192,6 +292,13 @@ export function ImageDiffChunk({
                 <div className="hidden text-github-text-muted text-sm mt-2">
                   Image could not be loaded
                 </div>
+                {(newImageInfo.width || newImageInfo.size) && (
+                  <div className="text-github-text-muted mt-2" style={{ fontSize: '14px' }}>
+                    {formatDimensions(newImageInfo)}
+                    {formatDimensions(newImageInfo) && formatFileSize(newImageInfo.size) && ' | '}
+                    {formatFileSize(newImageInfo.size)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
