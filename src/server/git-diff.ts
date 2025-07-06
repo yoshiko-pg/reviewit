@@ -227,10 +227,21 @@ export class GitDiffParser {
       const blobHash = execSync(`git rev-parse "${ref}:${filepath}"`, { encoding: 'utf8' }).trim();
 
       // Then use git cat-file to get the raw binary content
-      const buffer = execSync(`git cat-file blob ${blobHash}`);
+      // Increase maxBuffer to handle large files (default is 1024*1024 = 1MB)
+      const buffer = execSync(`git cat-file blob ${blobHash}`, {
+        maxBuffer: 10 * 1024 * 1024, // 10MB limit
+      });
 
       return buffer;
     } catch (error) {
+      // Check if it's a buffer size error
+      if (
+        error instanceof Error &&
+        (error.message.includes('ENOBUFS') || error.message.includes('maxBuffer'))
+      ) {
+        throw new Error(`Image file ${filepath} is too large to display (over 10MB limit)`);
+      }
+
       throw new Error(
         `Failed to get blob content for ${filepath} at ${ref}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
