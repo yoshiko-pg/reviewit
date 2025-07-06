@@ -105,7 +105,7 @@ export class GitDiffParser {
     const path = newPath;
 
     let status: DiffFile['status'] = 'modified';
-    if (summary.binary) return null;
+    // Don't skip binary files - we want to show them in the file list
 
     if (oldPath !== newPath) {
       status = 'renamed';
@@ -115,7 +115,8 @@ export class GitDiffParser {
       status = 'deleted';
     }
 
-    const chunks = this.parseChunks(lines);
+    // For binary files, don't try to parse chunks
+    const chunks = summary.binary ? [] : this.parseChunks(lines);
 
     return {
       path,
@@ -196,6 +197,24 @@ export class GitDiffParser {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async getBlobContent(filepath: string, ref: string): Promise<Buffer> {
+    try {
+      // For working directory, read directly from filesystem
+      if (ref === 'working') {
+        const fs = await import('fs');
+        return fs.readFileSync(filepath);
+      }
+
+      // For git refs, use git show to get blob content
+      const content = await this.git.show([`${ref}:${filepath}`]);
+      return Buffer.from(content, 'binary');
+    } catch (error) {
+      throw new Error(
+        `Failed to get blob content for ${filepath} at ${ref}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 }
