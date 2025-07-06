@@ -17,6 +17,7 @@ vi.mock('child_process', async (importOriginal) => {
   return {
     ...actual,
     execSync: vi.fn(),
+    execFileSync: vi.fn(),
   };
 });
 
@@ -31,7 +32,7 @@ vi.mock('fs', async (importOriginal) => {
 
 describe('GitDiffParser', () => {
   let parser: GitDiffParser;
-  let mockExecSync: any;
+  let mockExecFileSync: any;
   let mockReadFileSync: any;
 
   beforeEach(async () => {
@@ -41,7 +42,7 @@ describe('GitDiffParser', () => {
     // Get mocked functions
     const childProcess = await import('child_process');
     const fs = await import('fs');
-    mockExecSync = childProcess.execSync as any;
+    mockExecFileSync = childProcess.execFileSync as any;
     mockReadFileSync = fs.readFileSync as any;
   });
 
@@ -72,11 +73,11 @@ describe('GitDiffParser', () => {
 
     it('uses git show for staged files', async () => {
       const mockBuffer = Buffer.from('staged content');
-      mockExecSync.mockReturnValue(mockBuffer);
+      mockExecFileSync.mockReturnValue(mockBuffer);
 
       const result = await parser.getBlobContent('test.txt', 'staged');
 
-      expect(mockExecSync).toHaveBeenCalledWith('git show :test.txt', {
+      expect(mockExecFileSync).toHaveBeenCalledWith('git', ['show', ':test.txt'], {
         maxBuffer: 10 * 1024 * 1024,
       });
       expect(result).toBe(mockBuffer);
@@ -86,16 +87,17 @@ describe('GitDiffParser', () => {
       const blobHash = 'abc123def456';
       const mockBuffer = Buffer.from('git content');
 
-      mockExecSync
+      mockExecFileSync
         .mockReturnValueOnce(blobHash + '\n') // First call for rev-parse
         .mockReturnValueOnce(mockBuffer); // Second call for cat-file
 
       const result = await parser.getBlobContent('test.txt', 'HEAD');
 
-      expect(mockExecSync).toHaveBeenCalledWith('git rev-parse "HEAD:test.txt"', {
+      expect(mockExecFileSync).toHaveBeenCalledWith('git', ['rev-parse', 'HEAD:test.txt'], {
         encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
       });
-      expect(mockExecSync).toHaveBeenCalledWith(`git cat-file blob ${blobHash}`, {
+      expect(mockExecFileSync).toHaveBeenCalledWith('git', ['cat-file', 'blob', blobHash], {
         maxBuffer: 10 * 1024 * 1024,
       });
       expect(result).toBe(mockBuffer);
@@ -103,7 +105,7 @@ describe('GitDiffParser', () => {
 
     it('handles file size limit errors', async () => {
       const error = new Error('maxBuffer exceeded');
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw error;
       });
 
@@ -114,7 +116,7 @@ describe('GitDiffParser', () => {
 
     it('handles ENOBUFS errors', async () => {
       const error = new Error('ENOBUFS: buffer overflow');
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw error;
       });
 
@@ -125,7 +127,7 @@ describe('GitDiffParser', () => {
 
     it('handles general git errors', async () => {
       const error = new Error('fatal: Path does not exist');
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw error;
       });
 

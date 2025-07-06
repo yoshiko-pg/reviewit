@@ -221,23 +221,28 @@ export class GitDiffParser {
 
       // For git refs, we need to use child_process to execute git cat-file
       // to properly handle binary data
-      const { execSync } = await import('child_process');
+      const { execFileSync } = await import('child_process');
 
       // Handle staged files
       if (ref === 'staged') {
         // For staged files, use git show :filepath
-        const buffer = execSync(`git show :${filepath}`, {
+        // Using execFileSync to prevent command injection
+        const buffer = execFileSync('git', ['show', `:${filepath}`], {
           maxBuffer: 10 * 1024 * 1024, // 10MB limit
         });
         return buffer;
       }
 
       // First, get the blob hash for the file at the given ref
-      const blobHash = execSync(`git rev-parse "${ref}:${filepath}"`, { encoding: 'utf8' }).trim();
+      // Using execFileSync to prevent command injection
+      const blobHash = execFileSync('git', ['rev-parse', `${ref}:${filepath}`], {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      }).trim();
 
       // Then use git cat-file to get the raw binary content
       // Increase maxBuffer to handle large files (default is 1024*1024 = 1MB)
-      const buffer = execSync(`git cat-file blob ${blobHash}`, {
+      const buffer = execFileSync('git', ['cat-file', 'blob', blobHash], {
         maxBuffer: 10 * 1024 * 1024, // 10MB limit
       });
 
