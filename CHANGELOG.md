@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.11] - 2025-07-06
+
+### Added
+
+- Image diff display support for inline and side-by-side layouts (#30)
+
+### Fixed
+
+- Git diff header parsing now works correctly with diff.noprefix=true (#29)
+
+### Thanks
+
+- [@tsumuchan](https://github.com/tsumuchan) for fixing git diff header parsing #29
+
 ## [1.1.10] - 2025-07-03
 
 ### Added
@@ -219,7 +233,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.10...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.11...HEAD
+[1.1.11]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.10...v1.1.11
 [1.1.10]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.9...v1.1.10
 [1.1.9]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.8...v1.1.9
 [1.1.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.7...v1.1.8
