@@ -359,6 +359,8 @@ function App() {
                 onRemoveComment={removeComment}
                 onUpdateComment={updateComment}
                 syntaxTheme={settings.syntaxTheme}
+                baseCommitish={diffData.baseCommitish}
+                targetCommitish={diffData.targetCommitish}
               />
             </div>
           ))}

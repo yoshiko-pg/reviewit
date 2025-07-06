@@ -61,7 +61,13 @@ export async function startServer(
       );
     }
 
-    res.json({ ...diffData, ignoreWhitespace, mode: diffMode });
+    res.json({
+      ...diffData,
+      ignoreWhitespace,
+      mode: diffMode,
+      baseCommitish: options.baseCommitish,
+      targetCommitish: options.targetCommitish,
+    });
   });
 
   app.get(/^\/api\/blob\/(.*)$/, async (req: any, res: any) => {
@@ -84,12 +90,17 @@ export async function startServer(
         ico: 'image/x-icon',
         tiff: 'image/tiff',
         tif: 'image/tiff',
+        avif: 'image/avif',
+        heic: 'image/heic',
+        heif: 'image/heif',
       };
 
       const contentType = contentTypes[ext || ''] || 'application/octet-stream';
 
       res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.send(blob);
     } catch (error) {
       console.error('Error fetching blob:', error);

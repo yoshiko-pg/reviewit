@@ -3,12 +3,23 @@ import { type DiffFile } from '../../types/diff';
 interface ImageDiffChunkProps {
   file: DiffFile;
   mode?: 'side-by-side' | 'inline';
+  baseCommitish?: string;
+  targetCommitish?: string;
 }
 
-export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
+export function ImageDiffChunk({
+  file,
+  mode = 'inline',
+  baseCommitish,
+  targetCommitish,
+}: ImageDiffChunkProps) {
   const isDeleted = file.status === 'deleted';
   const isAdded = file.status === 'added';
   const isModified = file.status === 'modified' || file.status === 'renamed';
+
+  // Determine the actual refs to use
+  const baseRef = baseCommitish || 'HEAD~1';
+  const targetRef = targetCommitish || 'HEAD';
 
   // For deleted files, show only the old version
   if (isDeleted) {
@@ -21,7 +32,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
           <div className="inline-block border border-github-border rounded-md p-4 bg-github-bg-secondary">
             <div className="text-github-text-muted mb-2">Previous version:</div>
             <img
-              src={`/api/blob/${file.oldPath || file.path}?ref=HEAD~1`}
+              src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
               alt={`Previous version of ${file.oldPath || file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
               onError={(e) => {
@@ -50,7 +61,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
           <div className="inline-block border border-github-border rounded-md p-4 bg-github-bg-secondary">
             <div className="text-github-text-muted mb-2">New file:</div>
             <img
-              src={`/api/blob/${file.path}?ref=HEAD`}
+              src={`/api/blob/${file.path}?ref=${targetRef}`}
               alt={`New image ${file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
               onError={(e) => {
@@ -82,7 +93,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary">
                 <div className="text-github-text-muted mb-2">Previous version:</div>
                 <img
-                  src={`/api/blob/${file.oldPath || file.path}?ref=HEAD~1`}
+                  src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   onError={(e) => {
@@ -102,7 +113,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary">
                 <div className="text-github-text-muted mb-2">Current version:</div>
                 <img
-                  src={`/api/blob/${file.path}?ref=HEAD`}
+                  src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   onError={(e) => {
@@ -132,7 +143,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary inline-block">
                 <div className="text-github-text-muted mb-2">Previous version:</div>
                 <img
-                  src={`/api/blob/${file.oldPath || file.path}?ref=HEAD~1`}
+                  src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
                   onError={(e) => {
@@ -152,7 +163,7 @@ export function ImageDiffChunk({ file, mode = 'inline' }: ImageDiffChunkProps) {
               <div className="border border-github-border rounded-md p-4 bg-github-bg-secondary inline-block">
                 <div className="text-github-text-muted mb-2">Current version:</div>
                 <img
-                  src={`/api/blob/${file.path}?ref=HEAD`}
+                  src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
                   onError={(e) => {

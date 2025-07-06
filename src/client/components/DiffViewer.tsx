@@ -30,6 +30,8 @@ interface DiffViewerProps {
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  baseCommitish?: string;
+  targetCommitish?: string;
 }
 
 export function DiffViewer({
@@ -43,6 +45,8 @@ export function DiffViewer({
   onRemoveComment,
   onUpdateComment,
   syntaxTheme,
+  baseCommitish,
+  targetCommitish,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
@@ -142,7 +146,12 @@ export function DiffViewer({
       {!isCollapsed && (
         <div className="overflow-y-auto">
           {isImageFile(file.path) ? (
-            <ImageDiffChunk file={file} mode={diffMode} />
+            <ImageDiffChunk
+              file={file}
+              mode={diffMode}
+              baseCommitish={baseCommitish}
+              targetCommitish={targetCommitish}
+            />
           ) : (
             file.chunks.map((chunk, index) => (
               <div key={index} className="border-b border-github-border">

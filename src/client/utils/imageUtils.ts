@@ -2,7 +2,21 @@
  * Image file utilities
  */
 
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'tif'];
+const IMAGE_EXTENSIONS = [
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'svg',
+  'webp',
+  'ico',
+  'tiff',
+  'tif',
+  'avif',
+  'heic',
+  'heif',
+];
 
 /**
  * Check if a file is an image based on its extension

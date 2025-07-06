@@ -208,9 +208,17 @@ export class GitDiffParser {
         return fs.readFileSync(filepath);
       }
 
-      // For git refs, use git show to get blob content
-      const content = await this.git.show([`${ref}:${filepath}`]);
-      return Buffer.from(content, 'binary');
+      // For git refs, we need to use child_process to execute git cat-file
+      // to properly handle binary data
+      const { execSync } = await import('child_process');
+
+      // First, get the blob hash for the file at the given ref
+      const blobHash = execSync(`git rev-parse "${ref}:${filepath}"`, { encoding: 'utf8' }).trim();
+
+      // Then use git cat-file to get the raw binary content
+      const buffer = execSync(`git cat-file blob ${blobHash}`);
+
+      return buffer;
     } catch (error) {
       throw new Error(
         `Failed to get blob content for ${filepath} at ${ref}: ${error instanceof Error ? error.message : 'Unknown error'}`
