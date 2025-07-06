@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { isImageFile, getFileExtension } from './imageUtils';
+import { getFileExtension } from '../../utils/fileUtils';
+
+import { isImageFile } from './imageUtils';
 
 describe('imageUtils', () => {
   describe('isImageFile', () => {
@@ -104,6 +106,7 @@ describe('imageUtils', () => {
     });
 
     it('handles null and undefined inputs', () => {
+      // TypeScript prevents these at compile time, but test runtime behavior
       expect(getFileExtension(null as any)).toBe(null);
       expect(getFileExtension(undefined as any)).toBe(null);
     });

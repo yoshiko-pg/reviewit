@@ -2,6 +2,8 @@
  * Image file utilities
  */
 
+import { getFileExtension } from '../../utils/fileUtils';
+
 const IMAGE_EXTENSIONS = [
   'jpg',
   'jpeg',
@@ -24,16 +26,6 @@ const IMAGE_EXTENSIONS = [
 export function isImageFile(filename: string): boolean {
   if (!filename) return false;
 
-  const extension = filename.split('.').pop()?.toLowerCase();
+  const extension = getFileExtension(filename);
   return extension ? IMAGE_EXTENSIONS.includes(extension) : false;
-}
-
-/**
- * Get the file extension from a filename
- */
-export function getFileExtension(filename: string): string | null {
-  if (!filename) return null;
-
-  const extension = filename.split('.').pop()?.toLowerCase();
-  return extension || null;
 }

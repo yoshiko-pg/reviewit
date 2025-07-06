@@ -6,6 +6,8 @@ import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import { getFileExtension } from '../utils/fileUtils.js';
+
 import { GitDiffParser } from './git-diff.js';
 
 interface ServerOptions {
@@ -78,7 +80,7 @@ export async function startServer(
       const blob = await parser.getBlobContent(filepath, ref);
 
       // Determine content type based on file extension
-      const ext = filepath.split('.').pop()?.toLowerCase();
+      const ext = getFileExtension(filepath);
       const contentTypes: { [key: string]: string } = {
         jpg: 'image/jpeg',
         jpeg: 'image/jpeg',

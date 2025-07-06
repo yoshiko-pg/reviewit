@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { getFileExtension } from '../../utils/fileUtils';
+
 interface SimpleSyntaxHighlighterProps {
   code: string;
   language?: string;
@@ -61,7 +63,7 @@ function highlightCSS(code: string): string {
 }
 
 function detectLanguage(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase();
+  const ext = getFileExtension(filename);
 
   const extensionMap: Record<string, string> = {
     ts: 'typescript',
