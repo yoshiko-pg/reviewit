@@ -94,7 +94,7 @@ export function ImageDiffChunk({
             <img
               src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
               alt={`Previous version of ${file.oldPath || file.path}`}
-              className="max-w-full max-h-96 border border-github-border rounded"
+              className="max-w-full max-h-96 border border-github-border rounded mx-auto"
               style={checkerboardStyle}
               onLoad={(e) => handleImageLoad(e.currentTarget, setOldImageInfo)}
               onError={(e) => {
@@ -134,7 +134,7 @@ export function ImageDiffChunk({
             <img
               src={`/api/blob/${file.path}?ref=${targetRef}`}
               alt={`New image ${file.path}`}
-              className="max-w-full max-h-96 border border-github-border rounded"
+              className="max-w-full max-h-96 border border-github-border rounded mx-auto"
               style={checkerboardStyle}
               onLoad={(e) => handleImageLoad(e.currentTarget, setNewImageInfo)}
               onError={(e) => {
@@ -249,7 +249,7 @@ export function ImageDiffChunk({
                 <img
                   src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
-                  className="max-w-full max-h-96 border border-github-border rounded"
+                  className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   style={checkerboardStyle}
                   onLoad={(e) => handleImageLoad(e.currentTarget, setOldImageInfo)}
                   onError={(e) => {
@@ -280,7 +280,7 @@ export function ImageDiffChunk({
                 <img
                   src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
-                  className="max-w-full max-h-96 border border-github-border rounded"
+                  className="max-w-full max-h-96 border border-github-border rounded mx-auto"
                   style={checkerboardStyle}
                   onLoad={(e) => handleImageLoad(e.currentTarget, setNewImageInfo)}
                   onError={(e) => {
