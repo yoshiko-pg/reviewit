@@ -21,6 +21,17 @@ export function ImageDiffChunk({
   const baseRef = baseCommitish || 'HEAD~1';
   const targetRef = targetCommitish || 'HEAD';
 
+  // Checkerboard background style for transparent images
+  const checkerboardStyle = {
+    backgroundImage: `
+      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
+      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)
+    `,
+    backgroundSize: '20px 20px',
+    backgroundPosition: '0 0, 10px 10px',
+    backgroundColor: 'white',
+  };
+
   // For deleted files, show only the old version
   if (isDeleted) {
     return (
@@ -35,6 +46,7 @@ export function ImageDiffChunk({
               src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
               alt={`Previous version of ${file.oldPath || file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
+              style={checkerboardStyle}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -64,6 +76,7 @@ export function ImageDiffChunk({
               src={`/api/blob/${file.path}?ref=${targetRef}`}
               alt={`New image ${file.path}`}
               className="max-w-full max-h-96 border border-github-border rounded"
+              style={checkerboardStyle}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -96,6 +109,7 @@ export function ImageDiffChunk({
                   src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
+                  style={checkerboardStyle}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -116,6 +130,7 @@ export function ImageDiffChunk({
                   src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded mx-auto"
+                  style={checkerboardStyle}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -146,6 +161,7 @@ export function ImageDiffChunk({
                   src={`/api/blob/${file.oldPath || file.path}?ref=${baseRef}`}
                   alt={`Previous version of ${file.oldPath || file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
+                  style={checkerboardStyle}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -166,6 +182,7 @@ export function ImageDiffChunk({
                   src={`/api/blob/${file.path}?ref=${targetRef}`}
                   alt={`Current version of ${file.path}`}
                   className="max-w-full max-h-96 border border-github-border rounded"
+                  style={checkerboardStyle}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
