@@ -25,31 +25,35 @@ execSync('git fetch origin', { stdio: 'ignore' });
 - Commands are using fixed patterns with minimal user input
 - The SHA is already verified to exist in the git repository
 
-### 2. **execSync Usage** (src/server/git-diff.ts)
+### 2. **execFileSync Usage** (src/server/git-diff.ts) - **FIXED**
 
 **Location**: Lines 224-241
 
 ```typescript
 // Handle staged files
-const buffer = execSync(`git show :${filepath}`, {
+const buffer = execFileSync('git', ['show', `:${filepath}`], {
   maxBuffer: 10 * 1024 * 1024, // 10MB limit
 });
 
 // Get blob hash
-const blobHash = execSync(`git rev-parse "${ref}:${filepath}"`, { encoding: 'utf8' }).trim();
+const blobHash = execFileSync('git', ['rev-parse', `${ref}:${filepath}`], {
+  encoding: 'utf8',
+  maxBuffer: 10 * 1024 * 1024,
+}).trim();
 
 // Get raw binary content
-const buffer = execSync(`git cat-file blob ${blobHash}`, {
+const buffer = execFileSync('git', ['cat-file', 'blob', blobHash], {
   maxBuffer: 10 * 1024 * 1024, // 10MB limit
 });
 ```
 
-**Security Assessment**: **MEDIUM RISK**
+**Security Assessment**: **LOW RISK** (Previously MEDIUM RISK)
 
-- The `filepath` and `ref` parameters are passed directly to shell commands
-- However, these are used in git-specific contexts where git itself provides some validation
-- The code includes size limits (10MB) to prevent resource exhaustion
-- **Recommendation**: Add input validation for `filepath` to ensure it doesn't contain shell metacharacters
+- **FIXED**: Changed from `execSync` to `execFileSync` to prevent command injection
+- Arguments are now passed as an array, preventing shell interpretation
+- The `filepath` and `ref` parameters are safely passed without shell expansion
+- Resource limits (10MB) remain in place to prevent exhaustion attacks
+- No shell metacharacter interpretation occurs with `execFileSync`
 
 ### 3. **spawn Usage** (scripts/dev.js)
 
@@ -77,13 +81,14 @@ viteProcess = spawn('vite', ['--open'], {
 **Location**: Line 224
 
 ```typescript
-const { execSync } = await import('child_process');
+const { execFileSync } = await import('child_process');
 ```
 
 **Security Assessment**: **EXPECTED**
 
 - Dynamic import is used but the module name is hardcoded
 - This is the standard Node.js module for executing commands
+- Now imports `execFileSync` instead of `execSync` for better security
 
 ## Input Validation Analysis
 
@@ -109,20 +114,17 @@ const { execSync } = await import('child_process');
 
 ## Recommendations
 
-### High Priority:
+### ✅ Completed:
 
-1. **Add filepath validation** in `getBlobContent()` method:
-   ```typescript
-   // Validate filepath doesn't contain shell metacharacters
-   if (!/^[a-zA-Z0-9._\-\/]+$/.test(filepath)) {
-     throw new Error('Invalid filepath characters');
-   }
-   ```
+1. **[FIXED] Command injection vulnerability in `getBlobContent()`**:
+   - Changed from `execSync` to `execFileSync`
+   - Arguments are now safely passed as an array
+   - Shell metacharacter injection is no longer possible
 
 ### Medium Priority:
 
-2. **Consider using git library methods** instead of execSync where possible to avoid shell entirely
-3. **Add explicit validation** for the `ref` parameter in `getBlobContent()`
+2. **Consider using git library methods** instead of direct command execution where possible
+3. **Add explicit validation** for the `ref` parameter in `getBlobContent()` as an additional defense layer
 
 ### Low Priority:
 
@@ -131,11 +133,12 @@ const { execSync } = await import('child_process');
 
 ## Conclusion
 
-The codebase demonstrates good security practices with proper input validation in most cases. The main area for improvement is adding explicit validation for file paths before passing them to shell commands. The identified risks are relatively low because:
+The codebase demonstrates good security practices with proper input validation. The previously identified command injection vulnerability in `getBlobContent()` has been fixed by switching from `execSync` to `execFileSync`. The remaining risks are low because:
 
 1. The application is designed to run locally, not as a public web service
 2. Most user inputs go through validation functions
 3. The commands executed are limited to git operations within the repository context
 4. Resource limits are in place (10MB file size limit)
+5. **[FIXED]** Shell command injection is no longer possible with the use of `execFileSync`
 
 The code does not use dangerous patterns like `eval()`, `Function()` constructor, or dynamic `require()` with user input.
