@@ -41,6 +41,8 @@ export interface DiffResponse {
   ignoreWhitespace?: boolean;
   isEmpty?: boolean;
   mode?: string;
+  baseCommitish?: string;
+  targetCommitish?: string;
 }
 
 export interface Comment {

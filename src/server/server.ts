@@ -61,7 +61,51 @@ export async function startServer(
       );
     }
 
-    res.json({ ...diffData, ignoreWhitespace, mode: diffMode });
+    res.json({
+      ...diffData,
+      ignoreWhitespace,
+      mode: diffMode,
+      baseCommitish: options.baseCommitish,
+      targetCommitish: options.targetCommitish,
+    });
+  });
+
+  app.get(/^\/api\/blob\/(.*)$/, async (req: any, res: any) => {
+    try {
+      const filepath = req.params[0];
+      const ref = (req.query.ref as string) || 'HEAD';
+
+      const blob = await parser.getBlobContent(filepath, ref);
+
+      // Determine content type based on file extension
+      const ext = filepath.split('.').pop()?.toLowerCase();
+      const contentTypes: { [key: string]: string } = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        bmp: 'image/bmp',
+        svg: 'image/svg+xml',
+        webp: 'image/webp',
+        ico: 'image/x-icon',
+        tiff: 'image/tiff',
+        tif: 'image/tiff',
+        avif: 'image/avif',
+        heic: 'image/heic',
+        heif: 'image/heif',
+      };
+
+      const contentType = contentTypes[ext || ''] || 'application/octet-stream';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.send(blob);
+    } catch (error) {
+      console.error('Error fetching blob:', error);
+      res.status(404).json({ error: 'File not found' });
+    }
   });
 
   // Store comments for final output

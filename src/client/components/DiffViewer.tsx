@@ -12,8 +12,10 @@ import {
 import { useState } from 'react';
 
 import { type DiffFile, type Comment } from '../../types/diff';
+import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
+import { ImageDiffChunk } from './ImageDiffChunk';
 import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import type { AppearanceSettings } from './SettingsModal';
 
@@ -28,6 +30,8 @@ interface DiffViewerProps {
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  baseCommitish?: string;
+  targetCommitish?: string;
 }
 
 export function DiffViewer({
@@ -41,6 +45,8 @@ export function DiffViewer({
   onRemoveComment,
   onUpdateComment,
   syntaxTheme,
+  baseCommitish,
+  targetCommitish,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
@@ -139,23 +145,34 @@ export function DiffViewer({
 
       {!isCollapsed && (
         <div className="overflow-y-auto">
-          {file.chunks.map((chunk, index) => (
-            <div key={index} className="border-b border-github-border">
-              <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
-                <code className="text-github-text-secondary text-xs font-mono">{chunk.header}</code>
+          {isImageFile(file.path) ? (
+            <ImageDiffChunk
+              file={file}
+              mode={diffMode}
+              baseCommitish={baseCommitish}
+              targetCommitish={targetCommitish}
+            />
+          ) : (
+            file.chunks.map((chunk, index) => (
+              <div key={index} className="border-b border-github-border">
+                <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
+                  <code className="text-github-text-secondary text-xs font-mono">
+                    {chunk.header}
+                  </code>
+                </div>
+                <DiffChunk
+                  chunk={chunk}
+                  comments={comments}
+                  onAddComment={handleAddComment}
+                  onGeneratePrompt={onGeneratePrompt}
+                  onRemoveComment={onRemoveComment}
+                  onUpdateComment={onUpdateComment}
+                  mode={diffMode}
+                  syntaxTheme={syntaxTheme}
+                />
               </div>
-              <DiffChunk
-                chunk={chunk}
-                comments={comments}
-                onAddComment={handleAddComment}
-                onGeneratePrompt={onGeneratePrompt}
-                onRemoveComment={onRemoveComment}
-                onUpdateComment={onUpdateComment}
-                mode={diffMode}
-                syntaxTheme={syntaxTheme}
-              />
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

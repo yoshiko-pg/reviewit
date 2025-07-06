@@ -105,9 +105,20 @@ export class GitDiffParser {
     const path = newPath;
 
     let status: DiffFile['status'] = 'modified';
-    if (summary.binary) return null;
 
-    if (oldPath !== newPath) {
+    // Check for new file mode (added files)
+    const newFileMode = lines.find((line) => line.startsWith('new file mode'));
+    const deletedFileMode = lines.find((line) => line.startsWith('deleted file mode'));
+
+    // Check for /dev/null which indicates added or deleted files
+    const minusLine = lines.find((line) => line.startsWith('--- '));
+    const plusLine = lines.find((line) => line.startsWith('+++ '));
+
+    if (newFileMode || (minusLine && minusLine.includes('/dev/null'))) {
+      status = 'added';
+    } else if (deletedFileMode || (plusLine && plusLine.includes('/dev/null'))) {
+      status = 'deleted';
+    } else if (oldPath !== newPath) {
       status = 'renamed';
     } else if (summary.insertions && !summary.deletions) {
       status = 'added';
@@ -115,7 +126,8 @@ export class GitDiffParser {
       status = 'deleted';
     }
 
-    const chunks = this.parseChunks(lines);
+    // For binary files, don't try to parse chunks
+    const chunks = summary.binary ? [] : this.parseChunks(lines);
 
     return {
       path,
@@ -196,6 +208,57 @@ export class GitDiffParser {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async getBlobContent(filepath: string, ref: string): Promise<Buffer> {
+    try {
+      // For working directory, read directly from filesystem
+      if (ref === 'working' || ref === '.') {
+        const fs = await import('fs');
+        return fs.readFileSync(filepath);
+      }
+
+      // For git refs, we need to use child_process to execute git cat-file
+      // to properly handle binary data
+      const { execFileSync } = await import('child_process');
+
+      // Handle staged files
+      if (ref === 'staged') {
+        // For staged files, use git show :filepath
+        // Using execFileSync to prevent command injection
+        const buffer = execFileSync('git', ['show', `:${filepath}`], {
+          maxBuffer: 10 * 1024 * 1024, // 10MB limit
+        });
+        return buffer;
+      }
+
+      // First, get the blob hash for the file at the given ref
+      // Using execFileSync to prevent command injection
+      const blobHash = execFileSync('git', ['rev-parse', `${ref}:${filepath}`], {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      }).trim();
+
+      // Then use git cat-file to get the raw binary content
+      // Increase maxBuffer to handle large files (default is 1024*1024 = 1MB)
+      const buffer = execFileSync('git', ['cat-file', 'blob', blobHash], {
+        maxBuffer: 10 * 1024 * 1024, // 10MB limit
+      });
+
+      return buffer;
+    } catch (error) {
+      // Check if it's a buffer size error
+      if (
+        error instanceof Error &&
+        (error.message.includes('ENOBUFS') || error.message.includes('maxBuffer'))
+      ) {
+        throw new Error(`Image file ${filepath} is too large to display (over 10MB limit)`);
+      }
+
+      throw new Error(
+        `Failed to get blob content for ${filepath} at ${ref}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 }
