@@ -214,7 +214,7 @@ export class GitDiffParser {
   async getBlobContent(filepath: string, ref: string): Promise<Buffer> {
     try {
       // For working directory, read directly from filesystem
-      if (ref === 'working') {
+      if (ref === 'working' || ref === '.') {
         const fs = await import('fs');
         return fs.readFileSync(filepath);
       }
@@ -222,6 +222,15 @@ export class GitDiffParser {
       // For git refs, we need to use child_process to execute git cat-file
       // to properly handle binary data
       const { execSync } = await import('child_process');
+
+      // Handle staged files
+      if (ref === 'staged') {
+        // For staged files, use git show :filepath
+        const buffer = execSync(`git show :${filepath}`, {
+          maxBuffer: 10 * 1024 * 1024, // 10MB limit
+        });
+        return buffer;
+      }
 
       // First, get the blob hash for the file at the given ref
       const blobHash = execSync(`git rev-parse "${ref}:${filepath}"`, { encoding: 'utf8' }).trim();
