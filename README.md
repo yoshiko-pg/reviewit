@@ -114,7 +114,7 @@ ReviewIt supports syntax highlighting for multiple programming languages with dy
 - **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
 - **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, Rust, Go
-- **Others**: Python, Swift, Kotlin, YAML
+- **Others**: Python, Swift, Kotlin, YAML, Solidity
 
 ### Dynamic Language Loading
 

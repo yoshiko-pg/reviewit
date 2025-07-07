@@ -24,6 +24,7 @@ export function loadPrismLanguage(lang: string): Promise<void> {
         await loadPrismLanguage('java');
         return import('prismjs/components/prism-scala.js');
       },
+      solidity: () => import('prismjs/components/prism-solidity.js'),
     };
 
     const importFn = languageImports[lang];
