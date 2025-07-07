@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.12] - 2025-07-06
+
+### Added
+
+- Solidity syntax highlighting support (#31)
+
+### Thanks
+
+- [@maguroid](https://github.com/maguroid) for adding Solidity syntax highlighting support #31
+
 ## [1.1.11] - 2025-07-06
 
 ### Added
@@ -233,7 +243,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.11...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.12...HEAD
+[1.1.12]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.11...v1.1.12
 [1.1.11]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.10...v1.1.11
 [1.1.10]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.9...v1.1.10
 [1.1.9]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.8...v1.1.9
