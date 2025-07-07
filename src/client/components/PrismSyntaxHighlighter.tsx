@@ -74,6 +74,7 @@ function detectLanguage(filename: string): string {
     conf: 'nginx',
     ini: 'ini',
     toml: 'toml',
+    sol: 'solidity',
   };
 
   return extensionMap[ext || ''] || 'text';
