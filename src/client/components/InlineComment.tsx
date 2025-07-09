@@ -83,7 +83,7 @@ export function InlineComment({
                   e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
                   e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
                 }}
-                title="Copy prompt for Claude Code"
+                title="Copy prompt for AI coding agent"
               >
                 {isCopied ? 'Copied!' : 'Copy Prompt'}
               </button>

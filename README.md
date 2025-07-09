@@ -7,7 +7,7 @@
 ## ✨ Features
 
 - ⚡ **Zero Config**: Just run `npx difit <commit>` and it works
-- 🌙 **Review for AI**: Add comments and generate Claude Code prompts
+- 🌙 **Review for AI**: Add comments and copy prompts for AI coding agent
 - 🖥️ **Terminal UI**: View diffs directly in terminal with `--tui`
 
 ## ⚡ Quick Start
@@ -86,11 +86,11 @@ difit automatically handles GitHub authentication using:
 
 ## 💬 Comment System
 
-difit includes an inline commenting system that integrates with Claude Code:
+difit includes an inline commenting system that integrates with AI coding agent:
 
 1. **Add Comments**: Click on any diff line to add a comment
 2. **Edit Comments**: Edit existing comments with the edit button
-3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for Claude Code
+3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for AI coding agent
 4. **Copy All**: Use "Copy All Prompt" to copy all comments in a structured format
 5. **Persistent Storage**: Comments are saved in browser localStorage per commit
 

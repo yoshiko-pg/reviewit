@@ -281,7 +281,7 @@ function App() {
                   e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
                   e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
                 }}
-                title={`Copy all ${comments.length} comments to Claude Code`}
+                title={`Copy all ${comments.length} comments to AI coding agent`}
               >
                 <Copy size={12} />
                 {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
