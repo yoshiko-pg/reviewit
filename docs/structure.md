@@ -1,8 +1,8 @@
-# Difit Codebase Structure
+# difit Codebase Structure
 
 ## Overview
 
-Difit is a CLI tool that displays Git diffs in a GitHub-like web interface. The architecture consists of three main components:
+difit is a CLI tool that displays Git diffs in a GitHub-like web interface. The architecture consists of three main components:
 
 1. CLI entry point that handles command-line arguments
 2. Server component that provides APIs and serves the web interface

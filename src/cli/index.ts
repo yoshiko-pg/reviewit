@@ -132,7 +132,7 @@ program
         mode: options.mode,
       });
 
-      console.log(`\n🚀 Difit server started on ${url}`);
+      console.log(`\n🚀 difit server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
 
       if (isEmpty) {
@@ -147,7 +147,7 @@ program
       }
 
       process.on('SIGINT', async () => {
-        console.log('\n👋 Shutting down Difit server...');
+        console.log('\n👋 Shutting down difit server...');
 
         // Try to fetch comments before shutting down
         try {

@@ -236,8 +236,8 @@ describe('Server Integration Tests', () => {
       const html = await response.text();
 
       expect(response.ok).toBe(true);
-      expect(html).toContain('Difit - Dev Mode');
-      expect(html).toContain('Difit development mode');
+      expect(html).toContain('difit - Dev Mode');
+      expect(html).toContain('difit development mode');
     });
 
     it('serves static files in production mode', async () => {

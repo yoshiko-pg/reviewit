@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="public/logo.png" alt="Difit" width="400">
+  <img src="public/logo.png" alt="difit" width="400">
 </div>
 
-# Difit 🔍
+# difit 🔍
 
 A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal! 🚀
 
@@ -46,7 +46,7 @@ npx difit . origin/main  # Compare working directory with remote main
 
 ### Special Arguments
 
-Difit supports special keywords for common diff scenarios:
+difit supports special keywords for common diff scenarios:
 
 ```bash
 npx difit          # HEAD commit changes
@@ -67,9 +67,9 @@ npx difit working  # Unstaged changes only (cannot use compare-with)
 npx difit --pr https://github.com/owner/repo/pull/123
 ```
 
-Difit automatically handles GitHub authentication using:
+difit automatically handles GitHub authentication using:
 
-1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, Difit uses your existing credentials
+1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, difit uses your existing credentials
 2. **Environment Variable**: Set `GITHUB_TOKEN` environment variable
 3. **No Authentication**: Public repositories work without authentication (rate-limited)
 
@@ -88,7 +88,7 @@ Difit automatically handles GitHub authentication using:
 
 ## 💬 Comment System
 
-Difit includes an inline commenting system that integrates with Claude Code:
+difit includes an inline commenting system that integrates with Claude Code:
 
 1. **Add Comments**: Click on any diff line to add a comment
 2. **Edit Comments**: Edit existing comments with the edit button
@@ -105,7 +105,7 @@ This name should probably be more specific.
 
 ## 🎨 Syntax Highlighting
 
-Difit supports syntax highlighting for multiple programming languages with dynamic loading:
+difit supports syntax highlighting for multiple programming languages with dynamic loading:
 
 ### Supported Languages
 
