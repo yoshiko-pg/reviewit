@@ -219,7 +219,7 @@ function App() {
           }}
         >
           <h1>
-            <Logo style={{ height: '18px' }} />
+            <Logo style={{ height: '18px', color: 'var(--color-github-text-secondary)' }} />
           </h1>
           <button
             onClick={() => setIsSettingsOpen(true)}
