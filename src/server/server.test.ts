@@ -160,6 +160,23 @@ describe('Server Integration Tests', () => {
       expect(data).toHaveProperty('success', true);
     });
 
+    it('POST /api/comments accepts multi-line comment data', async () => {
+      const comments = [
+        { file: 'test.js', line: 10, body: 'Single line comment' },
+        { file: 'test.js', line: [20, 30], body: 'Multi-line comment' },
+      ];
+
+      const response = await fetch(`http://localhost:${port}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments }),
+      });
+
+      const data = await response.json();
+      expect(response.ok).toBe(true);
+      expect(data).toHaveProperty('success', true);
+    });
+
     it('POST /api/comments handles text/plain content type', async () => {
       const comments = [{ file: 'test.js', line: 10, body: 'This is a test comment' }];
 
@@ -193,10 +210,35 @@ describe('Server Integration Tests', () => {
 
       expect(response.ok).toBe(true);
       expect(output).toContain('Comments from review session');
-      expect(output).toContain('test.js:10');
+      expect(output).toContain('test.js:L10');
       expect(output).toContain('First comment');
-      expect(output).toContain('test.js:20');
+      expect(output).toContain('test.js:L20');
       expect(output).toContain('Second comment');
+      expect(output).toContain('Total comments: 2');
+    });
+
+    it('GET /api/comments-output formats multi-line comments correctly', async () => {
+      // Post comments with both single-line and multi-line formats
+      const comments = [
+        { file: 'test.js', line: 10, body: 'Single line comment' },
+        { file: 'test.js', line: [15, 25], body: 'Multi-line comment' },
+      ];
+
+      await fetch(`http://localhost:${port}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments }),
+      });
+
+      // Then get the output
+      const response = await fetch(`http://localhost:${port}/api/comments-output`);
+      const output = await response.text();
+
+      expect(response.ok).toBe(true);
+      expect(output).toContain('test.js:L10');
+      expect(output).toContain('Single line comment');
+      expect(output).toContain('test.js:L15-L25');
+      expect(output).toContain('Multi-line comment');
       expect(output).toContain('Total comments: 2');
     });
 
