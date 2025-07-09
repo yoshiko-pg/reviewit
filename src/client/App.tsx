@@ -1,4 +1,4 @@
-import { Columns, AlignLeft, Copy, Settings } from 'lucide-react';
+import { Columns, AlignLeft, Copy, Settings, Github } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -310,27 +310,41 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden">
         <aside
-          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
+          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
           style={{
             width: `${sidebarWidth}px`,
             minWidth: '200px',
             maxWidth: '600px',
           }}
         >
-          <FileList
-            files={diffData.files}
-            onScrollToFile={(filePath) => {
-              const element = document.getElementById(
-                `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-              );
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }}
-            comments={comments}
-            reviewedFiles={reviewedFiles}
-            onToggleReviewed={toggleFileReviewed}
-          />
+          <div className="flex-1 overflow-y-auto">
+            <FileList
+              files={diffData.files}
+              onScrollToFile={(filePath) => {
+                const element = document.getElementById(
+                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                );
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              comments={comments}
+              reviewedFiles={reviewedFiles}
+              onToggleReviewed={toggleFileReviewed}
+            />
+          </div>
+          <div className="p-4 border-t border-github-border flex justify-end">
+            <a
+              href="https://github.com/yoshiko-pg/difit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
+              title="View on GitHub"
+            >
+              <span className="text-sm">Star on GitHub</span>
+              <Github size={18} />
+            </a>
+          </div>
         </aside>
 
         <div
