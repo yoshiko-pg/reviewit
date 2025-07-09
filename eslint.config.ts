@@ -1,21 +1,16 @@
-import { FlatCompat } from '@eslint/eslintrc';
+import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
+import tsParser from '@typescript-eslint/parser';
+import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import unusedImports from 'eslint-plugin-unused-imports';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import globals from 'globals';
+import type { Linter } from 'eslint';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
+const config: Linter.FlatConfig[] = [
+  // Ignore patterns
   {
     ignores: [
       'dist/**',
@@ -27,17 +22,38 @@ const eslintConfig = [
       '*.config.js',
       '*.config.mjs',
       '*.config.ts',
+      'vite.config.ts',
+      'vitest.config.ts',
+      'vitest.setup.ts',
+      'tailwind.config.ts',
     ],
   },
-  ...compat.extends('prettier'),
+
+  // Base configuration for all files
   {
-    files: ['src/client/**/*.ts', 'src/client/**/*.tsx'],
+    files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
     languageOptions: {
-      parser: tsparser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2022,
+        React: 'readonly',
+        NodeJS: 'readonly',
+        jest: 'readonly',
+      },
+    },
+  },
+
+  // Client-side TypeScript/React files (including TUI)
+  {
+    files: ['src/client/**/*.ts', 'src/client/**/*.tsx', 'src/tui/**/*.ts', 'src/tui/**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './tsconfig.json',
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
         },
@@ -51,10 +67,12 @@ const eslintConfig = [
       'react-hooks': reactHooksPlugin,
     },
     rules: {
+      ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
+      ...prettierConfig.rules,
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/consistent-type-assertions': 'warn',
@@ -74,6 +92,7 @@ const eslintConfig = [
           disallowTypeAnnotations: false,
         },
       ],
+      '@typescript-eslint/no-unused-vars': 'off', // handled by unused-imports
       'import/order': [
         'error',
         {
@@ -86,9 +105,13 @@ const eslintConfig = [
         },
       ],
       'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': 'error',
+      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      'no-control-regex': 'off',
+      'no-undef': 'off', // TypeScript handles this
     },
     settings: {
       react: {
@@ -96,14 +119,15 @@ const eslintConfig = [
       },
     },
   },
+
+  // Server/CLI TypeScript files
   {
-    files: ['src/cli/**/*.ts', 'src/server/**/*.ts', 'src/types/**/*.ts'],
+    files: ['src/cli/**/*.ts', 'src/server/**/*.ts', 'src/types/**/*.ts', 'src/utils/**/*.ts'],
     languageOptions: {
-      parser: tsparser,
+      parser: tsParser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './tsconfig.cli.json',
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {
@@ -112,8 +136,10 @@ const eslintConfig = [
       'unused-imports': unusedImports,
     },
     rules: {
+      ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
+      ...prettierConfig.rules,
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/consistent-type-assertions': 'warn',
@@ -133,6 +159,7 @@ const eslintConfig = [
           disallowTypeAnnotations: false,
         },
       ],
+      '@typescript-eslint/no-unused-vars': 'off', // handled by unused-imports
       'import/order': [
         'error',
         {
@@ -145,9 +172,13 @@ const eslintConfig = [
         },
       ],
       'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': 'error',
+      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-control-regex': 'off',
+      'no-undef': 'off', // TypeScript handles this
     },
   },
+
+  // Test files
   {
     files: ['**/*.test.ts', '**/*.test.tsx'],
     rules: {
@@ -164,6 +195,16 @@ const eslintConfig = [
       '@typescript-eslint/no-floating-promises': 'off',
     },
   },
+
+  // JavaScript files configuration
+  {
+    files: ['**/*.js', '**/*.cjs'],
+    rules: {
+      ...eslint.configs.recommended.rules,
+      ...prettierConfig.rules,
+      'no-undef': 'error',
+    },
+  },
 ];
 
-export default eslintConfig;
+export default config;
