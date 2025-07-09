@@ -11,7 +11,11 @@ import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 interface DiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (
+    line: number | [number, number],
+    body: string,
+    codeContent?: string
+  ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -29,7 +33,8 @@ export function DiffChunk({
   mode = 'inline',
   syntaxTheme,
 }: DiffChunkProps) {
-  const [commentingLine, setCommentingLine] = useState<number | null>(null);
+  const [startLine, setStartLine] = useState<number | null>(null);
+  const [commentingLine, setCommentingLine] = useState<number | [number, number] | null>(null);
   const [commentingLineContent, setCommentingLineContent] = useState<string | null>(null);
 
   const getLineClass = (line: DiffLine) => {
@@ -54,13 +59,13 @@ export function DiffChunk({
     }
   };
 
-  const handleAddComment = (lineNumber: number, lineContent: string) => {
+  const handleAddComment = (lineNumber: number | [number, number], lineContent?: string) => {
     if (commentingLine === lineNumber) {
       setCommentingLine(null);
       setCommentingLineContent(null);
     } else {
       setCommentingLine(lineNumber);
-      setCommentingLineContent(lineContent);
+      setCommentingLineContent(lineContent || null);
     }
   };
 
@@ -78,7 +83,9 @@ export function DiffChunk({
   };
 
   const getCommentsForLine = (lineNumber: number) => {
-    return comments.filter((c) => c.line === lineNumber);
+    return comments.filter((c) =>
+      Array.isArray(c.line) ? c.line[1] === lineNumber : c.line === lineNumber
+    );
   };
 
   const getCommentLayout = (line: DiffLine): 'left' | 'right' | 'full' => {
@@ -95,6 +102,21 @@ export function DiffChunk({
       default:
         return 'full';
     }
+  };
+
+  const getSelectedLineStyle = (lineNumber: number | undefined): string => {
+    if (!commentingLine || !lineNumber) {
+      return '';
+    }
+
+    const start = Array.isArray(commentingLine) ? commentingLine[0] : commentingLine;
+    const end = Array.isArray(commentingLine) ? commentingLine[1] : commentingLine;
+
+    if (lineNumber >= start && lineNumber <= end) {
+      return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border';
+    }
+
+    return '';
   };
 
   // Use side-by-side component for side-by-side mode
@@ -122,10 +144,30 @@ export function DiffChunk({
             return (
               <React.Fragment key={index}>
                 <tr
-                  className={`cursor-pointer group ${getLineClass(line)}`}
-                  onClick={() =>
-                    handleAddComment(line.newLineNumber || line.oldLineNumber || 0, line.content)
-                  }
+                  className={`cursor-pointer group ${getLineClass(line)} relative ${getSelectedLineStyle(
+                    line.newLineNumber || line.oldLineNumber
+                  )}`}
+                  onMouseDown={() => {
+                    const lineNumber = line.newLineNumber || line.oldLineNumber;
+                    if (lineNumber) {
+                      setStartLine(lineNumber);
+                    }
+                  }}
+                  onMouseUp={() => {
+                    const lineNumber = line.newLineNumber || line.oldLineNumber;
+                    if (!lineNumber) {
+                      return;
+                    }
+
+                    if (!startLine || startLine === lineNumber) {
+                      handleAddComment(lineNumber, line.content);
+                      setStartLine(null);
+                      return;
+                    }
+
+                    handleAddComment([startLine, lineNumber]);
+                    setStartLine(null);
+                  }}
                   title="Click to add comment"
                 >
                   <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
@@ -180,28 +222,31 @@ export function DiffChunk({
                   );
                 })}
 
-                {commentingLine === (line.newLineNumber || line.oldLineNumber) && (
-                  <tr className="bg-[var(--bg-secondary)]">
-                    <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
-                      <div
-                        className={`flex ${
-                          getCommentLayout(line) === 'left' ? 'justify-start'
-                          : getCommentLayout(line) === 'right' ? 'justify-end'
-                          : 'justify-center'
-                        }`}
-                      >
+                {commentingLine &&
+                  (commentingLine === (line.newLineNumber || line.oldLineNumber) ||
+                    (Array.isArray(commentingLine) &&
+                      commentingLine[1] === (line.newLineNumber || line.oldLineNumber))) && (
+                    <tr className="bg-[var(--bg-secondary)]">
+                      <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
                         <div
-                          className={`${getCommentLayout(line) === 'full' ? 'w-full' : 'w-1/2'}`}
+                          className={`flex ${
+                            getCommentLayout(line) === 'left' ? 'justify-start'
+                            : getCommentLayout(line) === 'right' ? 'justify-end'
+                            : 'justify-center'
+                          }`}
                         >
-                          <CommentForm
-                            onSubmit={handleSubmitComment}
-                            onCancel={handleCancelComment}
-                          />
+                          <div
+                            className={`${getCommentLayout(line) === 'full' ? 'w-full' : 'w-1/2'}`}
+                          >
+                            <CommentForm
+                              onSubmit={handleSubmitComment}
+                              onCancel={handleCancelComment}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
+                      </td>
+                    </tr>
+                  )}
               </React.Fragment>
             );
           })}

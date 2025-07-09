@@ -145,7 +145,7 @@ export async function startServer(
   // Function to format comments for output
   function formatCommentsOutput(comments: any[]): string {
     const prompts = comments.map((comment: any) => {
-      return `${comment.file}:${comment.line}\n${comment.body}`;
+      return `${comment.file}:${Array.isArray(comment.line) ? `L${comment.line[0]}-L${comment.line[1]}` : `L${comment.line}`}\n${comment.body}`;
     });
 
     return [

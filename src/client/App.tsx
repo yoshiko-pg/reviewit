@@ -141,7 +141,7 @@ function App() {
 
   const handleAddComment = (
     file: string,
-    line: number,
+    line: number | [number, number],
     body: string,
     codeContent?: string
   ): Promise<void> => {

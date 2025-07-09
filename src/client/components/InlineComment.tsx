@@ -59,7 +59,8 @@ export function InlineComment({
               color: 'var(--color-yellow-path-text)',
             }}
           >
-            {comment.file}:{comment.line}
+            {comment.file}:
+            {Array.isArray(comment.line) ? `${comment.line[0]}-${comment.line[1]}` : comment.line}
           </span>
         </div>
 
