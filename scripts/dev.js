@@ -2,7 +2,7 @@
 import { spawn } from 'child_process';
 
 const commitish = process.argv[2] || 'HEAD';
-const CLI_SERVER_READY_MESSAGE = 'ReviewIt server started';
+const CLI_SERVER_READY_MESSAGE = 'Difit server started';
 
 console.log('🚀 Starting CLI server...');
 

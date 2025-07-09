@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS: AppearanceSettings = {
   syntaxTheme: 'vsDark',
 };
 
-const STORAGE_KEY = 'reviewit-appearance-settings';
+const STORAGE_KEY = 'difit-appearance-settings';
 
 export function useAppearanceSettings() {
   const [settings, setSettings] = useState<AppearanceSettings>(DEFAULT_SETTINGS);

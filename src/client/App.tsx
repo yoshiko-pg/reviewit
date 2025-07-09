@@ -219,7 +219,7 @@ function App() {
         >
           <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
             <Search size={18} />
-            ReviewIt
+            Difit
           </h1>
           <button
             onClick={() => setIsSettingsOpen(true)}

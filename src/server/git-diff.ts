@@ -53,7 +53,7 @@ export class GitDiffParser {
       }
 
       // Ignore external diff-tools to unify output.
-      // https://github.com/yoshiko-pg/reviewit/issues/19
+      // https://github.com/yoshiko-pg/difit/issues/19
       diffArgs.push('--no-ext-diff', '--color=never');
 
       // Add --color=never to ensure plain text output without ANSI escape sequences

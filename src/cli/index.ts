@@ -33,7 +33,7 @@ interface CliOptions {
 const program = new Command();
 
 program
-  .name('reviewit')
+  .name('difit')
   .description('A lightweight Git diff viewer with GitHub-like interface')
   .version(pkg.version)
   .argument(
@@ -132,7 +132,7 @@ program
         mode: options.mode,
       });
 
-      console.log(`\n🚀 ReviewIt server started on ${url}`);
+      console.log(`\n🚀 Difit server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
 
       if (isEmpty) {
@@ -147,7 +147,7 @@ program
       }
 
       process.on('SIGINT', async () => {
-        console.log('\n👋 Shutting down ReviewIt server...');
+        console.log('\n👋 Shutting down Difit server...');
 
         // Try to fetch comments before shutting down
         try {

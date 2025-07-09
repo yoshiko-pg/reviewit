@@ -30,7 +30,6 @@ Thumbs.db
 *.log
 
 # Runtime data
-.reviewit/
 *.pid
 *.seed
 *.pid.lock
