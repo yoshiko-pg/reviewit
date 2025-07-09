@@ -174,7 +174,10 @@ export class GitDiffParser {
         currentChunk &&
         (line.startsWith('+') || line.startsWith('-') || line.startsWith(' '))
       ) {
-        const type = line.startsWith('+') ? 'add' : line.startsWith('-') ? 'delete' : 'normal';
+        const type =
+          line.startsWith('+') ? 'add'
+          : line.startsWith('-') ? 'delete'
+          : 'normal';
 
         const diffLine: DiffLine = {
           type,

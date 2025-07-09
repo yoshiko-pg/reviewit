@@ -120,9 +120,8 @@ export async function fetchPrDetails(prInfo: PullRequestInfo): Promise<PullReque
     };
   } catch (error) {
     if (error instanceof Error) {
-      const authHint = token
-        ? ''
-        : ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
+      const authHint =
+        token ? '' : ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
       throw new Error(`Failed to fetch PR details: ${error.message}${authHint}`);
     }
     throw new Error('Failed to fetch PR details: Unknown error');

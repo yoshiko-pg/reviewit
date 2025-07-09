@@ -236,9 +236,9 @@ function App() {
               <button
                 onClick={() => setDiffMode('side-by-side')}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'side-by-side'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
+                  diffMode === 'side-by-side' ?
+                    'bg-github-bg-primary text-github-text-primary shadow-sm'
+                  : 'text-github-text-secondary hover:text-github-text-primary'
                 }`}
               >
                 <Columns size={14} />
@@ -247,9 +247,9 @@ function App() {
               <button
                 onClick={() => setDiffMode('inline')}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'inline'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
+                  diffMode === 'inline' ?
+                    'bg-github-bg-primary text-github-text-primary shadow-sm'
+                  : 'text-github-text-secondary hover:text-github-text-primary'
                 }`}
               >
                 <AlignLeft size={14} />
@@ -290,16 +290,14 @@ function App() {
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
-                {diffData.commit.includes('...') ? (
+                {diffData.commit.includes('...') ?
                   <>
                     <span className="text-github-text-secondary font-medium">
                       {diffData.commit.split('...')[0]}...
                     </span>
                     <span className="font-medium">{diffData.commit.split('...')[1]}</span>
                   </>
-                ) : (
-                  diffData.commit
-                )}
+                : diffData.commit}
               </code>
             </span>
             <span>

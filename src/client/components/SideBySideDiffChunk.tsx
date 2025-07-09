@@ -158,11 +158,10 @@ export function SideBySideDiffChunk({
             // For side-by-side view, only show comments on the right side (new line numbers)
             // to avoid duplication. Comments are associated with line numbers and should
             // only be displayed once per line number.
-            const allComments = sideLine.newLineNumber
-              ? getCommentsForLine(sideLine.newLineNumber)
-              : sideLine.oldLineNumber
-                ? getCommentsForLine(sideLine.oldLineNumber)
-                : [];
+            const allComments =
+              sideLine.newLineNumber ? getCommentsForLine(sideLine.newLineNumber)
+              : sideLine.oldLineNumber ? getCommentsForLine(sideLine.oldLineNumber)
+              : [];
 
             return (
               <React.Fragment key={index}>
@@ -173,11 +172,9 @@ export function SideBySideDiffChunk({
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top border-r border-github-border relative ${
-                      sideLine.oldLine?.type === 'delete'
-                        ? 'bg-diff-deletion-bg cursor-pointer'
-                        : sideLine.oldLine?.type === 'normal'
-                          ? 'bg-transparent'
-                          : 'bg-github-bg-secondary'
+                      sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg cursor-pointer'
+                      : sideLine.oldLine?.type === 'normal' ? 'bg-transparent'
+                      : 'bg-github-bg-secondary'
                     }`}
                     onClick={() =>
                       sideLine.oldLine?.type === 'delete' &&
@@ -185,9 +182,9 @@ export function SideBySideDiffChunk({
                       handleAddComment(sideLine.oldLineNumber)
                     }
                     title={
-                      sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber
-                        ? 'Click to add comment'
-                        : ''
+                      sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber ?
+                        'Click to add comment'
+                      : ''
                     }
                   >
                     {sideLine.oldLine && (
@@ -207,11 +204,9 @@ export function SideBySideDiffChunk({
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top relative ${
-                      sideLine.newLine?.type === 'add'
-                        ? 'bg-diff-addition-bg cursor-pointer'
-                        : sideLine.newLine?.type === 'normal'
-                          ? 'bg-transparent cursor-pointer'
-                          : 'bg-github-bg-secondary'
+                      sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg cursor-pointer'
+                      : sideLine.newLine?.type === 'normal' ? 'bg-transparent cursor-pointer'
+                      : 'bg-github-bg-secondary'
                     }`}
                     onClick={() =>
                       (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
@@ -219,10 +214,12 @@ export function SideBySideDiffChunk({
                       handleAddComment(sideLine.newLineNumber)
                     }
                     title={
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
-                      sideLine.newLineNumber
-                        ? 'Click to add comment'
-                        : ''
+                      (
+                        (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
+                        sideLine.newLineNumber
+                      ) ?
+                        'Click to add comment'
+                      : ''
                     }
                   >
                     {sideLine.newLine && (
@@ -246,7 +243,11 @@ export function SideBySideDiffChunk({
                         return (
                           <div
                             key={comment.id}
-                            className={`flex ${layout === 'left' ? 'justify-start' : layout === 'right' ? 'justify-end' : 'justify-center'}`}
+                            className={`flex ${
+                              layout === 'left' ? 'justify-start'
+                              : layout === 'right' ? 'justify-end'
+                              : 'justify-center'
+                            }`}
                           >
                             <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
                               <InlineComment
@@ -273,7 +274,11 @@ export function SideBySideDiffChunk({
                     <tr className="bg-github-bg-secondary">
                       <td colSpan={4} className="p-0 border-t border-github-border">
                         <div
-                          className={`flex ${getCommentLayout(sideLine) === 'left' ? 'justify-start' : getCommentLayout(sideLine) === 'right' ? 'justify-end' : 'justify-center'}`}
+                          className={`flex ${
+                            getCommentLayout(sideLine) === 'left' ? 'justify-start'
+                            : getCommentLayout(sideLine) === 'right' ? 'justify-end'
+                            : 'justify-center'
+                          }`}
                         >
                           <div
                             className={`${getCommentLayout(sideLine) === 'full' ? 'w-full' : 'w-1/2'}`}

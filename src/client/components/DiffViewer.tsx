@@ -84,7 +84,9 @@ export function DiffViewer({
             className="text-github-text-muted hover:text-github-text-primary transition-colors cursor-pointer"
             title={isCollapsed ? 'Expand file' : 'Collapse file'}
           >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+            {isCollapsed ?
+              <ChevronRight size={16} />
+            : <ChevronDown size={16} />}
           </button>
           {getFileIcon(file.status)}
           <h2 className="text-sm font-mono text-github-text-primary m-0 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -92,9 +94,9 @@ export function DiffViewer({
           </h2>
           <button
             className={`bg-transparent border-none cursor-pointer px-1.5 py-1 rounded text-sm transition-all hover:bg-github-bg-tertiary ${
-              isCopied
-                ? 'text-github-accent'
-                : 'text-github-text-secondary hover:text-github-text-primary'
+              isCopied ? 'text-github-accent' : (
+                'text-github-text-secondary hover:text-github-text-primary'
+              )
             }`}
             onClick={() => {
               navigator.clipboard
@@ -110,7 +112,9 @@ export function DiffViewer({
             }}
             title="Copy file path"
           >
-            {isCopied ? <Check size={14} /> : <Copy size={14} />}
+            {isCopied ?
+              <Check size={14} />
+            : <Copy size={14} />}
           </button>
           {file.oldPath && file.oldPath !== file.path && (
             <span className="text-xs text-github-text-muted italic">
@@ -131,13 +135,15 @@ export function DiffViewer({
           <button
             onClick={() => onToggleReviewed(file.path)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-              reviewedFiles.has(file.path)
-                ? 'bg-github-accent text-white'
-                : 'dark:bg-slate-600 dark:text-white dark:border-slate-500 dark:hover:bg-slate-500 dark:hover:border-slate-400 bg-github-bg-secondary text-github-text-primary border border-github-border hover:bg-github-bg-tertiary hover:border-github-text-muted'
+              reviewedFiles.has(file.path) ?
+                'bg-github-accent text-white'
+              : 'dark:bg-slate-600 dark:text-white dark:border-slate-500 dark:hover:bg-slate-500 dark:hover:border-slate-400 bg-github-bg-secondary text-github-text-primary border border-github-border hover:bg-github-bg-tertiary hover:border-github-text-muted'
             }`}
             title={reviewedFiles.has(file.path) ? 'Mark as not reviewed' : 'Mark as reviewed'}
           >
-            {reviewedFiles.has(file.path) ? <Check size={14} /> : <Square size={14} />}
+            {reviewedFiles.has(file.path) ?
+              <Check size={14} />
+            : <Square size={14} />}
             Viewed
           </button>
         </div>
@@ -145,15 +151,14 @@ export function DiffViewer({
 
       {!isCollapsed && (
         <div className="overflow-y-auto">
-          {isImageFile(file.path) ? (
+          {isImageFile(file.path) ?
             <ImageDiffChunk
               file={file}
               mode={diffMode}
               baseCommitish={baseCommitish}
               targetCommitish={targetCommitish}
             />
-          ) : (
-            file.chunks.map((chunk, index) => (
+          : file.chunks.map((chunk, index) => (
               <div key={index} className="border-b border-github-border">
                 <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
                   <code className="text-github-text-secondary text-xs font-mono">
@@ -172,7 +177,7 @@ export function DiffViewer({
                 />
               </div>
             ))
-          )}
+          }
         </div>
       )}
     </div>

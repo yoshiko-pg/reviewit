@@ -195,12 +195,12 @@ export function FileList({
               style={{ paddingLeft: `${depth * 16 + 16}px` }}
               onClick={() => toggleDirectory(node.path)}
             >
-              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-              {isExpanded ? (
+              {isExpanded ?
+                <ChevronDown size={16} />
+              : <ChevronRight size={16} />}
+              {isExpanded ?
                 <FolderOpen size={16} className="text-github-text-secondary" />
-              ) : (
-                <Folder size={16} className="text-github-text-secondary" />
-              )}
+              : <Folder size={16} className="text-github-text-secondary" />}
               <span
                 className="text-sm text-github-text-primary font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
                 title={node.name}

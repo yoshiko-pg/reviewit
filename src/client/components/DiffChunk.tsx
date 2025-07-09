@@ -138,11 +138,9 @@ export function DiffChunk({
                     <div className="flex items-center relative min-h-[20px]">
                       <span
                         className={`w-5 text-center text-github-text-muted flex-shrink-0 bg-github-bg-secondary border-r border-github-border ${
-                          line.type === 'add'
-                            ? 'text-github-accent bg-diff-addition-bg'
-                            : line.type === 'delete'
-                              ? 'text-github-danger bg-diff-deletion-bg'
-                              : ''
+                          line.type === 'add' ? 'text-github-accent bg-diff-addition-bg'
+                          : line.type === 'delete' ? 'text-github-danger bg-diff-deletion-bg'
+                          : ''
                         }`}
                       >
                         {getLinePrefix(line)}
@@ -162,7 +160,11 @@ export function DiffChunk({
                     <tr key={comment.id} className="bg-github-bg-secondary">
                       <td colSpan={3} className="p-0 border-t border-github-border">
                         <div
-                          className={`flex ${layout === 'left' ? 'justify-start' : layout === 'right' ? 'justify-end' : 'justify-center'}`}
+                          className={`flex ${
+                            layout === 'left' ? 'justify-start'
+                            : layout === 'right' ? 'justify-end'
+                            : 'justify-center'
+                          }`}
                         >
                           <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
                             <InlineComment
@@ -182,7 +184,11 @@ export function DiffChunk({
                   <tr className="bg-[var(--bg-secondary)]">
                     <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
                       <div
-                        className={`flex ${getCommentLayout(line) === 'left' ? 'justify-start' : getCommentLayout(line) === 'right' ? 'justify-end' : 'justify-center'}`}
+                        className={`flex ${
+                          getCommentLayout(line) === 'left' ? 'justify-start'
+                          : getCommentLayout(line) === 'right' ? 'justify-end'
+                          : 'justify-center'
+                        }`}
                       >
                         <div
                           className={`${getCommentLayout(line) === 'full' ? 'w-full' : 'w-1/2'}`}

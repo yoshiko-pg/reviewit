@@ -102,29 +102,28 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
     <Box flexDirection="column" height={process.stdout.rows}>
       <StatusBar commitish={targetCommitish} totalFiles={files.length} currentMode={viewMode} />
       <Box flexGrow={1} flexDirection="column">
-        {viewMode === 'list' ? (
+        {viewMode === 'list' ?
           <FileList files={files} selectedIndex={selectedFileIndex} />
-        ) : viewMode === 'side-by-side' ? (
+        : viewMode === 'side-by-side' ?
           <SideBySideDiffViewer
             files={files}
             initialFileIndex={selectedFileIndex}
             onBack={() => setViewMode('list')}
           />
-        ) : (
-          <DiffViewer
+        : <DiffViewer
             files={files}
             initialFileIndex={selectedFileIndex}
             onBack={() => setViewMode('list')}
           />
-        )}
+        }
       </Box>
       <Box borderStyle="single" paddingX={1}>
         <Text dimColor>
-          {viewMode === 'list'
-            ? '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: inline diff | r: reload | q: quit'
-            : viewMode === 'side-by-side'
-              ? 'Tab: next file | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'
-              : 'Tab: next | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'}
+          {viewMode === 'list' ?
+            '↑/↓ or j/k: navigate | Enter/Space: side-by-side | d: inline diff | r: reload | q: quit'
+          : viewMode === 'side-by-side' ?
+            'Tab: next file | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'
+          : 'Tab: next | Shift+Tab: prev | ↑/↓ or j/k: scroll | ESC/b: list | r: reload | q: quit'}
         </Text>
       </Box>
     </Box>

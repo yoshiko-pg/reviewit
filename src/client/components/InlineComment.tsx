@@ -127,12 +127,11 @@ export function InlineComment({
         </div>
       </div>
 
-      {!isEditing ? (
+      {!isEditing ?
         <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
           {comment.body}
         </div>
-      ) : (
-        <textarea
+      : <textarea
           value={editedBody}
           onChange={(e) => setEditedBody(e.target.value)}
           className="w-full text-github-text-primary text-sm leading-6 bg-github-bg-secondary border border-github-border rounded px-2 py-1 resize-none focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30"
@@ -140,7 +139,7 @@ export function InlineComment({
           placeholder="Edit your comment..."
           autoFocus
         />
-      )}
+      }
     </div>
   );
 }
