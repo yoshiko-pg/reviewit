@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-07-09
+
+### Added
+
+- vim script syntax highlighting support (#32)
+
+### Changed
+
+- Prettier formatting with experimentalTernaries option enabled
+- Prettier configuration updated to use oxc plugin
+
+### Thanks
+
+- [@konojunya](https://github.com/konojunya) for adding vim script syntax highlighting support #32
+
 ## [2.0.0] - 2025-07-09
 
 ### Changed
@@ -249,7 +264,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/yoshiko-pg/difit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...v2.0.0
 [1.1.12]: https://github.com/yoshiko-pg/difit/compare/v1.1.11...v1.1.12
 [1.1.11]: https://github.com/yoshiko-pg/difit/compare/v1.1.10...v1.1.11
