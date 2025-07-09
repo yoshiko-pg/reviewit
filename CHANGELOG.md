@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-07-09
+
+### Changed
+
+- Rename to difit (#33)
+
 ## [1.1.12] - 2025-07-06
 
 ### Added
@@ -243,7 +249,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...v2.0.0
 [1.1.12]: https://github.com/yoshiko-pg/difit/compare/v1.1.11...v1.1.12
 [1.1.11]: https://github.com/yoshiko-pg/difit/compare/v1.1.10...v1.1.11
 [1.1.10]: https://github.com/yoshiko-pg/difit/compare/v1.1.9...v1.1.10
