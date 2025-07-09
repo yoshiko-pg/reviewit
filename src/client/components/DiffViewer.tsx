@@ -25,7 +25,12 @@ interface DiffViewerProps {
   diffMode: 'side-by-side' | 'inline';
   reviewedFiles: Set<string>;
   onToggleReviewed: (path: string) => void;
-  onAddComment: (file: string, line: number, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (
+    file: string,
+    line: number | [number, number],
+    body: string,
+    codeContent?: string
+  ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -67,7 +72,11 @@ export function DiffViewer({
     }
   };
 
-  const handleAddComment = async (line: number, body: string, codeContent?: string) => {
+  const handleAddComment = async (
+    line: number | [number, number],
+    body: string,
+    codeContent?: string
+  ) => {
     try {
       await onAddComment(file.path, line, body, codeContent);
     } catch (error) {

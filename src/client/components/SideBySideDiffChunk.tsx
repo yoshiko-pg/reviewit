@@ -10,7 +10,11 @@ import type { AppearanceSettings } from './SettingsModal';
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (
+    line: number | [number, number],
+    body: string,
+    codeContent?: string
+  ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -33,9 +37,10 @@ export function SideBySideDiffChunk({
   onUpdateComment,
   syntaxTheme,
 }: SideBySideDiffChunkProps) {
-  const [commentingLine, setCommentingLine] = useState<number | null>(null);
+  const [startLine, setStartLine] = useState<number | null>(null);
+  const [commentingLine, setCommentingLine] = useState<number | [number, number] | null>(null);
 
-  const handleAddComment = (lineNumber: number) => {
+  const handleAddComment = (lineNumber: number | [number, number]) => {
     if (commentingLine === lineNumber) {
       setCommentingLine(null);
     } else {
@@ -55,7 +60,9 @@ export function SideBySideDiffChunk({
   };
 
   const getCommentsForLine = (lineNumber: number) => {
-    return comments.filter((c) => c.line === lineNumber);
+    return comments.filter((c) =>
+      Array.isArray(c.line) ? c.line[1] === lineNumber : c.line === lineNumber
+    );
   };
 
   const getCommentLayout = (sideLine: SideBySideLine): 'left' | 'right' | 'full' => {
@@ -73,6 +80,32 @@ export function SideBySideDiffChunk({
       return 'right';
     }
     return 'full';
+  };
+
+  const getSelectedLineStyle = (side: 'old' | 'new', sideLine: SideBySideLine): string => {
+    if (!commentingLine) {
+      return '';
+    }
+
+    const start = Array.isArray(commentingLine) ? commentingLine[0] : commentingLine;
+    const end = Array.isArray(commentingLine) ? commentingLine[1] : commentingLine;
+
+    if (
+      (side === 'old' &&
+        sideLine.oldLine?.type === 'delete' &&
+        sideLine.oldLineNumber &&
+        sideLine.oldLineNumber >= start &&
+        sideLine.oldLineNumber <= end) ||
+      (side === 'new' &&
+        sideLine.newLine?.type === 'add' &&
+        sideLine.newLineNumber &&
+        sideLine.newLineNumber >= start &&
+        sideLine.newLineNumber <= end)
+    ) {
+      return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border';
+    }
+
+    return '';
   };
 
   // Convert unified diff to side-by-side format
@@ -175,12 +208,29 @@ export function SideBySideDiffChunk({
                       sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg cursor-pointer'
                       : sideLine.oldLine?.type === 'normal' ? 'bg-transparent'
                       : 'bg-github-bg-secondary'
-                    }`}
-                    onClick={() =>
+                    } ${getSelectedLineStyle('old', sideLine)}`}
+                    onMouseDown={() =>
                       sideLine.oldLine?.type === 'delete' &&
                       sideLine.oldLineNumber &&
-                      handleAddComment(sideLine.oldLineNumber)
+                      setStartLine(sideLine.oldLineNumber)
                     }
+                    onMouseUp={() => {
+                      if (
+                        sideLine.oldLine?.type !== 'delete' ||
+                        sideLine.oldLineNumber === undefined
+                      ) {
+                        return;
+                      }
+
+                      if (!startLine || startLine === sideLine.oldLineNumber) {
+                        handleAddComment(sideLine.oldLineNumber);
+                        setStartLine(null);
+                        return;
+                      }
+
+                      handleAddComment([startLine, sideLine.oldLineNumber]);
+                      setStartLine(null);
+                    }}
                     title={
                       sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber ?
                         'Click to add comment'
@@ -207,12 +257,29 @@ export function SideBySideDiffChunk({
                       sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg cursor-pointer'
                       : sideLine.newLine?.type === 'normal' ? 'bg-transparent cursor-pointer'
                       : 'bg-github-bg-secondary'
-                    }`}
-                    onClick={() =>
+                    } ${getSelectedLineStyle('new', sideLine)}`}
+                    onMouseDown={() =>
                       (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
                       sideLine.newLineNumber &&
-                      handleAddComment(sideLine.newLineNumber)
+                      setStartLine(sideLine.newLineNumber)
                     }
+                    onMouseUp={() => {
+                      if (
+                        (sideLine.newLine?.type !== 'add' && sideLine.newLine?.type !== 'normal') ||
+                        sideLine.newLineNumber === undefined
+                      ) {
+                        return;
+                      }
+
+                      if (!startLine || startLine === sideLine.newLineNumber) {
+                        handleAddComment(sideLine.newLineNumber);
+                        setStartLine(null);
+                        return;
+                      }
+
+                      handleAddComment([startLine, sideLine.newLineNumber]);
+                      setStartLine(null);
+                    }}
                     title={
                       (
                         (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
@@ -269,8 +336,10 @@ export function SideBySideDiffChunk({
                   ((commentingLine === sideLine.oldLineNumber &&
                     sideLine.oldLine?.type === 'delete') ||
                     (commentingLine === sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' ||
-                        sideLine.newLine?.type === 'normal'))) && (
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')) ||
+                    (Array.isArray(commentingLine) &&
+                      (commentingLine[1] === sideLine.newLineNumber ||
+                        commentingLine[1] === sideLine.oldLineNumber))) && (
                     <tr className="bg-github-bg-secondary">
                       <td colSpan={4} className="p-0 border-t border-github-border">
                         <div

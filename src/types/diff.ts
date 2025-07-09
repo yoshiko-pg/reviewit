@@ -48,7 +48,7 @@ export interface DiffResponse {
 export interface Comment {
   id: string;
   file: string;
-  line: number;
+  line: number | [number, number];
   body: string;
   timestamp: string;
   codeContent?: string; // The actual code content for this line
