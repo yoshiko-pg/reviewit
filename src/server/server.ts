@@ -225,7 +225,7 @@ export async function startServer(
   const { port, url, server } = await startServerWithFallback(
     app,
     options.preferredPort || 3000,
-    options.host || '127.0.0.1'
+    options.host || 'localhost'
   );
 
   // Security warning for non-localhost binding

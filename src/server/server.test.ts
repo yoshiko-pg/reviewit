@@ -70,7 +70,7 @@ describe('Server Integration Tests', () => {
       servers.push(result.server); // Track for cleanup
 
       expect(result.port).toBeGreaterThanOrEqual(preferredPort);
-      expect(result.url).toContain('http://127.0.0.1:');
+      expect(result.url).toContain('http://localhost:');
       expect(result.isEmpty).toBe(false);
     });
 
@@ -96,7 +96,7 @@ describe('Server Integration Tests', () => {
 
       expect(firstServer.port).toBeGreaterThanOrEqual(preferredPort);
       expect(secondServer.port).toBe(firstServer.port + 1);
-      expect(secondServer.url).toBe(`http://127.0.0.1:${secondServer.port}`);
+      expect(secondServer.url).toBe(`http://localhost:${secondServer.port}`);
     });
 
     it('binds to specified host', async () => {
@@ -313,7 +313,7 @@ describe('Server Integration Tests', () => {
       servers.push(result.server);
 
       expect(result.port).toBeGreaterThanOrEqual(3000);
-      expect(result.url).toContain('http://127.0.0.1:');
+      expect(result.url).toContain('http://localhost:');
     });
 
     it('accepts different mode values', async () => {
