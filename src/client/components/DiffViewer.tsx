@@ -1,5 +1,5 @@
 import {
-  FileText,
+  FileDiff,
   FilePlus,
   FileX,
   FilePen,
@@ -68,7 +68,7 @@ export function DiffViewer({
       case 'renamed':
         return <FilePen size={16} className="text-github-warning" />;
       default:
-        return <FileText size={16} className="text-github-text-secondary" />;
+        return <FileDiff size={16} className="text-github-text-secondary" />;
     }
   };
 

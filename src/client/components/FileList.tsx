@@ -1,14 +1,14 @@
 import {
   ChevronRight,
   ChevronDown,
-  FileText,
+  FileDiff,
   FolderOpen,
   Folder,
   FilePlus,
   FileX,
   FilePen,
   Search,
-  MessageCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -167,7 +167,7 @@ export function FileList({
       case 'renamed':
         return <FilePen size={16} className="text-github-warning" />;
       default:
-        return <FileText size={16} className="text-github-text-secondary" />;
+        return <FileDiff size={16} className="text-github-text-secondary" />;
     }
   };
 
@@ -244,8 +244,8 @@ export function FileList({
             {node.name}
           </span>
           {commentCount > 0 && (
-            <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
-              <MessageCircle size={12} />
+            <span className="text-github-warning text-sm font-medium ml-auto flex items-center gap-1">
+              <MessageSquare size={14} />
               {commentCount}
             </span>
           )}
