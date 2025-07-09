@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 
-import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '../../types/diff';
+import {
+  type DiffChunk as DiffChunkType,
+  type DiffLine,
+  type Comment,
+  type LineNumber,
+} from '../../types/diff';
 
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
@@ -11,11 +16,7 @@ import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 interface DiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (
-    line: number | [number, number],
-    body: string,
-    codeContent?: string
-  ) => Promise<void>;
+  onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -34,7 +35,7 @@ export function DiffChunk({
   syntaxTheme,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
-  const [commentingLine, setCommentingLine] = useState<number | [number, number] | null>(null);
+  const [commentingLine, setCommentingLine] = useState<LineNumber | null>(null);
   const [commentingLineContent, setCommentingLineContent] = useState<string | null>(null);
 
   const getLineClass = (line: DiffLine) => {
@@ -59,7 +60,7 @@ export function DiffChunk({
     }
   };
 
-  const handleAddComment = (lineNumber: number | [number, number], lineContent?: string) => {
+  const handleAddComment = (lineNumber: LineNumber, lineContent?: string) => {
     if (commentingLine === lineNumber) {
       setCommentingLine(null);
       setCommentingLineContent(null);

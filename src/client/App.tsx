@@ -1,7 +1,7 @@
 import { Columns, AlignLeft, Copy, Settings, Github } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { type DiffResponse } from '../types/diff';
+import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
@@ -141,7 +141,7 @@ function App() {
 
   const handleAddComment = (
     file: string,
-    line: number | [number, number],
+    line: LineNumber,
     body: string,
     codeContent?: string
   ): Promise<void> => {
