@@ -27,10 +27,41 @@ export function validateCommitish(commitish: string): boolean {
     /^[a-f0-9]{4,40}\^+$/i, // SHA hashes with ^ suffix (parent references)
     /^[a-f0-9]{4,40}~\d+$/i, // SHA hashes with ~N suffix (ancestor references)
     /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.
-    /^[a-zA-Z][a-zA-Z0-9_\-/.@]*$/, // branch names, tags (must start with letter, no ^ or ~ in middle)
   ];
 
-  return validPatterns.some((pattern) => pattern.test(trimmed));
+  // Check if it matches any specific patterns first
+  if (validPatterns.some((pattern) => pattern.test(trimmed))) {
+    return true;
+  }
+
+  // For branch names, use git's rules
+  return isValidBranchName(trimmed);
+}
+
+function isValidBranchName(name: string): boolean {
+  // Git branch name rules
+  if (name.startsWith('-')) return false; // Cannot start with dash
+  if (name.endsWith('.')) return false; // Cannot end with dot
+  if (name === '@') return false; // Cannot be just @
+  if (name.includes('..')) return false; // No consecutive dots
+  if (name.includes('@{')) return false; // No @{ sequence
+  if (name.includes('//')) return false; // No consecutive slashes
+  if (name.startsWith('/') || name.endsWith('/')) return false; // No leading/trailing slashes
+  if (name.endsWith('.lock')) return false; // Cannot end with .lock
+
+  // Check for forbidden characters
+  const forbiddenChars = /[~^:?*[\\\x00-\x20\x7F]/;
+  if (forbiddenChars.test(name)) return false;
+
+  // Check path components
+  const components = name.split('/');
+  for (const component of components) {
+    if (component === '') return false; // Empty component
+    if (component.startsWith('.')) return false; // Component cannot start with dot
+    if (component.endsWith('.lock')) return false; // Component cannot end with .lock
+  }
+
+  return true;
 }
 
 export function shortHash(hash: string): string {

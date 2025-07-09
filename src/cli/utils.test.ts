@@ -34,9 +34,22 @@ describe('CLI Utils', () => {
     });
 
     it('should validate branch names', () => {
+      // Valid branch names according to git rules
       expect(validateCommitish('main')).toBe(true);
       expect(validateCommitish('feature/new-feature')).toBe(true);
       expect(validateCommitish('develop')).toBe(true);
+      expect(validateCommitish('feature-123')).toBe(true); // dash and numbers (not at start)
+      expect(validateCommitish('feature_branch')).toBe(true); // underscore
+      expect(validateCommitish('hotfix@bug')).toBe(true); // @ character (not followed by {)
+      expect(validateCommitish('feature+new')).toBe(true); // plus character
+      expect(validateCommitish('feature=test')).toBe(true); // equals character
+      expect(validateCommitish('feature!important')).toBe(true); // exclamation
+      expect(validateCommitish('feature,list')).toBe(true); // comma
+      expect(validateCommitish('feature;test')).toBe(true); // semicolon
+      expect(validateCommitish('feature"quoted"')).toBe(true); // quotes
+      expect(validateCommitish("feature'quoted'")).toBe(true); // single quotes
+      expect(validateCommitish('release/v2.3.1')).toBe(true); // version numbers
+      expect(validateCommitish('bugfix/login-timeout')).toBe(true); // path with dash
     });
 
     it('should validate special cases', () => {
@@ -48,6 +61,27 @@ describe('CLI Utils', () => {
       expect(validateCommitish('   ')).toBe(false);
       expect(validateCommitish('HEAD~')).toBe(false);
       expect(validateCommitish('abc')).toBe(true); // short hashes are valid
+
+      // Invalid branch names according to git rules
+      expect(validateCommitish('-feature')).toBe(false); // cannot start with dash
+      expect(validateCommitish('feature.')).toBe(false); // cannot end with dot
+      expect(validateCommitish('@')).toBe(false); // cannot be just @
+      expect(validateCommitish('feature..test')).toBe(false); // no consecutive dots
+      expect(validateCommitish('feature@{upstream}')).toBe(false); // no @{ sequence
+      expect(validateCommitish('feature//test')).toBe(false); // no consecutive slashes
+      expect(validateCommitish('/feature')).toBe(false); // cannot start with slash
+      expect(validateCommitish('feature/')).toBe(false); // cannot end with slash
+      expect(validateCommitish('feature.lock')).toBe(false); // cannot end with .lock
+      expect(validateCommitish('feature^invalid')).toBe(false); // ^ not allowed
+      expect(validateCommitish('feature~invalid')).toBe(false); // ~ not allowed
+      expect(validateCommitish('feature:invalid')).toBe(false); // : not allowed
+      expect(validateCommitish('feature?invalid')).toBe(false); // ? not allowed
+      expect(validateCommitish('feature*invalid')).toBe(false); // * not allowed
+      expect(validateCommitish('feature[invalid')).toBe(false); // [ not allowed
+      expect(validateCommitish('feature\\invalid')).toBe(false); // \ not allowed
+      expect(validateCommitish('feature invalid')).toBe(false); // space not allowed
+      expect(validateCommitish('feature/.hidden')).toBe(false); // component cannot start with dot
+      expect(validateCommitish('feature/test.lock')).toBe(false); // component cannot end with .lock
     });
 
     it('should reject non-string input', () => {
