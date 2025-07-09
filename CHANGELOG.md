@@ -104,7 +104,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - GitHub PR URL support with `--pr <url>` option
-  - `npx reviewit --pr https://github.com/owner/repo/pull/123`
+  - `npx difit --pr https://github.com/owner/repo/pull/123`
 
 ### Changed
 
@@ -144,7 +144,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Node.js requirement updated to 21+ with ES2022 support
-  - fixed: https://github.com/yoshiko-pg/reviewit/issues/10
+  - fixed: https://github.com/yoshiko-pg/difit/issues/10
 
 ## [1.1.2] - 2025-07-01
 
@@ -243,26 +243,26 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.12...HEAD
-[1.1.12]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.11...v1.1.12
-[1.1.11]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.10...v1.1.11
-[1.1.10]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.9...v1.1.10
-[1.1.9]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.8...v1.1.9
-[1.1.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.7...v1.1.8
-[1.1.7]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.6...v1.1.7
-[1.1.6]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.5...v1.1.6
-[1.1.5]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.4...v1.1.5
-[1.1.4]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.3...v1.1.4
-[1.1.3]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.2...v1.1.3
-[1.1.2]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.1...v1.1.2
-[1.1.1]: https://github.com/yoshiko-pg/reviewit/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.8...v1.1.0
-[1.0.8]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.7...v1.0.8
-[1.0.7]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.6...v1.0.7
-[1.0.6]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.5...v1.0.6
-[1.0.5]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.4...v1.0.5
-[1.0.4]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.3...v1.0.4
-[1.0.3]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.2...v1.0.3
-[1.0.2]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/yoshiko-pg/reviewit/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/yoshiko-pg/reviewit/releases/tag/v1.0.0
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...HEAD
+[1.1.12]: https://github.com/yoshiko-pg/difit/compare/v1.1.11...v1.1.12
+[1.1.11]: https://github.com/yoshiko-pg/difit/compare/v1.1.10...v1.1.11
+[1.1.10]: https://github.com/yoshiko-pg/difit/compare/v1.1.9...v1.1.10
+[1.1.9]: https://github.com/yoshiko-pg/difit/compare/v1.1.8...v1.1.9
+[1.1.8]: https://github.com/yoshiko-pg/difit/compare/v1.1.7...v1.1.8
+[1.1.7]: https://github.com/yoshiko-pg/difit/compare/v1.1.6...v1.1.7
+[1.1.6]: https://github.com/yoshiko-pg/difit/compare/v1.1.5...v1.1.6
+[1.1.5]: https://github.com/yoshiko-pg/difit/compare/v1.1.4...v1.1.5
+[1.1.4]: https://github.com/yoshiko-pg/difit/compare/v1.1.3...v1.1.4
+[1.1.3]: https://github.com/yoshiko-pg/difit/compare/v1.1.2...v1.1.3
+[1.1.2]: https://github.com/yoshiko-pg/difit/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/yoshiko-pg/difit/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/yoshiko-pg/difit/compare/v1.0.8...v1.1.0
+[1.0.8]: https://github.com/yoshiko-pg/difit/compare/v1.0.7...v1.0.8
+[1.0.7]: https://github.com/yoshiko-pg/difit/compare/v1.0.6...v1.0.7
+[1.0.6]: https://github.com/yoshiko-pg/difit/compare/v1.0.5...v1.0.6
+[1.0.5]: https://github.com/yoshiko-pg/difit/compare/v1.0.4...v1.0.5
+[1.0.4]: https://github.com/yoshiko-pg/difit/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/yoshiko-pg/difit/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/yoshiko-pg/difit/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/yoshiko-pg/difit/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/yoshiko-pg/difit/releases/tag/v1.0.0

@@ -12,7 +12,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ commitish, totalFiles, currentMod
     <Box borderStyle="round" paddingX={1} marginBottom={1}>
       <Box flexGrow={1}>
         <Text bold color="cyan">
-          📋 ReviewIt TUI
+          📋 difit TUI
         </Text>
         <Text> | </Text>
         <Text color="yellow">{commitish}</Text>

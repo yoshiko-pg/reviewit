@@ -1,5 +1,5 @@
 {
-  "name": "reviewit",
+  "name": "difit",
   "version": "1.1.12",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
@@ -7,16 +7,16 @@
     "node": ">=21.0.0"
   },
   "bin": {
-    "reviewit": "./dist/cli/index.js"
+    "difit": "./dist/cli/index.js"
   },
   "main": "./dist/cli/index.js",
-  "homepage": "https://github.com/yoshiko-pg/reviewit",
+  "homepage": "https://github.com/yoshiko-pg/difit",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yoshiko-pg/reviewit.git"
+    "url": "https://github.com/yoshiko-pg/difit.git"
   },
   "bugs": {
-    "url": "https://github.com/yoshiko-pg/reviewit/issues"
+    "url": "https://github.com/yoshiko-pg/difit/issues"
   },
   "scripts": {
     "dev": "node scripts/dev.js",

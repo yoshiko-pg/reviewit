@@ -1,8 +1,8 @@
-# ReviewIt Test Structure and Design
+# difit Test Structure and Design
 
 ## Overview
 
-This document describes the testing strategy for ReviewIt, including existing tests and planned test additions. The goal is to achieve comprehensive coverage of CLI parameter handling, Git operations, and server communication.
+This document describes the testing strategy for difit, including existing tests and planned test additions. The goal is to achieve comprehensive coverage of CLI parameter handling, Git operations, and server communication.
 
 ## Test Framework and Tools
 

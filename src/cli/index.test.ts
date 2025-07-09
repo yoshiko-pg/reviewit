@@ -438,7 +438,7 @@ describe('CLI index.ts', () => {
             mode: options.mode,
           });
 
-          console.log(`\n🚀 ReviewIt server started on ${url}`);
+          console.log(`\n🚀 difit server started on ${url}`);
           console.log(`📋 Reviewing: ${commitish}`);
 
           if (isEmpty) {
@@ -454,7 +454,7 @@ describe('CLI index.ts', () => {
       await program.parseAsync([], { from: 'user' });
 
       expect(console.log).toHaveBeenCalledWith(
-        '\n🚀 ReviewIt server started on http://localhost:3000'
+        '\n🚀 difit server started on http://localhost:3000'
       );
       expect(console.log).toHaveBeenCalledWith('📋 Reviewing: HEAD');
     });
@@ -488,7 +488,7 @@ describe('CLI index.ts', () => {
             mode: options.mode,
           });
 
-          console.log(`\n🚀 ReviewIt server started on ${url}`);
+          console.log(`\n🚀 difit server started on ${url}`);
           console.log(`📋 Reviewing: ${commitish}`);
 
           if (isEmpty) {

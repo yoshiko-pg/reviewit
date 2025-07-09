@@ -1,21 +1,19 @@
-<div align="center">
-  <img src="public/logo.png" alt="ReviewIt" width="400">
-</div>
+<h1 align="center">
+  <img src="public/logo.png" alt="difit" width="260">
+</h1>
 
-# ReviewIt 🔍
-
-A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal! 🚀
+**difit** is a zero-config CLI that launches a GitHub-style diff viewer right on your machine. Review commits in a clean “Files changed” layout, add inline comments, and copy those comments as ready-to-paste AI prompts. Perfect for code review workflows without leaving the terminal! 🚀
 
 ## ✨ Features
 
-- ⚡ **Zero Config**: Just run `npx reviewit <commit>` and it works
+- ⚡ **Zero Config**: Just run `npx difit <commit>` and it works
 - 🌙 **Review for AI**: Add comments and generate Claude Code prompts
 - 🖥️ **Terminal UI**: View diffs directly in terminal with `--tui`
 
 ## ⚡ Quick Start
 
 ```bash
-npx reviewit    # View HEAD commit changes in a beautiful diff viewer
+npx difit    # View HEAD commit changes in a beautiful diff viewer
 ```
 
 ## 🚀 Usage
@@ -23,36 +21,36 @@ npx reviewit    # View HEAD commit changes in a beautiful diff viewer
 ### Basic Usage
 
 ```bash
-npx reviewit <commit-ish>                # View single commit diff
-npx reviewit <commit-ish> [compare-with] # Compare two commits/branches
-npx reviewit --pr <github-pr-url>        # Review GitHub pull request
+npx difit <commit-ish>                # View single commit diff
+npx difit <commit-ish> [compare-with] # Compare two commits/branches
+npx difit --pr <github-pr-url>        # Review GitHub pull request
 ```
 
 ### Single commit review
 
 ```bash
-npx reviewit 6f4a9b7  # Specific commit
-npx reviewit HEAD^    # Previous commit
-npx reviewit feature  # Latest commit on branch
+npx difit 6f4a9b7  # Specific commit
+npx difit HEAD^    # Previous commit
+npx difit feature  # Latest commit on branch
 ```
 
 ### Compare two commits
 
 ```bash
-npx reviewit HEAD main      # Compare HEAD with main branch
-npx reviewit feature main   # Compare branches
-npx reviewit . origin/main  # Compare working directory with remote main
+npx difit HEAD main      # Compare HEAD with main branch
+npx difit feature main   # Compare branches
+npx difit . origin/main  # Compare working directory with remote main
 ```
 
 ### Special Arguments
 
-ReviewIt supports special keywords for common diff scenarios:
+difit supports special keywords for common diff scenarios:
 
 ```bash
-npx reviewit          # HEAD commit changes
-npx reviewit .        # All uncommitted changes (staged + unstaged)
-npx reviewit staged   # Staged changes ready for commit
-npx reviewit working  # Unstaged changes only (cannot use compare-with)
+npx difit          # HEAD commit changes
+npx difit .        # All uncommitted changes (staged + unstaged)
+npx difit staged   # Staged changes ready for commit
+npx difit working  # Unstaged changes only (cannot use compare-with)
 ```
 
 | Keyword   | Description                                            | Compare-with Support |
@@ -64,12 +62,12 @@ npx reviewit working  # Unstaged changes only (cannot use compare-with)
 ### GitHub PR
 
 ```bash
-npx reviewit --pr https://github.com/owner/repo/pull/123
+npx difit --pr https://github.com/owner/repo/pull/123
 ```
 
-ReviewIt automatically handles GitHub authentication using:
+difit automatically handles GitHub authentication using:
 
-1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, ReviewIt uses your existing credentials
+1. **GitHub CLI** (recommended): If you're logged in with `gh auth login`, difit uses your existing credentials
 2. **Environment Variable**: Set `GITHUB_TOKEN` environment variable
 3. **No Authentication**: Public repositories work without authentication (rate-limited)
 
@@ -88,7 +86,7 @@ ReviewIt automatically handles GitHub authentication using:
 
 ## 💬 Comment System
 
-ReviewIt includes an inline commenting system that integrates with Claude Code:
+difit includes an inline commenting system that integrates with Claude Code:
 
 1. **Add Comments**: Click on any diff line to add a comment
 2. **Edit Comments**: Edit existing comments with the edit button
@@ -105,7 +103,7 @@ This name should probably be more specific.
 
 ## 🎨 Syntax Highlighting
 
-ReviewIt supports syntax highlighting for multiple programming languages with dynamic loading:
+difit supports syntax highlighting for multiple programming languages with dynamic loading:
 
 ### Supported Languages
 

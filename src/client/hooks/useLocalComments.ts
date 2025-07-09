@@ -4,7 +4,7 @@ import { type Comment } from '../../types/diff';
 
 export function useLocalComments(commitHash?: string) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const storageKey = commitHash ? `reviewit-comments-${commitHash}` : 'reviewit-comments';
+  const storageKey = commitHash ? `difit-comments-${commitHash}` : 'difit-comments';
 
   // Load comments from localStorage on mount
   useEffect(() => {

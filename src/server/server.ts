@@ -208,12 +208,12 @@ export async function startServer(
         <!DOCTYPE html>
         <html>
           <head>
-            <title>ReviewIt - Dev Mode</title>
+            <title>difit - Dev Mode</title>
           </head>
           <body>
             <div id="root"></div>
             <script>
-              console.log('ReviewIt development mode');
+              console.log('difit development mode');
               console.log('Diff data available at /api/diff');
             </script>
           </body>
