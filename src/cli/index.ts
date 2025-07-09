@@ -170,7 +170,22 @@ program
     }
   });
 
+// Show deprecation message
+showDeprecationMessage();
+
 program.parse();
+
+function showDeprecationMessage(): void {
+  const message = 'reviewit is deprecated. Please use difit instead: ';
+  const command = 'npx difit';
+  const fullMessage = message + command;
+  const border = '═'.repeat(fullMessage.length + 4);
+
+  // Red border, yellow text with bold command
+  console.log(`\n\x1b[31m╔${border}╗\x1b[0m`);
+  console.log(`\x1b[31m║\x1b[0m  \x1b[33m${message}\x1b[1m${command}\x1b[0m  \x1b[31m║\x1b[0m`);
+  console.log(`\x1b[31m╚${border}╝\x1b[0m\n`);
+}
 
 // Check for untracked files and prompt user to add them for diff visibility
 async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
