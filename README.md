@@ -1,10 +1,8 @@
-<div align="center">
-  <img src="public/logo.png" alt="difit" width="400">
-</div>
+<h1 align="center">
+  <img src="public/logo.png" alt="difit" width="260">
+</h1>
 
-# difit 🔍
-
-A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view. Perfect for code review workflows without leaving the terminal! 🚀
+**difit** is a zero-config CLI that launches a GitHub-style diff viewer right on your machine. Review commits in a clean “Files changed” layout, add inline comments, and copy those comments as ready-to-paste AI prompts. Perfect for code review workflows without leaving the terminal! 🚀
 
 ## ✨ Features
 

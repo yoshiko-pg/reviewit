@@ -1,4 +1,4 @@
-import { Search, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
+import { Columns, AlignLeft, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -6,6 +6,7 @@ import { type DiffResponse } from '../types/diff';
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useLocalComments } from './hooks/useLocalComments';
@@ -217,9 +218,8 @@ function App() {
             maxWidth: '600px',
           }}
         >
-          <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
-            <Search size={18} />
-            difit
+          <h1>
+            <Logo style={{ height: '18px' }} />
           </h1>
           <button
             onClick={() => setIsSettingsOpen(true)}
