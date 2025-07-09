@@ -1,4 +1,4 @@
-import { Trash2, Edit2, Save, X } from 'lucide-react';
+import { Check, Edit2, Save, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { type Comment } from '../../types/diff';
@@ -90,20 +90,16 @@ export function InlineComment({
               <button
                 onClick={handleStartEdit}
                 className="text-xs p-1.5 bg-github-bg-tertiary text-github-text-secondary border border-github-border rounded hover:text-github-text-primary hover:bg-github-bg-primary transition-all"
-                title="Edit comment"
+                title="Edit"
               >
                 <Edit2 size={12} />
               </button>
               <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this comment?')) {
-                    onRemoveComment(comment.id);
-                  }
-                }}
-                className="text-xs p-1.5 bg-github-bg-tertiary text-github-danger border border-github-border rounded hover:bg-red-500/10 hover:border-github-danger transition-all"
-                title="Delete comment"
+                onClick={() => onRemoveComment(comment.id)}
+                className="text-xs p-1.5 bg-github-bg-tertiary text-green-600 border border-github-border rounded hover:bg-green-500/10 hover:border-green-600 transition-all"
+                title="Resolve"
               >
-                <Trash2 size={12} />
+                <Check size={12} />
               </button>
             </>
           )}
