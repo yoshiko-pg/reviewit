@@ -235,6 +235,9 @@ function App() {
               onClick={() => setIsFileTreeOpen(!isFileTreeOpen)}
               className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
               title={isFileTreeOpen ? 'Collapse file tree' : 'Expand file tree'}
+              aria-expanded={isFileTreeOpen}
+              aria-controls="file-tree-panel"
+              aria-label="Toggle file tree panel"
             >
               {isFileTreeOpen ?
                 <PanelLeftClose size={18} />
@@ -331,6 +334,7 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         {isFileTreeOpen && (
           <aside
+            id="file-tree-panel"
             className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
             style={{
               width: `${sidebarWidth}px`,
