@@ -40,7 +40,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
   };
 
   useEffect(() => {
-    loadDiff();
+    void loadDiff();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetCommitish, baseCommitish]);
 
@@ -52,7 +52,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
 
       // Reload on 'r' key
       if (input === 'r') {
-        loadDiff();
+        void loadDiff();
         return;
       }
 
@@ -94,7 +94,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
           <Text color="yellow">No changes found for {targetCommitish}</Text>
         </Box>
         <Box marginTop={1}>
-          <Text dimColor>Press 'q' to quit</Text>
+          <Text dimColor>Press &apos;q&apos; to quit</Text>
         </Box>
       </Box>
     );
