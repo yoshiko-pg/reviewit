@@ -223,7 +223,7 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className={`px-4 py-3 border-r border-github-border flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
             width: isFileTreeOpen ? `${sidebarWidth}px` : 'auto',
             minWidth: isFileTreeOpen ? '200px' : 'auto',
@@ -256,9 +256,12 @@ function App() {
           </div>
         </div>
         <div
-          className={!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}
+          className={`border-r border-github-border ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
             width: isFileTreeOpen ? '4px' : '0px',
+            height: 'calc(100% - 16px)',
+            margin: '8px 0',
+            transform: 'translateX(-2px)',
           }}
         />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
@@ -356,34 +359,34 @@ function App() {
               height: '100%',
             }}
           >
-          <div className="flex-1 overflow-y-auto">
-            <FileList
-              files={diffData.files}
-              onScrollToFile={(filePath) => {
-                const element = document.getElementById(
-                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-                );
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              comments={comments}
-              reviewedFiles={reviewedFiles}
-              onToggleReviewed={toggleFileReviewed}
-            />
-          </div>
-          <div className="p-4 border-t border-github-border flex justify-end">
-            <a
-              href="https://github.com/yoshiko-pg/difit"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
-              title="View on GitHub"
-            >
-              <span className="text-sm">Star on GitHub</span>
-              <Github size={18} />
-            </a>
-          </div>
+            <div className="flex-1 overflow-y-auto">
+              <FileList
+                files={diffData.files}
+                onScrollToFile={(filePath) => {
+                  const element = document.getElementById(
+                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                  );
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                comments={comments}
+                reviewedFiles={reviewedFiles}
+                onToggleReviewed={toggleFileReviewed}
+              />
+            </div>
+            <div className="p-4 border-t border-github-border flex justify-end">
+              <a
+                href="https://github.com/yoshiko-pg/difit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
+                title="View on GitHub"
+              >
+                <span className="text-sm">Star on GitHub</span>
+                <Github size={18} />
+              </a>
+            </div>
           </aside>
         </div>
 
