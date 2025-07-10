@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
-import { FileDiff } from '../../types/diff.js';
+import React, { useState } from 'react';
+
+import { type FileDiff } from '../../types/diff.js';
 import { parseDiff } from '../utils/parseDiff.js';
 
 interface SideBySideDiffViewerProps {

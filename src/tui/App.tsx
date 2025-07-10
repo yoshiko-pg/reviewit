@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
+import React, { useState, useEffect } from 'react';
+
 import { loadGitDiff } from '../server/git-diff-tui.js';
-import FileList from './components/FileList.js';
+import { type FileDiff } from '../types/diff.js';
+
 import DiffViewer from './components/DiffViewer.js';
+import FileList from './components/FileList.js';
 import SideBySideDiffViewer from './components/SideBySideDiffViewer.js';
 import StatusBar from './components/StatusBar.js';
-import { FileDiff } from '../types/diff.js';
 
 interface AppProps {
   targetCommitish: string;
