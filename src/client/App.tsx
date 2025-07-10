@@ -1,4 +1,4 @@
-import { Columns, AlignLeft, Copy, Settings } from 'lucide-react';
+import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse } from '../types/diff';
@@ -21,6 +21,7 @@ function App() {
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -211,25 +212,36 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border flex items-center justify-between"
+          className="px-4 py-3 border-r border-github-border flex items-center justify-between gap-4"
           style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
+            width: isFileTreeOpen ? `${sidebarWidth}px` : 'auto',
+            minWidth: isFileTreeOpen ? '200px' : 'auto',
+            maxWidth: isFileTreeOpen ? '600px' : 'auto',
           }}
         >
           <h1>
             <Logo style={{ height: '18px' }} />
           </h1>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
-            title="Appearance Settings"
-          >
-            <Settings size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsFileTreeOpen(!isFileTreeOpen)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title={isFileTreeOpen ? 'Collapse file tree' : 'Expand file tree'}
+            >
+              {isFileTreeOpen ?
+                <PanelLeftClose size={18} />
+              : <PanelLeft size={18} />}
+            </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title="Appearance Settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         </div>
-        <div className="w-1" />
+        {isFileTreeOpen && <div className="w-1" />}
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
@@ -309,35 +321,39 @@ function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside
-          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
-          style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
-          }}
-        >
-          <FileList
-            files={diffData.files}
-            onScrollToFile={(filePath) => {
-              const element = document.getElementById(
-                `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-              );
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+        {isFileTreeOpen && (
+          <aside
+            className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
+            style={{
+              width: `${sidebarWidth}px`,
+              minWidth: '200px',
+              maxWidth: '600px',
             }}
-            comments={comments}
-            reviewedFiles={reviewedFiles}
-            onToggleReviewed={toggleFileReviewed}
-          />
-        </aside>
+          >
+            <FileList
+              files={diffData.files}
+              onScrollToFile={(filePath) => {
+                const element = document.getElementById(
+                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                );
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              comments={comments}
+              reviewedFiles={reviewedFiles}
+              onToggleReviewed={toggleFileReviewed}
+            />
+          </aside>
+        )}
 
-        <div
-          className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
-          onMouseDown={handleMouseDown}
-          title="Drag to resize file list"
-        />
+        {isFileTreeOpen && (
+          <div
+            className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
+            onMouseDown={handleMouseDown}
+            title="Drag to resize file list"
+          />
+        )}
 
         <main className="flex-1 overflow-y-auto">
           {diffData.files.map((file) => (
