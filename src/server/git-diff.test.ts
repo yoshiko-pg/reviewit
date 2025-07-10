@@ -266,7 +266,7 @@ describe('GitDiffParser', () => {
       expect(result).toEqual({
         path: 'script.js',
         oldPath: undefined,
-        status: 'added',
+        status: 'modified',
         additions: 1,
         deletions: 0,
         chunks: expect.any(Array), // Should have parsed chunks
@@ -275,6 +275,35 @@ describe('GitDiffParser', () => {
       // Verify chunks were parsed
       expect(result.chunks).toHaveLength(1);
       expect(result.chunks[0].header).toBe('@@ -1,3 +1,4 @@');
+    });
+
+    it('treats files with only deletions as modified', () => {
+      const diffLines = [
+        'diff --git a/script.js b/script.js',
+        'index abc123..def456 100644',
+        '--- a/script.js',
+        '+++ b/script.js',
+        '@@ -1,4 +1,3 @@',
+        ' console.log("hello");',
+        '-console.log("world");',
+        ' // end',
+      ];
+
+      const summary = {
+        insertions: 0,
+        deletions: 1,
+      };
+
+      const result = (parser as any).parseFileBlock(diffLines.join('\n'), summary);
+
+      expect(result).toEqual({
+        path: 'script.js',
+        oldPath: undefined,
+        status: 'modified',
+        additions: 0,
+        deletions: 1,
+        chunks: expect.any(Array),
+      });
     });
 
     it('detects added files using /dev/null indicator', () => {

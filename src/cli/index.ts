@@ -46,7 +46,7 @@ program
     'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
   )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
-  .option('--host <host>', 'host address to bind', '127.0.0.1')
+  .option('--host <host>', 'host address to bind', '')
   .option('--no-open', 'do not automatically open browser')
   .option('--mode <mode>', 'diff mode (side-by-side or inline)', 'side-by-side')
   .option('--tui', 'use terminal UI instead of web interface')

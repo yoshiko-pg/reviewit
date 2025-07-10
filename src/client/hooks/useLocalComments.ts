@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { type Comment } from '../../types/diff';
+import { type Comment, type LineNumber } from '../../types/diff';
 
 export function useLocalComments(commitHash?: string) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -25,7 +25,7 @@ export function useLocalComments(commitHash?: string) {
 
   const addComment = (
     file: string,
-    line: number | [number, number],
+    line: LineNumber,
     body: string,
     codeContent?: string
   ): Comment => {

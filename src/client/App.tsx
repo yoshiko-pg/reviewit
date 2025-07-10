@@ -1,7 +1,15 @@
-import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
+import {
+  Columns,
+  AlignLeft,
+  Copy,
+  Settings,
+  Github,
+  PanelLeftClose,
+  PanelLeft,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { type DiffResponse } from '../types/diff';
+import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
@@ -142,7 +150,7 @@ function App() {
 
   const handleAddComment = (
     file: string,
-    line: number | [number, number],
+    line: LineNumber,
     body: string,
     codeContent?: string
   ): Promise<void> => {
@@ -220,7 +228,7 @@ function App() {
           }}
         >
           <h1>
-            <Logo style={{ height: '18px' }} />
+            <Logo style={{ height: '18px', color: 'var(--color-github-text-secondary)' }} />
           </h1>
           <div className="flex items-center gap-1">
             <button
@@ -293,7 +301,7 @@ function App() {
                   e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
                   e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
                 }}
-                title={`Copy all ${comments.length} comments to Claude Code`}
+                title={`Copy all ${comments.length} comments to AI coding agent`}
               >
                 <Copy size={12} />
                 {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
@@ -323,27 +331,41 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         {isFileTreeOpen && (
           <aside
-            className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
+            className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
             style={{
               width: `${sidebarWidth}px`,
               minWidth: '200px',
               maxWidth: '600px',
             }}
           >
-            <FileList
-              files={diffData.files}
-              onScrollToFile={(filePath) => {
-                const element = document.getElementById(
-                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-                );
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              comments={comments}
-              reviewedFiles={reviewedFiles}
-              onToggleReviewed={toggleFileReviewed}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <FileList
+                files={diffData.files}
+                onScrollToFile={(filePath) => {
+                  const element = document.getElementById(
+                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                  );
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                comments={comments}
+                reviewedFiles={reviewedFiles}
+                onToggleReviewed={toggleFileReviewed}
+              />
+            </div>
+            <div className="p-4 border-t border-github-border flex justify-end">
+              <a
+                href="https://github.com/yoshiko-pg/difit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
+                title="View on GitHub"
+              >
+                <span className="text-sm">Star on GitHub</span>
+                <Github size={18} />
+              </a>
+            </div>
           </aside>
         )}
 

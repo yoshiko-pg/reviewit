@@ -45,10 +45,12 @@ export interface DiffResponse {
   targetCommitish?: string;
 }
 
+export type LineNumber = number | [number, number];
+
 export interface Comment {
   id: string;
   file: string;
-  line: number | [number, number];
+  line: LineNumber;
   body: string;
   timestamp: string;
   codeContent?: string; // The actual code content for this line

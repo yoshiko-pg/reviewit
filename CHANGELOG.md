@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.3] - 2025-07-10
+
+### Changed
+
+- Migrate to ESLint Flat Config with TypeScript support
+- File status display now shows line edits as modified (only new files as added, deleted files as deleted)
+- Default host changed from 127.0.0.1 to localhost
+
+### Fixed
+
+- Git branch name validation now follows proper git check-ref-format rules
+
+## [2.0.2] - 2025-07-09
+
+### Added
+
+- Multi-line comment support for diff viewer with proper display formatting (#34)
+
+### Changed
+
+- Improve comment UI with resolve button and simplified tooltips
+- Improve icons throughout the interface
+- Add GitHub link to sidebar footer
+- Change logo color for softer appearance
+
+### Fixed
+
+- Fix branch name validation to allow @ character
+
+### Thanks
+
+- [@uzimaru0000](https://github.com/uzimaru0000) for adding multi-line comment support #34
+
 ## [2.0.1] - 2025-07-09
 
 ### Added
@@ -264,7 +297,9 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/yoshiko-pg/difit/compare/v2.0.2...v2.0.3
+[2.0.2]: https://github.com/yoshiko-pg/difit/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/yoshiko-pg/difit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...v2.0.0
 [1.1.12]: https://github.com/yoshiko-pg/difit/compare/v1.1.11...v1.1.12

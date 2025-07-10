@@ -1,6 +1,6 @@
 {
   "name": "difit",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
   "engines": {
@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.30.1",
     "@prettier/plugin-oxc": "^0.0.4",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
@@ -74,6 +75,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.3.0",
     "happy-dom": "^18.0.1",
     "lefthook": "^1.11.14",
     "postcss": "^8.5.6",

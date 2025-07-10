@@ -120,10 +120,6 @@ export class GitDiffParser {
       status = 'deleted';
     } else if (oldPath !== newPath) {
       status = 'renamed';
-    } else if (summary.insertions && !summary.deletions) {
-      status = 'added';
-    } else if (summary.deletions && !summary.insertions) {
-      status = 'deleted';
     }
 
     // For binary files, don't try to parse chunks

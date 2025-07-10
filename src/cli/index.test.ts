@@ -123,7 +123,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -167,7 +167,7 @@ describe('CLI index.ts', () => {
         targetCommitish: expectedTarget,
         baseCommitish: expectedBase,
         preferredPort: undefined,
-        host: '127.0.0.1',
+        host: '',
         openBrowser: true,
         mode: 'side-by-side',
       });
@@ -205,7 +205,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -230,7 +230,7 @@ describe('CLI index.ts', () => {
         targetCommitish: 'HEAD',
         baseCommitish: 'HEAD^',
         preferredPort: expectedOptions.port,
-        host: expectedOptions.host || '127.0.0.1',
+        host: expectedOptions.host || '',
         openBrowser: expectedOptions.open !== false,
         mode: expectedOptions.mode || 'side-by-side',
       };
@@ -252,7 +252,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -288,7 +288,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -331,7 +331,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -370,7 +370,7 @@ describe('CLI index.ts', () => {
         targetCommitish: 'abc123',
         baseCommitish: 'def456',
         preferredPort: undefined,
-        host: '127.0.0.1',
+        host: '',
         openBrowser: true,
         mode: 'side-by-side',
       });
@@ -383,7 +383,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -423,7 +423,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -473,7 +473,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -518,7 +518,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -552,7 +552,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -622,7 +622,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -669,7 +669,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -716,7 +716,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
@@ -773,7 +773,7 @@ describe('CLI index.ts', () => {
         .argument('[commit-ish]', 'commit-ish', 'HEAD')
         .argument('[compare-with]', 'compare-with')
         .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '127.0.0.1')
+        .option('--host <host>', 'host', '')
         .option('--no-open', 'no-open')
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')

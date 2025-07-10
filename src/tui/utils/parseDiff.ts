@@ -1,4 +1,4 @@
-import { DiffChunk, ParsedDiff } from '../../types/diff.js';
+import { type DiffChunk, type ParsedDiff } from '../../types/diff.js';
 
 export function parseDiff(diffText: string): ParsedDiff {
   const lines = diffText.split('\n');

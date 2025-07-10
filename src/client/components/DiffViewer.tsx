@@ -1,5 +1,5 @@
 import {
-  FileText,
+  FileDiff,
   FilePlus,
   FileX,
   FilePen,
@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type DiffFile, type Comment } from '../../types/diff';
+import { type DiffFile, type Comment, type LineNumber } from '../../types/diff';
 import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
@@ -27,7 +27,7 @@ interface DiffViewerProps {
   onToggleReviewed: (path: string) => void;
   onAddComment: (
     file: string,
-    line: number | [number, number],
+    line: LineNumber,
     body: string,
     codeContent?: string
   ) => Promise<void>;
@@ -68,15 +68,11 @@ export function DiffViewer({
       case 'renamed':
         return <FilePen size={16} className="text-github-warning" />;
       default:
-        return <FileText size={16} className="text-github-text-secondary" />;
+        return <FileDiff size={16} className="text-github-text-secondary" />;
     }
   };
 
-  const handleAddComment = async (
-    line: number | [number, number],
-    body: string,
-    codeContent?: string
-  ) => {
+  const handleAddComment = async (line: LineNumber, body: string, codeContent?: string) => {
     try {
       await onAddComment(file.path, line, body, codeContent);
     } catch (error) {
