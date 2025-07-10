@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.4] - 2025-07-10
+
+### Added
+
+- Collapsible file tree section (#37)
+
+### Changed
+
+- Simplified loop iteration and removed unnecessary type assertions (#38)
+- Smooth CSS transitions for sidebar toggle animations
+
+### Thanks
+
+- [@seesaw-monster](https://github.com/seesaw-monster) for adding collapsible file tree section #37
+- [@noritaka1166](https://github.com/noritaka1166) for refactoring loop iteration #38
+
+## [2.0.3] - 2025-07-10
+
+### Changed
+
+- Migrate to ESLint Flat Config with TypeScript support
+- File status display now shows line edits as modified (only new files as added, deleted files as deleted)
+- Default host changed from 127.0.0.1 to localhost
+
+### Fixed
+
+- Git branch name validation now follows proper git check-ref-format rules
+
 ## [2.0.2] - 2025-07-09
 
 ### Added
@@ -285,7 +313,9 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.2...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...HEAD
+[2.0.4]: https://github.com/yoshiko-pg/difit/compare/v2.0.3...v2.0.4
+[2.0.3]: https://github.com/yoshiko-pg/difit/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/yoshiko-pg/difit/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/yoshiko-pg/difit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/yoshiko-pg/difit/compare/v1.1.12...v2.0.0

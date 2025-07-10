@@ -42,6 +42,11 @@ body {
   font-size: var(--app-font-size);
 }
 
+/* Enable smooth transition from fixed width to auto (Chrome/Edge 129+ only) */
+:root {
+  interpolate-size: allow-keywords;
+}
+
 button {
   cursor: pointer;
 }

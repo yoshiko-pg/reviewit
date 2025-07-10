@@ -1,4 +1,12 @@
-import { Columns, AlignLeft, Copy, Settings, Github } from 'lucide-react';
+import {
+  Columns,
+  AlignLeft,
+  Copy,
+  Settings,
+  Github,
+  PanelLeftClose,
+  PanelLeft,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
@@ -21,6 +29,8 @@ function App() {
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -35,6 +45,7 @@ function App() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsDragging(true);
     const startX = e.clientX;
     const startWidth = sidebarWidth;
 
@@ -44,6 +55,7 @@ function App() {
     };
 
     const handleMouseUp = () => {
+      setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -211,25 +223,47 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border flex items-center justify-between"
+          className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
+            width: isFileTreeOpen ? `${sidebarWidth}px` : 'auto',
+            minWidth: isFileTreeOpen ? '200px' : 'auto',
+            maxWidth: isFileTreeOpen ? '600px' : 'auto',
           }}
         >
           <h1>
             <Logo style={{ height: '18px', color: 'var(--color-github-text-secondary)' }} />
           </h1>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
-            title="Appearance Settings"
-          >
-            <Settings size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsFileTreeOpen(!isFileTreeOpen)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title={isFileTreeOpen ? 'Collapse file tree' : 'Expand file tree'}
+              aria-expanded={isFileTreeOpen}
+              aria-controls="file-tree-panel"
+              aria-label="Toggle file tree panel"
+            >
+              {isFileTreeOpen ?
+                <PanelLeftClose size={18} />
+              : <PanelLeft size={18} />}
+            </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title="Appearance Settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         </div>
-        <div className="w-1" />
+        <div
+          className={`border-r border-github-border ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+            height: 'calc(100% - 16px)',
+            margin: '8px 0',
+            transform: 'translateX(-2px)',
+          }}
+        />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
@@ -309,46 +343,58 @@ function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside
-          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
+        <div
+          className={`relative overflow-hidden ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
+            width: isFileTreeOpen ? `${sidebarWidth}px` : '0px',
           }}
         >
-          <div className="flex-1 overflow-y-auto">
-            <FileList
-              files={diffData.files}
-              onScrollToFile={(filePath) => {
-                const element = document.getElementById(
-                  `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-                );
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              comments={comments}
-              reviewedFiles={reviewedFiles}
-              onToggleReviewed={toggleFileReviewed}
-            />
-          </div>
-          <div className="p-4 border-t border-github-border flex justify-end">
-            <a
-              href="https://github.com/yoshiko-pg/difit"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
-              title="View on GitHub"
-            >
-              <span className="text-sm">Star on GitHub</span>
-              <Github size={18} />
-            </a>
-          </div>
-        </aside>
+          <aside
+            id="file-tree-panel"
+            className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
+            style={{
+              width: `${sidebarWidth}px`,
+              minWidth: '200px',
+              maxWidth: '600px',
+              height: '100%',
+            }}
+          >
+            <div className="flex-1 overflow-y-auto">
+              <FileList
+                files={diffData.files}
+                onScrollToFile={(filePath) => {
+                  const element = document.getElementById(
+                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                  );
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                comments={comments}
+                reviewedFiles={reviewedFiles}
+                onToggleReviewed={toggleFileReviewed}
+              />
+            </div>
+            <div className="p-4 border-t border-github-border flex justify-end">
+              <a
+                href="https://github.com/yoshiko-pg/difit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
+                title="View on GitHub"
+              >
+                <span className="text-sm">Star on GitHub</span>
+                <Github size={18} />
+              </a>
+            </div>
+          </aside>
+        </div>
 
         <div
-          className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
+          className={`bg-github-border hover:bg-github-text-muted cursor-col-resize ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+          }}
           onMouseDown={handleMouseDown}
           title="Drag to resize file list"
         />

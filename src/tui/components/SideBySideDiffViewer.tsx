@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
-import { FileDiff } from '../../types/diff.js';
+import React, { useState } from 'react';
+
+import { type FileDiff } from '../../types/diff.js';
 import { parseDiff } from '../utils/parseDiff.js';
 
 interface SideBySideDiffViewerProps {
@@ -16,15 +17,60 @@ const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
 }) => {
   const [currentFileIndex, setCurrentFileIndex] = useState(initialFileIndex);
   const [scrollOffset, setScrollOffset] = useState(0);
+  const { exit } = useApp();
 
+  const viewportHeight = Math.max(10, (process.stdout.rows || 24) - 10);
   const currentFile = files[currentFileIndex];
+
+  useInput(
+    (input, key) => {
+      if (input === 'q' || (key.ctrl && input === 'c')) {
+        exit();
+        return;
+      }
+
+      if (key.escape || input === 'b') {
+        onBack();
+        return;
+      }
+
+      if (!currentFile) return;
+
+      // Scroll within file
+      if (key.upArrow || input === 'k') {
+        setScrollOffset((prev) => Math.max(0, prev - 1));
+      }
+      if (key.downArrow || input === 'j') {
+        setScrollOffset((prev) => prev + 1);
+      }
+      if (key.pageUp) {
+        setScrollOffset((prev) => Math.max(0, prev - viewportHeight));
+      }
+      if (key.pageDown) {
+        setScrollOffset((prev) => prev + viewportHeight);
+      }
+
+      // Navigate between files
+      if (key.tab && !key.shift) {
+        // Next file (loop to first when at end)
+        setCurrentFileIndex((currentFileIndex + 1) % files.length);
+        setScrollOffset(0);
+      }
+      if (key.tab && key.shift) {
+        // Previous file (loop to last when at start)
+        setCurrentFileIndex((currentFileIndex - 1 + files.length) % files.length);
+        setScrollOffset(0);
+      }
+    },
+    { isActive: true }
+  );
 
   if (!currentFile || files.length === 0) {
     return (
       <Box flexDirection="column" flexGrow={1}>
         <Text color="yellow">No files to display</Text>
         <Box marginTop={1}>
-          <Text dimColor>Press ESC or 'b' to go back</Text>
+          <Text dimColor>Press ESC or &apos;b&apos; to go back</Text>
         </Box>
       </Box>
     );
@@ -101,53 +147,10 @@ const SideBySideDiffViewer: React.FC<SideBySideDiffViewerProps> = ({
     }
   });
 
-  const viewportHeight = Math.max(10, (process.stdout.rows || 24) - 10); // StatusBar(3) + file nav(3) + footer(3) + margin(1)
-  const maxScroll = Math.max(0, allLines.length - viewportHeight);
+  const actualMaxScroll = Math.max(0, allLines.length - viewportHeight);
+  const clampedScrollOffset = Math.max(0, Math.min(actualMaxScroll, scrollOffset));
 
-  const { exit } = useApp();
-
-  useInput(
-    (input, key) => {
-      if (input === 'q' || (key.ctrl && input === 'c')) {
-        exit();
-        return;
-      }
-
-      if (key.escape || input === 'b') {
-        onBack();
-        return;
-      }
-
-      // Scroll within file
-      if (key.upArrow || input === 'k') {
-        setScrollOffset((prev) => Math.max(0, prev - 1));
-      }
-      if (key.downArrow || input === 'j') {
-        setScrollOffset((prev) => Math.min(maxScroll, prev + 1));
-      }
-      if (key.pageUp) {
-        setScrollOffset((prev) => Math.max(0, prev - viewportHeight));
-      }
-      if (key.pageDown) {
-        setScrollOffset((prev) => Math.min(maxScroll, prev + viewportHeight));
-      }
-
-      // Navigate between files
-      if (key.tab && !key.shift) {
-        // Next file (loop to first when at end)
-        setCurrentFileIndex((currentFileIndex + 1) % files.length);
-        setScrollOffset(0);
-      }
-      if (key.tab && key.shift) {
-        // Previous file (loop to last when at start)
-        setCurrentFileIndex((currentFileIndex - 1 + files.length) % files.length);
-        setScrollOffset(0);
-      }
-    },
-    { isActive: true }
-  );
-
-  const visibleLines = allLines.slice(scrollOffset, scrollOffset + viewportHeight);
+  const visibleLines = allLines.slice(clampedScrollOffset, clampedScrollOffset + viewportHeight);
   const terminalWidth = process.stdout.columns || 80;
   const columnWidth = Math.floor((terminalWidth - 6) / 2); // 6 for borders and separators
 
