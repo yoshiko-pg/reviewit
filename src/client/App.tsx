@@ -30,6 +30,7 @@ function App() {
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -44,6 +45,7 @@ function App() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsDragging(true);
     const startX = e.clientX;
     const startWidth = sidebarWidth;
 
@@ -53,6 +55,7 @@ function App() {
     };
 
     const handleMouseUp = () => {
+      setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -220,7 +223,7 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border flex items-center justify-between gap-4"
+          className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
             width: isFileTreeOpen ? `${sidebarWidth}px` : 'auto',
             minWidth: isFileTreeOpen ? '200px' : 'auto',
@@ -252,7 +255,15 @@ function App() {
             </button>
           </div>
         </div>
-        {isFileTreeOpen && <div className="w-1" />}
+        <div
+          className={`border-r border-github-border ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+            height: 'calc(100% - 16px)',
+            margin: '8px 0',
+            transform: 'translateX(-2px)',
+          }}
+        />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
@@ -332,7 +343,12 @@ function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {isFileTreeOpen && (
+        <div
+          className={`relative overflow-hidden ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? `${sidebarWidth}px` : '0px',
+          }}
+        >
           <aside
             id="file-tree-panel"
             className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
@@ -340,6 +356,7 @@ function App() {
               width: `${sidebarWidth}px`,
               minWidth: '200px',
               maxWidth: '600px',
+              height: '100%',
             }}
           >
             <div className="flex-1 overflow-y-auto">
@@ -371,15 +388,16 @@ function App() {
               </a>
             </div>
           </aside>
-        )}
+        </div>
 
-        {isFileTreeOpen && (
-          <div
-            className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
-            onMouseDown={handleMouseDown}
-            title="Drag to resize file list"
-          />
-        )}
+        <div
+          className={`bg-github-border hover:bg-github-text-muted cursor-col-resize ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+          }}
+          onMouseDown={handleMouseDown}
+          title="Drag to resize file list"
+        />
 
         <main className="flex-1 overflow-y-auto">
           {diffData.files.map((file) => (
