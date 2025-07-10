@@ -7,9 +7,7 @@ export function parseDiff(diffText: string): ParsedDiff {
   let oldLineNumber = 0;
   let newLineNumber = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
+  for (const line of lines) {
     // Skip file headers
     if (
       line.startsWith('diff --git') ||
@@ -50,14 +48,14 @@ export function parseDiff(diffText: string): ParsedDiff {
         type: 'add',
         content: line.substring(1),
         newLineNumber: newLineNumber,
-      } as any);
+      });
     } else if (line.startsWith('-')) {
       oldLineNumber++;
       currentChunk.lines.push({
         type: 'remove',
         content: line.substring(1),
         oldLineNumber: oldLineNumber,
-      } as any);
+      });
     } else {
       // Context line
       oldLineNumber++;
@@ -67,7 +65,7 @@ export function parseDiff(diffText: string): ParsedDiff {
         content: line.substring(1),
         oldLineNumber: oldLineNumber,
         newLineNumber: newLineNumber,
-      } as any);
+      });
     }
   }
 
