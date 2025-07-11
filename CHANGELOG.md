@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.5] - 2025-07-11
+
+### Added
+
+- Dart language support (#40)
+
+### Changed
+
+- Removed unused @eslint/eslintrc dependency (#39)
+
+### Thanks
+
+- [@tsukasaI](https://github.com/tsukasaI) for adding Dart language support #40
+- [@noritaka1166](https://github.com/noritaka1166) for removing unused @eslint/eslintrc dependency #39
+
 ## [2.0.4] - 2025-07-10
 
 ### Added
@@ -313,7 +328,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...HEAD
+[2.0.5]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/yoshiko-pg/difit/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/yoshiko-pg/difit/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/yoshiko-pg/difit/compare/v2.0.1...v2.0.2
