@@ -76,6 +76,7 @@ function detectLanguage(filename: string): string {
     toml: 'toml',
     sol: 'solidity',
     vim: 'vim',
+    dart: 'dart',
   };
 
   return extensionMap[ext || ''] || 'text';

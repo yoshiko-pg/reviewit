@@ -112,7 +112,8 @@ difit supports syntax highlighting for multiple programming languages with dynam
 - **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
 - **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, Rust, Go
-- **Others**: Python, Swift, Kotlin, YAML, Solidity, Vim script
+- **Mobile Languages**: Swift, Kotlin, Dart
+- **Others**: Python, YAML, Solidity, Vim script
 
 ### Dynamic Language Loading
 

@@ -26,6 +26,7 @@ export function loadPrismLanguage(lang: string): Promise<void> {
       },
       solidity: () => import('prismjs/components/prism-solidity.js'),
       vim: () => import('prismjs/components/prism-vim.js'),
+      dart: () => import('prismjs/components/prism-dart.js'),
     };
 
     const importFn = languageImports[lang];
