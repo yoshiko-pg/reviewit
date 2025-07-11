@@ -114,9 +114,9 @@ export class GitDiffParser {
     const minusLine = lines.find((line) => line.startsWith('--- '));
     const plusLine = lines.find((line) => line.startsWith('+++ '));
 
-    if (newFileMode || (minusLine && minusLine.includes('/dev/null'))) {
+    if (newFileMode || minusLine?.includes('/dev/null')) {
       status = 'added';
-    } else if (deletedFileMode || (plusLine && plusLine.includes('/dev/null'))) {
+    } else if (deletedFileMode || plusLine?.includes('/dev/null')) {
       status = 'deleted';
     } else if (oldPath !== newPath) {
       status = 'renamed';

@@ -49,7 +49,7 @@ describe('Server Integration Tests', () => {
 
     // Clean up any servers created during tests
     for (const server of servers) {
-      if (server && server.close) {
+      if (server?.close) {
         await new Promise<void>((resolve) => {
           server.close(() => resolve());
         });
