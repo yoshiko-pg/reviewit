@@ -278,8 +278,7 @@ export function FileList({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {filteredFileTree.children &&
-          filteredFileTree.children.map((child) => renderTreeNode(child))}
+        {filteredFileTree.children?.map((child) => renderTreeNode(child))}
       </div>
     </div>
   );
