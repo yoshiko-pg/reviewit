@@ -644,7 +644,6 @@ describe('CLI index.ts', () => {
                 mode: options.mode,
               })
             );
-            return;
           }
         });
 
@@ -691,7 +690,6 @@ describe('CLI index.ts', () => {
                 mode: options.mode,
               })
             );
-            return;
           }
         });
 
@@ -744,7 +742,6 @@ describe('CLI index.ts', () => {
                 mode: options.mode,
               })
             );
-            return;
           }
         });
 
