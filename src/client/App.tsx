@@ -1,12 +1,4 @@
-import {
-  Columns,
-  AlignLeft,
-  Copy,
-  Settings,
-  Github,
-  PanelLeftClose,
-  PanelLeft,
-} from 'lucide-react';
+import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
@@ -33,6 +25,14 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
+
+  // Determine current theme (considering auto mode)
+  const getCurrentTheme = (): 'light' | 'dark' => {
+    if (settings.theme === 'auto') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return settings.theme;
+  };
 
   const {
     comments,
@@ -384,7 +384,12 @@ function App() {
                 title="View on GitHub"
               >
                 <span className="text-sm">Star on GitHub</span>
-                <Github size={18} />
+                <img
+                  src={getCurrentTheme() === 'dark' ? '/github-mark-white.svg' : '/github-mark.svg'}
+                  alt="GitHub"
+                  width={18}
+                  height={18}
+                />
               </a>
             </div>
           </aside>
