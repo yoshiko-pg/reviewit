@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.6] - 2025-07-12
+
+### Changed
+
+- Keyboard accessibility improvements for Checkbox component (#42)
+- Refactored code to use optional chaining (#41)
+- Refactored test code to remove redundant return (#44)
+
+### Fixed
+
+- Fixed file tree display to prevent collapsing root node when showing nested folders
+
+### Thanks
+
+- [@noritaka1166](https://github.com/noritaka1166) for keyboard accessibility improvements #42
+- [@noritaka1166](https://github.com/noritaka1166) for optional chaining refactor #41
+- [@noritaka1166](https://github.com/noritaka1166) for test code refactor #44
+
 ## [2.0.5] - 2025-07-11
 
 ### Added
@@ -328,7 +346,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...HEAD
+[2.0.6]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...v2.0.6
 [2.0.5]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/yoshiko-pg/difit/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/yoshiko-pg/difit/compare/v2.0.2...v2.0.3

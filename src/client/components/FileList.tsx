@@ -85,9 +85,13 @@ function buildFileTree(files: DiffFile[]): TreeNode {
     if (node.children.length === 1 && node.children[0]?.isDirectory && node.children[0]?.children) {
       const child = node.children[0];
       if (child) {
+        // Don't collapse the root node - keep the full path structure
+        if (!node.name) {
+          return node;
+        }
         return {
           ...node,
-          name: node.name ? `${node.name}/${child.name}` : child.name,
+          name: `${node.name}/${child.name}`,
           path: child.path,
           children: child.children,
         };
