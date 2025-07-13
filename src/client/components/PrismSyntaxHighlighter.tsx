@@ -99,7 +99,7 @@ export function PrismSyntaxHighlighter({
   const theme = getSyntaxTheme(syntaxTheme);
 
   return (
-    <Highlight code={code} language={actualLang as any} theme={theme} prism={Prism}>
+    <Highlight code={code} language={actualLang} theme={theme} prism={Prism}>
       {({ style, tokens, getLineProps, getTokenProps }) => (
         <span
           className={className}

@@ -1,12 +1,12 @@
-import { themes } from 'prism-react-renderer';
+import { type PrismTheme, themes } from 'prism-react-renderer';
 
 import { LIGHT_THEMES, DARK_THEMES } from './themeLoader';
 
 // Helper function to remove background colors from theme
-function removeBackgrounds(theme: any) {
+function removeBackgrounds(theme: PrismTheme) {
   return {
     ...theme,
-    styles: theme.styles.map((style: any) => ({
+    styles: theme.styles.map((style: PrismTheme['styles'][number]) => ({
       ...style,
       style: {
         ...style.style,

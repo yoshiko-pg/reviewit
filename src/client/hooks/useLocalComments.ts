@@ -11,7 +11,7 @@ export function useLocalComments(commitHash?: string) {
     const savedComments = localStorage.getItem(storageKey);
     if (savedComments) {
       try {
-        setComments(JSON.parse(savedComments));
+        setComments(JSON.parse(savedComments) as Comment[]);
       } catch (error) {
         console.error('Failed to parse saved comments:', error);
       }
