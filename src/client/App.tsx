@@ -321,6 +321,16 @@ function App() {
                 {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
               </button>
             )}
+            <div>
+              <div>
+                {reviewedFiles.size} / {diffData.files.length} files viewed
+              </div>
+              <progress
+                style={{ width: '100%' }}
+                max={diffData.files.length}
+                value={reviewedFiles.size}
+              />
+            </div>
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">

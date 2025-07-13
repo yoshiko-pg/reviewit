@@ -10,6 +10,8 @@ import { getFileExtension } from '../utils/fileUtils.js';
 
 import { GitDiffParser } from './git-diff.js';
 
+import { type DiffResponse } from '@/types/diff.js';
+
 interface ServerOptions {
   targetCommitish: string;
   baseCommitish: string;
@@ -26,7 +28,7 @@ export async function startServer(
   const app = express();
   const parser = new GitDiffParser();
 
-  let diffData: any = null;
+  let diffData: DiffResponse;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
   const diffMode = options.mode || 'side-by-side';
 
