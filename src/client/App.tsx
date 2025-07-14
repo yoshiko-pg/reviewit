@@ -314,15 +314,34 @@ function App() {
                 {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
               </button>
             )}
-            <div>
-              <div>
-                {reviewedFiles.size} / {diffData.files.length} files viewed
+            <div className="flex flex-col gap-1 items-center">
+              <div className="text-xs">
+                {reviewedFiles.size === diffData.files.length ?
+                  'All diffs difit-ed!'
+                : `${reviewedFiles.size} / ${diffData.files.length} files viewed`}
               </div>
-              <progress
-                style={{ width: '100%' }}
-                max={diffData.files.length}
-                value={reviewedFiles.size}
-              />
+              <div
+                className="relative h-2 bg-github-bg-tertiary rounded-full overflow-hidden"
+                style={{
+                  width: '90px',
+                  border: '1px solid var(--color-github-border)',
+                }}
+              >
+                <div
+                  className="absolute top-0 right-0 h-full transition-all duration-300 ease-out"
+                  style={{
+                    width: `${((diffData.files.length - reviewedFiles.size) / diffData.files.length) * 100}%`,
+                    backgroundColor: (() => {
+                      const remainingPercent =
+                        ((diffData.files.length - reviewedFiles.size) / diffData.files.length) *
+                        100;
+                      if (remainingPercent > 50) return 'var(--color-github-accent)'; // green
+                      if (remainingPercent > 20) return 'var(--color-github-warning)'; // yellow
+                      return 'var(--color-github-danger)'; // red
+                    })(),
+                  }}
+                />
+              </div>
             </div>
             <span>
               Reviewing:{' '}
