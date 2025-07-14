@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.7] - 2025-07-14
+
+### Added
+
+- Display progress of reviewed files in client (#45)
+- FUNDING.yml for GitHub Sponsors
+
+### Changed
+
+- Refactored code to fix some ESLint warnings (#46)
+
+### Thanks
+
+- [@noritaka1166](https://github.com/noritaka1166) for adding progress display feature #45
+- [@noritaka1166](https://github.com/noritaka1166) for fixing ESLint warnings #46
+
 ## [2.0.6] - 2025-07-12
 
 ### Changed
@@ -346,7 +362,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...HEAD
+[2.0.7]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...v2.0.7
 [2.0.6]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...v2.0.6
 [2.0.5]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/yoshiko-pg/difit/compare/v2.0.3...v2.0.4
