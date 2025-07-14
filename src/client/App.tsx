@@ -1,12 +1,4 @@
-import {
-  Columns,
-  AlignLeft,
-  Copy,
-  Settings,
-  Github,
-  PanelLeftClose,
-  PanelLeft,
-} from 'lucide-react';
+import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
@@ -14,6 +6,7 @@ import { type DiffResponse, type LineNumber } from '../types/diff';
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { GitHubIcon } from './components/GitHubIcon';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
@@ -394,7 +387,7 @@ function App() {
                 title="View on GitHub"
               >
                 <span className="text-sm">Star on GitHub</span>
-                <Github size={18} />
+                <GitHubIcon style={{ height: '18px', width: '18px' }} />
               </a>
             </div>
           </aside>
