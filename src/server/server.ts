@@ -1,7 +1,8 @@
+import { type Server } from 'http';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import express from 'express';
+import express, { type Express } from 'express';
 import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,7 +11,7 @@ import { getFileExtension } from '../utils/fileUtils.js';
 
 import { GitDiffParser } from './git-diff.js';
 
-import { type DiffResponse } from '@/types/diff.js';
+import { type Comment, type DiffResponse } from '@/types/diff.js';
 
 interface ServerOptions {
   targetCommitish: string;
@@ -24,7 +25,7 @@ interface ServerOptions {
 
 export async function startServer(
   options: ServerOptions
-): Promise<{ port: number; url: string; isEmpty?: boolean; server?: any }> {
+): Promise<{ port: number; url: string; isEmpty?: boolean; server?: Server }> {
   const app = express();
   const parser = new GitDiffParser();
 
@@ -74,7 +75,7 @@ export async function startServer(
     });
   });
 
-  app.get(/^\/api\/blob\/(.*)$/, async (req: any, res: any) => {
+  app.get(/^\/api\/blob\/(.*)$/, async (req, res) => {
     try {
       const filepath = req.params[0];
       const ref = (req.query.ref as string) || 'HEAD';
@@ -113,12 +114,12 @@ export async function startServer(
   });
 
   // Store comments for final output
-  let finalComments: any[] = [];
+  let finalComments: Comment[] = [];
 
   app.post('/api/comments', (req, res) => {
     try {
       // Handle both JSON and text/plain content types (sendBeacon sends as text/plain)
-      let comments = [];
+      let comments: Comment[] = [];
       if (req.headers['content-type']?.includes('application/json')) {
         comments = req.body.comments || [];
       } else if (typeof req.body === 'string') {
@@ -145,8 +146,8 @@ export async function startServer(
   });
 
   // Function to format comments for output
-  function formatCommentsOutput(comments: any[]): string {
-    const prompts = comments.map((comment: any) => {
+  function formatCommentsOutput(comments: Comment[]): string {
+    const prompts = comments.map((comment: Comment) => {
       return `${comment.file}:${Array.isArray(comment.line) ? `L${comment.line[0]}-L${comment.line[1]}` : `L${comment.line}`}\n${comment.body}`;
     });
 
@@ -252,10 +253,10 @@ export async function startServer(
 }
 
 async function startServerWithFallback(
-  app: any,
+  app: Express,
   preferredPort: number,
   host: string
-): Promise<{ port: number; url: string; server: any }> {
+): Promise<{ port: number; url: string; server: Server }> {
   return new Promise((resolve, reject) => {
     // express's listen() method uses listen() method in node:net Server instance internally
     // https://expressjs.com/en/5x/api.html#app.listen
