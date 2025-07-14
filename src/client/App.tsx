@@ -6,6 +6,7 @@ import { type DiffResponse, type LineNumber } from '../types/diff';
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { GitHubIcon } from './components/GitHubIcon';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
@@ -25,14 +26,6 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
-
-  // Determine current theme (considering auto mode)
-  const getCurrentTheme = (): 'light' | 'dark' => {
-    if (settings.theme === 'auto') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return settings.theme;
-  };
 
   const {
     comments,
@@ -394,12 +387,7 @@ function App() {
                 title="View on GitHub"
               >
                 <span className="text-sm">Star on GitHub</span>
-                <img
-                  src={getCurrentTheme() === 'dark' ? '/github-mark-white.svg' : '/github-mark.svg'}
-                  alt="GitHub"
-                  width={18}
-                  height={18}
-                />
+                <GitHubIcon style={{ height: '18px', width: '18px' }} />
               </a>
             </div>
           </aside>
