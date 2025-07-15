@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.8] - 2025-07-15
+
+### Changed
+
+- Improved type definitions and removed unnecessary casts (#48)
+- HP bar style progress display
+
+### Fixed
+
+- Replaced deprecated GitHub icon with new GitHubIcon component (#47)
+
+### Thanks
+
+- [@noritaka1166](https://github.com/noritaka1166) for improving type definitions #48
+- [@noritaka1166](https://github.com/noritaka1166) for replacing deprecated GitHub icon #47
+
 ## [2.0.7] - 2025-07-14
 
 ### Added
@@ -362,7 +378,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...HEAD
+[2.0.8]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...v2.0.8
 [2.0.7]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...v2.0.7
 [2.0.6]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...v2.0.6
 [2.0.5]: https://github.com/yoshiko-pg/difit/compare/v2.0.4...v2.0.5
