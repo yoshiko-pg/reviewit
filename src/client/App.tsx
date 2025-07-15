@@ -1,5 +1,5 @@
 import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
 
@@ -57,9 +57,54 @@ function App() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Check if file is a lock file that should be collapsed by default
+  const isLockFile = (filePath: string): boolean => {
+    const lockFiles = [
+      'pnpm-lock.yaml',
+      'package-lock.json',
+      'yarn.lock',
+      'Cargo.lock',
+      'Gemfile.lock',
+      'composer.lock',
+      'Pipfile.lock',
+      'poetry.lock',
+      'go.sum',
+      'mix.lock',
+    ];
+    const fileName = filePath.split('/').pop() || '';
+    return lockFiles.includes(fileName);
+  };
+
+  const fetchDiffData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
+      if (!response.ok) throw new Error('Failed to fetch diff data');
+      const data = (await response.json()) as DiffResponse;
+      setDiffData(data);
+
+      // Set diff mode from server response if provided
+      if (data.mode) {
+        setDiffMode(data.mode as 'side-by-side' | 'inline');
+      }
+
+      // Auto-collapse lock files
+      const lockFilesToCollapse = data.files
+        .filter((file) => isLockFile(file.path))
+        .map((file) => file.path);
+
+      if (lockFilesToCollapse.length > 0) {
+        setReviewedFiles((prev) => new Set([...prev, ...lockFilesToCollapse]));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }, [ignoreWhitespace]);
+
   useEffect(() => {
     void fetchDiffData();
-  }, [ignoreWhitespace]);
+  }, [fetchDiffData]);
 
   // Send comments to server before page unload
   useEffect(() => {
@@ -98,51 +143,6 @@ function App() {
       eventSource.close();
     };
   }, []);
-
-  // Check if file is a lock file that should be collapsed by default
-  const isLockFile = (filePath: string): boolean => {
-    const lockFiles = [
-      'pnpm-lock.yaml',
-      'package-lock.json',
-      'yarn.lock',
-      'Cargo.lock',
-      'Gemfile.lock',
-      'composer.lock',
-      'Pipfile.lock',
-      'poetry.lock',
-      'go.sum',
-      'mix.lock',
-    ];
-    const fileName = filePath.split('/').pop() || '';
-    return lockFiles.includes(fileName);
-  };
-
-  const fetchDiffData = async () => {
-    try {
-      const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
-      if (!response.ok) throw new Error('Failed to fetch diff data');
-      const data = await response.json();
-      setDiffData(data);
-
-      // Set diff mode from server response if provided
-      if (data.mode) {
-        setDiffMode(data.mode as 'side-by-side' | 'inline');
-      }
-
-      // Auto-collapse lock files
-      const lockFilesToCollapse = data.files
-        .filter((file: any) => isLockFile(file.path))
-        .map((file: any) => file.path);
-
-      if (lockFilesToCollapse.length > 0) {
-        setReviewedFiles((prev) => new Set([...prev, ...lockFilesToCollapse]));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddComment = (
     file: string,

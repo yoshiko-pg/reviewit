@@ -1,4 +1,10 @@
-import { simpleGit, type SimpleGit } from 'simple-git';
+import {
+  simpleGit,
+  type SimpleGit,
+  type DiffResult,
+  type DiffResultTextFile,
+  type DiffResultBinaryFile,
+} from 'simple-git';
 
 import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
 import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
@@ -74,7 +80,7 @@ export class GitDiffParser {
     }
   }
 
-  private parseUnifiedDiff(diffText: string, summary: any[]): DiffFile[] {
+  private parseUnifiedDiff(diffText: string, summary: DiffResult['files']): DiffFile[] {
     const files: DiffFile[] = [];
     const fileBlocks = diffText.split(/^diff --git /m).slice(1);
 
@@ -93,7 +99,10 @@ export class GitDiffParser {
     return files;
   }
 
-  private parseFileBlock(block: string, summary: any): DiffFile | null {
+  private parseFileBlock(
+    block: string,
+    summary: DiffResultTextFile | DiffResultBinaryFile
+  ): DiffFile | null {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
@@ -122,17 +131,31 @@ export class GitDiffParser {
       status = 'renamed';
     }
 
-    // For binary files, don't try to parse chunks
-    const chunks = summary.binary ? [] : this.parseChunks(lines);
-
-    return {
+    // Common properties for all files
+    const baseFile = {
       path,
       oldPath: oldPath !== newPath ? oldPath : undefined,
       status,
-      additions: summary.insertions || 0,
-      deletions: summary.deletions || 0,
-      chunks,
     };
+
+    // Handle different summary types
+    if ('binary' in summary && summary.binary) {
+      // Binary file
+      return {
+        ...baseFile,
+        additions: 0,
+        deletions: 0,
+        chunks: [], // No chunks for binary files
+      };
+    } else {
+      // Text file
+      return {
+        ...baseFile,
+        additions: summary.insertions,
+        deletions: summary.deletions,
+        chunks: this.parseChunks(lines),
+      };
+    }
   }
 
   private parseChunks(lines: string[]): DiffChunk[] {

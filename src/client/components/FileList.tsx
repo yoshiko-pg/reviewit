@@ -218,22 +218,23 @@ export function FileList({
         </div>
       );
     } else if (node.file) {
-      const commentCount = getCommentCount(node.file.path);
-      const isReviewed = reviewedFiles.has(node.file.path);
+      const file = node.file;
+      const commentCount = getCommentCount(file.path);
+      const isReviewed = reviewedFiles.has(file.path);
 
       return (
         <div
-          key={node.file.path}
+          key={file.path}
           className={`flex items-center gap-2 px-4 py-2 hover:bg-github-bg-tertiary cursor-pointer transition-colors ${
             isReviewed ? 'opacity-70' : ''
           }`}
           style={{ paddingLeft: `${depth * 16 + 16}px` }}
-          onClick={() => onScrollToFile(node.file!.path)}
+          onClick={() => onScrollToFile(file.path)}
         >
           <Checkbox
             checked={isReviewed}
             onChange={() => {
-              onToggleReviewed(node.file!.path);
+              onToggleReviewed(file.path);
             }}
             title={isReviewed ? 'Mark as not reviewed' : 'Mark as reviewed'}
             className="z-10"

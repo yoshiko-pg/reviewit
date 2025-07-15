@@ -116,19 +116,19 @@ export async function startServer(
   // Store comments for final output
   let finalComments: Comment[] = [];
 
+  // Parse comments from request body (handles both JSON and text/plain)
+  function parseCommentsPayload(body: unknown): Comment[] {
+    const payload =
+      typeof body === 'string' ?
+        (JSON.parse(body) as { comments?: Comment[] })
+      : (body as { comments?: Comment[] });
+
+    return payload.comments || [];
+  }
+
   app.post('/api/comments', (req, res) => {
     try {
-      // Handle both JSON and text/plain content types (sendBeacon sends as text/plain)
-      let comments: Comment[] = [];
-      if (req.headers['content-type']?.includes('application/json')) {
-        comments = req.body.comments || [];
-      } else if (typeof req.body === 'string') {
-        const parsed = JSON.parse(req.body);
-        comments = parsed.comments || [];
-      } else {
-        comments = req.body.comments || [];
-      }
-      finalComments = comments;
+      finalComments = parseCommentsPayload(req.body);
       res.json({ success: true });
     } catch (error) {
       console.error('Error parsing comments:', error);
