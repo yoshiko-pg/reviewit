@@ -9,7 +9,84 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import type { Linter } from 'eslint';
 
-const config: Linter.FlatConfig[] = [
+// Shared TypeScript rules
+const sharedTypeScriptRules: Linter.RulesRecord = {
+  '@typescript-eslint/no-explicit-any': 'error',
+  '@typescript-eslint/no-non-null-assertion': 'error',
+  '@typescript-eslint/consistent-type-assertions': 'error',
+  '@typescript-eslint/no-unsafe-assignment': 'error',
+  '@typescript-eslint/no-unsafe-member-access': 'error',
+  '@typescript-eslint/no-unsafe-argument': 'error',
+  '@typescript-eslint/no-unsafe-call': 'error',
+  '@typescript-eslint/no-unsafe-return': 'error',
+  '@typescript-eslint/no-floating-promises': 'error',
+  '@typescript-eslint/require-await': 'error',
+  '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: false }],
+  '@typescript-eslint/consistent-type-imports': [
+    'error',
+    {
+      prefer: 'type-imports',
+      fixStyle: 'inline-type-imports',
+      disallowTypeAnnotations: false,
+    },
+  ],
+  '@typescript-eslint/no-unused-vars': 'off', // handled by unused-imports
+  'import/order': [
+    'error',
+    {
+      groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+      'newlines-between': 'always',
+      alphabetize: {
+        order: 'asc',
+        caseInsensitive: true,
+      },
+    },
+  ],
+  'unused-imports/no-unused-imports': 'error',
+  'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+  'no-control-regex': 'off',
+  'no-undef': 'off', // TypeScript handles this
+};
+
+// Shared TypeScript plugins
+const sharedTypeScriptPlugins = {
+  '@typescript-eslint': tseslint as any,
+  import: importPlugin as any,
+  'unused-imports': unusedImports,
+};
+
+// Base TypeScript parser options
+const baseParserOptions = {
+  projectService: true,
+  tsconfigRootDir: import.meta.dirname,
+};
+
+// Base JavaScript/TypeScript rules
+const baseJSRules = { ...eslint.configs.recommended.rules };
+
+// TypeScript recommended rules (without type-checking)
+const tsRecommendedRules = Object.fromEntries(
+  Object.entries(tseslint.configs.recommended?.rules || {}).filter(
+    ([key]) => !key.includes('typescript-eslint')
+  )
+);
+
+// TypeScript type-checking rules
+const tsTypeCheckingRules = Object.fromEntries(
+  Object.entries(tseslint.configs['recommended-type-checking']?.rules || {}).filter(
+    ([key]) => !key.includes('typescript-eslint')
+  )
+);
+
+// Combined base rules
+const baseRules = {
+  ...baseJSRules,
+  ...tsRecommendedRules,
+  ...tsTypeCheckingRules,
+  ...prettierConfig.rules,
+} as Linter.RulesRecord;
+
+const config: Linter.Config[] = [
   // Ignore patterns
   {
     ignores: [
@@ -52,66 +129,26 @@ const config: Linter.FlatConfig[] = [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        ...baseParserOptions,
         ecmaFeatures: {
           jsx: true,
         },
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
-      import: importPlugin,
-      'unused-imports': unusedImports,
-      react: reactPlugin,
+      ...sharedTypeScriptPlugins,
+      react: reactPlugin as any,
       'react-hooks': reactHooksPlugin,
     },
     rules: {
-      ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
-      ...tseslint.configs['recommended-requiring-type-checking'].rules,
-      ...reactPlugin.configs.recommended.rules,
-      ...reactHooksPlugin.configs.recommended.rules,
-      ...prettierConfig.rules,
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/consistent-type-assertions': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
-      '@typescript-eslint/no-unsafe-member-access': 'error',
-      '@typescript-eslint/no-unsafe-argument': 'error',
-      '@typescript-eslint/no-unsafe-call': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/require-await': 'error',
-      '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: false }],
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        {
-          prefer: 'type-imports',
-          fixStyle: 'inline-type-imports',
-          disallowTypeAnnotations: false,
-        },
-      ],
-      '@typescript-eslint/no-unused-vars': 'off', // handled by unused-imports
-      'import/order': [
-        'error',
-        {
-          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
-        },
-      ],
-      'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      ...baseRules,
+      ...sharedTypeScriptRules,
+      ...(reactPlugin.configs.recommended.rules as Linter.RulesRecord),
+      ...(reactHooksPlugin.configs.recommended.rules as Linter.RulesRecord),
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
-      'no-control-regex': 'off',
-      'no-undef': 'off', // TypeScript handles this
     },
     settings: {
       react: {
@@ -125,56 +162,12 @@ const config: Linter.FlatConfig[] = [
     files: ['src/cli/**/*.ts', 'src/server/**/*.ts', 'src/types/**/*.ts', 'src/utils/**/*.ts'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+      parserOptions: baseParserOptions,
     },
-    plugins: {
-      '@typescript-eslint': tseslint,
-      import: importPlugin,
-      'unused-imports': unusedImports,
-    },
+    plugins: sharedTypeScriptPlugins,
     rules: {
-      ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
-      ...tseslint.configs['recommended-requiring-type-checking'].rules,
-      ...prettierConfig.rules,
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/consistent-type-assertions': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
-      '@typescript-eslint/no-unsafe-member-access': 'error',
-      '@typescript-eslint/no-unsafe-argument': 'error',
-      '@typescript-eslint/no-unsafe-call': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/require-await': 'error',
-      '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: false }],
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        {
-          prefer: 'type-imports',
-          fixStyle: 'inline-type-imports',
-          disallowTypeAnnotations: false,
-        },
-      ],
-      '@typescript-eslint/no-unused-vars': 'off', // handled by unused-imports
-      'import/order': [
-        'error',
-        {
-          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
-        },
-      ],
-      'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'no-control-regex': 'off',
-      'no-undef': 'off', // TypeScript handles this
+      ...baseRules,
+      ...sharedTypeScriptRules,
     },
   },
 
@@ -200,7 +193,7 @@ const config: Linter.FlatConfig[] = [
   {
     files: ['**/*.js', '**/*.cjs'],
     rules: {
-      ...eslint.configs.recommended.rules,
+      ...baseJSRules,
       ...prettierConfig.rules,
       'no-undef': 'error',
     },
