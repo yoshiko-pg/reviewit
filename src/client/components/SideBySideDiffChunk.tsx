@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 import {
   type DiffChunk as DiffChunkType,
@@ -38,14 +39,42 @@ export function SideBySideDiffChunk({
   onUpdateComment,
   syntaxTheme,
 }: SideBySideDiffChunkProps) {
-  const [startLine, setStartLine] = useState<number | null>(null);
-  const [commentingLine, setCommentingLine] = useState<LineNumber | null>(null);
+  const [startLine, setStartLine] = useState<{ side: 'old' | 'new'; lineNumber: number } | null>(
+    null
+  );
+  const [endLine, setEndLine] = useState<{ side: 'old' | 'new'; lineNumber: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [commentingLine, setCommentingLine] = useState<{
+    side: 'old' | 'new';
+    lineNumber: LineNumber;
+  } | null>(null);
+  const [hoveredLine, setHoveredLine] = useState<{
+    side: 'old' | 'new';
+    lineNumber: number;
+  } | null>(null);
 
-  const handleAddComment = (lineNumber: LineNumber) => {
-    if (commentingLine === lineNumber) {
+  // Global mouse up handler for drag selection
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+        setStartLine(null);
+        setEndLine(null);
+      };
+
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+    return undefined;
+  }, [isDragging]);
+
+  const handleAddComment = (side: 'old' | 'new', lineNumber: LineNumber) => {
+    if (commentingLine?.side === side && commentingLine?.lineNumber === lineNumber) {
       setCommentingLine(null);
     } else {
-      setCommentingLine(lineNumber);
+      setCommentingLine({ side, lineNumber });
     }
   };
 
@@ -55,7 +84,7 @@ export function SideBySideDiffChunk({
 
   const handleSubmitComment = async (body: string) => {
     if (commentingLine !== null) {
-      await onAddComment(commentingLine, body);
+      await onAddComment(commentingLine.lineNumber, body);
       setCommentingLine(null);
     }
   };
@@ -84,26 +113,42 @@ export function SideBySideDiffChunk({
   };
 
   const getSelectedLineStyle = (side: 'old' | 'new', sideLine: SideBySideLine): string => {
-    if (!commentingLine) {
+    const lineNumber = side === 'old' ? sideLine.oldLineNumber : sideLine.newLineNumber;
+    if (!lineNumber) {
       return '';
     }
 
-    const start = Array.isArray(commentingLine) ? commentingLine[0] : commentingLine;
-    const end = Array.isArray(commentingLine) ? commentingLine[1] : commentingLine;
+    // Show selection during drag
+    if (isDragging && startLine && endLine && startLine.side === side && endLine.side === side) {
+      const min = Math.min(startLine.lineNumber, endLine.lineNumber);
+      const max = Math.max(startLine.lineNumber, endLine.lineNumber);
+      if (lineNumber >= min && lineNumber <= max) {
+        let classes =
+          'after:bg-blue-100 after:absolute after:inset-0 after:opacity-30 after:border-l-4 after:border-blue-500';
+        // Add top border for first line
+        if (lineNumber === min) {
+          classes += ' after:border-t-2';
+        }
+        // Add bottom border for last line
+        if (lineNumber === max) {
+          classes += ' after:border-b-2';
+        }
+        return classes;
+      }
+    }
 
-    if (
-      (side === 'old' &&
-        sideLine.oldLine?.type === 'delete' &&
-        sideLine.oldLineNumber &&
-        sideLine.oldLineNumber >= start &&
-        sideLine.oldLineNumber <= end) ||
-      (side === 'new' &&
-        sideLine.newLine?.type === 'add' &&
-        sideLine.newLineNumber &&
-        sideLine.newLineNumber >= start &&
-        sideLine.newLineNumber <= end)
-    ) {
-      return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border';
+    // Show selection for existing comment
+    if (commentingLine && commentingLine.side === side) {
+      const lineNumberRange =
+        Array.isArray(commentingLine.lineNumber) ?
+          commentingLine.lineNumber
+        : [commentingLine.lineNumber, commentingLine.lineNumber];
+      const start = lineNumberRange[0];
+      const end = lineNumberRange[1];
+
+      if (start !== undefined && end !== undefined && lineNumber >= start && lineNumber <= end) {
+        return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border';
+      }
     }
 
     return '';
@@ -199,50 +244,149 @@ export function SideBySideDiffChunk({
 
             return (
               <React.Fragment key={index}>
-                <tr className="group">
+                <tr
+                  className="group"
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    const isInOldSide =
+                      target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                    const isInNewSide =
+                      target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                    if (
+                      isInOldSide &&
+                      sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete'
+                    ) {
+                      setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                    } else if (
+                      isInNewSide &&
+                      sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
+                    ) {
+                      setHoveredLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    const target = e.target as HTMLElement;
+                    const isInOldSide =
+                      target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                    const isInNewSide =
+                      target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                    // Update hover state based on mouse position
+                    if (
+                      isInOldSide &&
+                      sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete'
+                    ) {
+                      if (
+                        hoveredLine?.side !== 'old' ||
+                        hoveredLine?.lineNumber !== sideLine.oldLineNumber
+                      ) {
+                        setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                      }
+                    } else if (
+                      isInNewSide &&
+                      sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
+                    ) {
+                      if (
+                        hoveredLine?.side !== 'new' ||
+                        hoveredLine?.lineNumber !== sideLine.newLineNumber
+                      ) {
+                        setHoveredLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                      }
+                    }
+
+                    // Handle dragging
+                    if (isDragging && startLine) {
+                      if (startLine.side === 'old' && sideLine.oldLineNumber) {
+                        setEndLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                      } else if (startLine.side === 'new' && sideLine.newLineNumber) {
+                        setEndLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                      }
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredLine(null)}
+                >
                   {/* Old side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
-                    {sideLine.oldLineNumber || ''}
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                    <span className="pr-5">{sideLine.oldLineNumber || ''}</span>
+                    {hoveredLine?.side === 'old' &&
+                      hoveredLine?.lineNumber === sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete' && (
+                        <button
+                          className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded transition-all duration-150 hover:scale-110 z-10"
+                          style={{
+                            backgroundColor: 'var(--color-yellow-btn-bg)',
+                            color: 'var(--color-yellow-btn-text)',
+                            border: '1px solid var(--color-yellow-btn-border)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--color-yellow-btn-hover-bg)';
+                            e.currentTarget.style.borderColor =
+                              'var(--color-yellow-btn-hover-border)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                          }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (sideLine.oldLineNumber) {
+                              setStartLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                              setEndLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                              setIsDragging(true);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            e.stopPropagation();
+                            if (!sideLine.oldLineNumber || !startLine) {
+                              setIsDragging(false);
+                              setStartLine(null);
+                              setEndLine(null);
+                              return;
+                            }
+
+                            const actualEndLine =
+                              endLine && endLine.side === 'old' ?
+                                endLine.lineNumber
+                              : sideLine.oldLineNumber;
+                            if (
+                              startLine.side !== 'old' ||
+                              startLine.lineNumber === actualEndLine
+                            ) {
+                              handleAddComment('old', sideLine.oldLineNumber);
+                            } else {
+                              const min = Math.min(startLine.lineNumber, actualEndLine);
+                              const max = Math.max(startLine.lineNumber, actualEndLine);
+                              handleAddComment('old', [min, max]);
+                            }
+
+                            setIsDragging(false);
+                            setStartLine(null);
+                            setEndLine(null);
+                          }}
+                          title="Add a comment"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                      )}
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top border-r border-github-border relative ${
-                      sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg cursor-pointer'
+                      sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg'
                       : sideLine.oldLine?.type === 'normal' ? 'bg-transparent'
                       : 'bg-github-bg-secondary'
                     } ${getSelectedLineStyle('old', sideLine)}`}
-                    onMouseDown={() =>
-                      sideLine.oldLine?.type === 'delete' &&
-                      sideLine.oldLineNumber &&
-                      setStartLine(sideLine.oldLineNumber)
-                    }
-                    onMouseUp={() => {
-                      if (
-                        sideLine.oldLine?.type !== 'delete' ||
-                        sideLine.oldLineNumber === undefined
-                      ) {
-                        return;
-                      }
-
-                      if (!startLine || startLine === sideLine.oldLineNumber) {
-                        handleAddComment(sideLine.oldLineNumber);
-                        setStartLine(null);
-                        return;
-                      }
-
-                      handleAddComment([startLine, sideLine.oldLineNumber]);
-                      setStartLine(null);
-                    }}
-                    title={
-                      sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber ?
-                        'Click to add comment'
-                      : ''
-                    }
                   >
                     {sideLine.oldLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.oldLine.content}
-                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
                         />
                       </div>
@@ -250,51 +394,82 @@ export function SideBySideDiffChunk({
                   </td>
 
                   {/* New side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
-                    {sideLine.newLineNumber || ''}
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                    <span className="pr-5">{sideLine.newLineNumber || ''}</span>
+                    {hoveredLine?.side === 'new' &&
+                      hoveredLine?.lineNumber === sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') && (
+                        <button
+                          className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded transition-all duration-150 hover:scale-110 z-10"
+                          style={{
+                            backgroundColor: 'var(--color-yellow-btn-bg)',
+                            color: 'var(--color-yellow-btn-text)',
+                            border: '1px solid var(--color-yellow-btn-border)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--color-yellow-btn-hover-bg)';
+                            e.currentTarget.style.borderColor =
+                              'var(--color-yellow-btn-hover-border)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                          }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (sideLine.newLineNumber) {
+                              setStartLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                              setEndLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                              setIsDragging(true);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            e.stopPropagation();
+                            if (!sideLine.newLineNumber || !startLine) {
+                              setIsDragging(false);
+                              setStartLine(null);
+                              setEndLine(null);
+                              return;
+                            }
+
+                            const actualEndLine =
+                              endLine && endLine.side === 'new' ?
+                                endLine.lineNumber
+                              : sideLine.newLineNumber;
+                            if (
+                              startLine.side !== 'new' ||
+                              startLine.lineNumber === actualEndLine
+                            ) {
+                              handleAddComment('new', sideLine.newLineNumber);
+                            } else {
+                              const min = Math.min(startLine.lineNumber, actualEndLine);
+                              const max = Math.max(startLine.lineNumber, actualEndLine);
+                              handleAddComment('new', [min, max]);
+                            }
+
+                            setIsDragging(false);
+                            setStartLine(null);
+                            setEndLine(null);
+                          }}
+                          title="Add a comment"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                      )}
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top relative ${
-                      sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg cursor-pointer'
-                      : sideLine.newLine?.type === 'normal' ? 'bg-transparent cursor-pointer'
+                      sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg'
+                      : sideLine.newLine?.type === 'normal' ? 'bg-transparent'
                       : 'bg-github-bg-secondary'
                     } ${getSelectedLineStyle('new', sideLine)}`}
-                    onMouseDown={() =>
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
-                      sideLine.newLineNumber &&
-                      setStartLine(sideLine.newLineNumber)
-                    }
-                    onMouseUp={() => {
-                      if (
-                        (sideLine.newLine?.type !== 'add' && sideLine.newLine?.type !== 'normal') ||
-                        sideLine.newLineNumber === undefined
-                      ) {
-                        return;
-                      }
-
-                      if (!startLine || startLine === sideLine.newLineNumber) {
-                        handleAddComment(sideLine.newLineNumber);
-                        setStartLine(null);
-                        return;
-                      }
-
-                      handleAddComment([startLine, sideLine.newLineNumber]);
-                      setStartLine(null);
-                    }}
-                    title={
-                      (
-                        (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
-                        sideLine.newLineNumber
-                      ) ?
-                        'Click to add comment'
-                      : ''
-                    }
                   >
                     {sideLine.newLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.newLine.content}
-                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
                         />
                       </div>
@@ -334,13 +509,17 @@ export function SideBySideDiffChunk({
 
                 {/* Comment form row */}
                 {commentingLine &&
-                  ((commentingLine === sideLine.oldLineNumber &&
+                  ((commentingLine.side === 'old' &&
+                    commentingLine.lineNumber === sideLine.oldLineNumber &&
                     sideLine.oldLine?.type === 'delete') ||
-                    (commentingLine === sideLine.newLineNumber &&
+                    (commentingLine.side === 'new' &&
+                      commentingLine.lineNumber === sideLine.newLineNumber &&
                       (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')) ||
-                    (Array.isArray(commentingLine) &&
-                      (commentingLine[1] === sideLine.newLineNumber ||
-                        commentingLine[1] === sideLine.oldLineNumber))) && (
+                    (Array.isArray(commentingLine.lineNumber) &&
+                      ((commentingLine.side === 'new' &&
+                        commentingLine.lineNumber[1] === sideLine.newLineNumber) ||
+                        (commentingLine.side === 'old' &&
+                          commentingLine.lineNumber[1] === sideLine.oldLineNumber)))) && (
                     <tr className="bg-github-bg-secondary">
                       <td colSpan={4} className="p-0 border-t border-github-border">
                         <div
