@@ -126,7 +126,7 @@ export function SideBySideDiffChunk({
       const max = Math.max(startLine.lineNumber, endLine.lineNumber);
       if (lineNumber >= min && lineNumber <= max) {
         let classes =
-          'after:bg-blue-100 after:absolute after:inset-0 after:opacity-30 after:border-l-4 after:border-blue-500';
+          'after:bg-blue-100 after:absolute after:inset-0 after:opacity-30 after:border-l-4 after:border-blue-500 after:pointer-events-none';
         // Add top border for first line
         if (lineNumber === min) {
           classes += ' after:border-t-2';
@@ -149,7 +149,7 @@ export function SideBySideDiffChunk({
       const end = lineNumberRange[1];
 
       if (start !== undefined && end !== undefined && lineNumber >= start && lineNumber <= end) {
-        return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border';
+        return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border after:pointer-events-none';
       }
     }
 
