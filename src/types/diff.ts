@@ -39,12 +39,18 @@ export interface DiffResponse {
   commit: string;
   files: (DiffFile | NotebookDiffFile)[];
   ignoreWhitespace?: boolean;
+  isEmpty?: boolean;
+  mode?: string;
+  baseCommitish?: string;
+  targetCommitish?: string;
 }
+
+export type LineNumber = number | [number, number];
 
 export interface Comment {
   id: string;
   file: string;
-  line: number;
+  line: LineNumber;
   body: string;
   timestamp: string;
   codeContent?: string; // The actual code content for this line
@@ -144,4 +150,9 @@ export interface NotebookDiffFile {
 
 export interface NotebookDiff {
   files: NotebookDiffFile[];
+}
+
+export interface LineSelection {
+  side: 'old' | 'new';
+  lineNumber: number;
 }

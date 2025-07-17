@@ -1,4 +1,10 @@
-import { simpleGit, type SimpleGit } from 'simple-git';
+import {
+  simpleGit,
+  type SimpleGit,
+  type DiffResult,
+  type DiffResultTextFile,
+  type DiffResultBinaryFile,
+} from 'simple-git';
 
 import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
 import {
@@ -62,6 +68,10 @@ export class GitDiffParser {
         diffArgs.push('-w');
       }
 
+      // Ignore external diff-tools to unify output.
+      // https://github.com/yoshiko-pg/difit/issues/19
+      diffArgs.push('--no-ext-diff', '--color=never');
+
       // Add --color=never to ensure plain text output without ANSI escape sequences
       const diffSummary = await this.git.diffSummary(diffArgs);
       const diffRaw = await this.git.diff(['--color=never', ...diffArgs]);
@@ -76,6 +86,7 @@ export class GitDiffParser {
       return {
         commit: resolvedCommit,
         files,
+        isEmpty: files.length === 0,
       };
     } catch (error) {
       throw new Error(
@@ -86,7 +97,7 @@ export class GitDiffParser {
 
   private async parseUnifiedDiff(
     diffText: string,
-    summary: any[],
+    summary: DiffResult['files'],
     targetCommitish: string,
     baseCommitish: string
   ): Promise<(DiffFile | NotebookDiffFile)[]> {
@@ -130,11 +141,14 @@ export class GitDiffParser {
     return files;
   }
 
-  private parseFileBlock(block: string, summary: any): DiffFile | null {
+  private parseFileBlock(
+    block: string,
+    summary: DiffResultTextFile | DiffResultBinaryFile
+  ): DiffFile | null {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
-    const pathMatch = headerLine.match(/^diff --git [a-z]\/(.+) [a-z]\/(.+)$/);
+    const pathMatch = headerLine.match(/^diff --git (?:[a-z]\/)?(.+) (?:[a-z]\/)?(.+)$/);
     if (!pathMatch) return null;
 
     const oldPath = pathMatch[1];
@@ -142,26 +156,48 @@ export class GitDiffParser {
     const path = newPath;
 
     let status: DiffFile['status'] = 'modified';
-    if (summary.binary) return null;
 
-    if (oldPath !== newPath) {
-      status = 'renamed';
-    } else if (summary.insertions && !summary.deletions) {
+    // Check for new file mode (added files)
+    const newFileMode = lines.find((line) => line.startsWith('new file mode'));
+    const deletedFileMode = lines.find((line) => line.startsWith('deleted file mode'));
+
+    // Check for /dev/null which indicates added or deleted files
+    const minusLine = lines.find((line) => line.startsWith('--- '));
+    const plusLine = lines.find((line) => line.startsWith('+++ '));
+
+    if (newFileMode || minusLine?.includes('/dev/null')) {
       status = 'added';
-    } else if (summary.deletions && !summary.insertions) {
+    } else if (deletedFileMode || plusLine?.includes('/dev/null')) {
       status = 'deleted';
+    } else if (oldPath !== newPath) {
+      status = 'renamed';
     }
 
-    const chunks = this.parseChunks(lines);
-
-    return {
+    // Common properties for all files
+    const baseFile = {
       path,
       oldPath: oldPath !== newPath ? oldPath : undefined,
       status,
-      additions: summary.insertions || 0,
-      deletions: summary.deletions || 0,
-      chunks,
     };
+
+    // Handle different summary types
+    if ('binary' in summary && summary.binary) {
+      // Binary file
+      return {
+        ...baseFile,
+        additions: 0,
+        deletions: 0,
+        chunks: [], // No chunks for binary files
+      };
+    } else {
+      // Text file
+      return {
+        ...baseFile,
+        additions: summary.insertions,
+        deletions: summary.deletions,
+        chunks: this.parseChunks(lines),
+      };
+    }
   }
 
   private parseChunks(lines: string[]): DiffChunk[] {
@@ -199,7 +235,10 @@ export class GitDiffParser {
         currentChunk &&
         (line.startsWith('+') || line.startsWith('-') || line.startsWith(' '))
       ) {
-        const type = line.startsWith('+') ? 'add' : line.startsWith('-') ? 'delete' : 'normal';
+        const type =
+          line.startsWith('+') ? 'add'
+          : line.startsWith('-') ? 'delete'
+          : 'normal';
 
         const diffLine: DiffLine = {
           type,
@@ -233,6 +272,57 @@ export class GitDiffParser {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async getBlobContent(filepath: string, ref: string): Promise<Buffer> {
+    try {
+      // For working directory, read directly from filesystem
+      if (ref === 'working' || ref === '.') {
+        const fs = await import('fs');
+        return fs.readFileSync(filepath);
+      }
+
+      // For git refs, we need to use child_process to execute git cat-file
+      // to properly handle binary data
+      const { execFileSync } = await import('child_process');
+
+      // Handle staged files
+      if (ref === 'staged') {
+        // For staged files, use git show :filepath
+        // Using execFileSync to prevent command injection
+        const buffer = execFileSync('git', ['show', `:${filepath}`], {
+          maxBuffer: 10 * 1024 * 1024, // 10MB limit
+        });
+        return buffer;
+      }
+
+      // First, get the blob hash for the file at the given ref
+      // Using execFileSync to prevent command injection
+      const blobHash = execFileSync('git', ['rev-parse', `${ref}:${filepath}`], {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      }).trim();
+
+      // Then use git cat-file to get the raw binary content
+      // Increase maxBuffer to handle large files (default is 1024*1024 = 1MB)
+      const buffer = execFileSync('git', ['cat-file', 'blob', blobHash], {
+        maxBuffer: 10 * 1024 * 1024, // 10MB limit
+      });
+
+      return buffer;
+    } catch (error) {
+      // Check if it's a buffer size error
+      if (
+        error instanceof Error &&
+        (error.message.includes('ENOBUFS') || error.message.includes('maxBuffer'))
+      ) {
+        throw new Error(`Image file ${filepath} is too large to display (over 10MB limit)`);
+      }
+
+      throw new Error(
+        `Failed to get blob content for ${filepath} at ${ref}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 }

@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 
-import { type Comment } from '../../types/diff';
+import { type Comment, type LineNumber } from '../../types/diff';
 
 export function useLocalComments(commitHash?: string) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const storageKey = commitHash ? `reviewit-comments-${commitHash}` : 'reviewit-comments';
+  const storageKey = commitHash ? `difit-comments-${commitHash}` : 'difit-comments';
 
   // Load comments from localStorage on mount
   useEffect(() => {
     const savedComments = localStorage.getItem(storageKey);
     if (savedComments) {
       try {
-        setComments(JSON.parse(savedComments));
+        setComments(JSON.parse(savedComments) as Comment[]);
       } catch (error) {
         console.error('Failed to parse saved comments:', error);
       }
@@ -23,10 +23,15 @@ export function useLocalComments(commitHash?: string) {
     localStorage.setItem(storageKey, JSON.stringify(comments));
   }, [comments, storageKey]);
 
-  const addComment = (file: string, line: number, body: string, codeContent?: string): Comment => {
+  const addComment = (
+    file: string,
+    line: LineNumber,
+    body: string,
+    codeContent?: string
+  ): Comment => {
     console.log('Adding comment with codeContent:', codeContent);
     const comment: Comment = {
-      id: `${file}:${line}:${Date.now()}`,
+      id: `${file}:${Array.isArray(line) ? `${line[0]}-${line[1]}` : line}:${Date.now()}`,
       file,
       line,
       body,
@@ -52,7 +57,11 @@ export function useLocalComments(commitHash?: string) {
   };
 
   const generatePrompt = (comment: Comment): string => {
-    return `${comment.file}:${comment.line}\n${comment.body}`;
+    if (Array.isArray(comment.line)) {
+      return `${comment.file}:L${comment.line[0]}-L${comment.line[1]}\n${comment.body}`;
+    }
+
+    return `${comment.file}:L${comment.line}\n${comment.body}`;
   };
 
   const generateAllCommentsPrompt = (): string => {
@@ -60,9 +69,7 @@ export function useLocalComments(commitHash?: string) {
       return 'No comments available.';
     }
 
-    const prompts = comments.map((comment) => {
-      return `${comment.file}:${comment.line}\n${comment.body}`;
-    });
+    const prompts = comments.map(generatePrompt);
 
     return prompts.join('\n=====\n');
   };

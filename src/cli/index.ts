@@ -2,11 +2,18 @@
 
 import { Command } from 'commander';
 import React from 'react';
+import { simpleGit, type SimpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
 
-import { validateDiffArguments, resolvePrCommits } from './utils.js';
+import {
+  findUntrackedFiles,
+  markFilesIntentToAdd,
+  promptUser,
+  validateDiffArguments,
+  resolvePrCommits,
+} from './utils.js';
 
 type SpecialArg = 'working' | 'staged' | '.';
 
@@ -16,6 +23,7 @@ function isSpecialArg(arg: string): arg is SpecialArg {
 
 interface CliOptions {
   port?: number;
+  host?: string;
   open: boolean;
   mode: string;
   tui?: boolean;
@@ -25,12 +33,12 @@ interface CliOptions {
 const program = new Command();
 
 program
-  .name('reviewit')
+  .name('difit')
   .description('A lightweight Git diff viewer with GitHub-like interface')
   .version(pkg.version)
   .argument(
     '[commit-ish]',
-    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"." (default: HEAD)',
+    'Git commit, tag, branch, HEAD~n reference, or "working"/"staged"/"."',
     'HEAD'
   )
   .argument(
@@ -38,8 +46,9 @@ program
     'Optional: Compare with this commit/branch (shows diff between commit-ish and compare-with)'
   )
   .option('--port <port>', 'preferred port (auto-assigned if occupied)', parseInt)
+  .option('--host <host>', 'host address to bind', '')
   .option('--no-open', 'do not automatically open browser')
-  .option('--mode <mode>', 'diff mode (inline only for now)', 'inline')
+  .option('--mode <mode>', 'diff mode (side-by-side or inline)', 'side-by-side')
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
@@ -84,6 +93,11 @@ program
         }
       }
 
+      if (commitish === 'working' || commitish === '.') {
+        const git = simpleGit();
+        await handleUntrackedFiles(git);
+      }
+
       if (options.tui) {
         // Check if we're in a TTY environment
         if (!process.stdin.isTTY) {
@@ -96,7 +110,7 @@ program
         const { render } = await import('ink');
         const { default: TuiApp } = await import('../tui/App.js');
 
-        render(React.createElement(TuiApp, { targetCommitish, baseCommitish }));
+        render(React.createElement(TuiApp, { targetCommitish, baseCommitish, mode: options.mode }));
         return;
       }
 
@@ -109,25 +123,31 @@ program
         }
       }
 
-      const { url, port } = await startServer({
+      const { url, port, isEmpty } = await startServer({
         targetCommitish,
         baseCommitish,
         preferredPort: options.port,
+        host: options.host,
         openBrowser: options.open,
         mode: options.mode,
       });
 
-      console.log(`\n🚀 ReviewIt server started on ${url}`);
+      console.log(`\n🚀 difit server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
 
-      if (options.open) {
+      if (isEmpty) {
+        console.log(
+          '\n! \x1b[33mNo differences found. Browser will not open automatically.\x1b[0m'
+        );
+        console.log(`   Server is running at ${url} if you want to check manually.\n`);
+      } else if (options.open) {
         console.log('🌐 Opening browser...\n');
       } else {
         console.log('💡 Use --open to automatically open browser\n');
       }
 
       process.on('SIGINT', async () => {
-        console.log('\n👋 Shutting down ReviewIt server...');
+        console.log('\n👋 Shutting down difit server...');
 
         // Try to fetch comments before shutting down
         try {
@@ -151,3 +171,32 @@ program
   });
 
 program.parse();
+
+// Check for untracked files and prompt user to add them for diff visibility
+async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
+  const files = await findUntrackedFiles(git);
+  if (files.length === 0) {
+    return;
+  }
+
+  const userConsent = await promptUserToIncludeUntracked(files);
+  if (userConsent) {
+    await markFilesIntentToAdd(git, files);
+    console.log('✅ Files added with --intent-to-add');
+    const filesAsArgs = files.join(' ');
+    console.log(`   💡 To undo this, run \`git reset -- ${filesAsArgs}\``);
+  } else {
+    console.log('i Untracked files will not be shown in diff');
+  }
+}
+
+async function promptUserToIncludeUntracked(files: string[]): Promise<boolean> {
+  console.log(`\n📝 Found ${files.length} untracked file(s):`);
+  for (const file of files) {
+    console.log(`    - ${file}`);
+  }
+
+  return await promptUser(
+    '\n❓ Would you like to include these untracked files in the diff review? (Y/n): '
+  );
+}

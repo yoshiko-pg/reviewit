@@ -1,10 +1,10 @@
-import React from 'react';
 import { Box, Text } from 'ink';
+import React from 'react';
 
 interface StatusBarProps {
   commitish: string;
   totalFiles: number;
-  currentMode: 'list' | 'diff' | 'side-by-side';
+  currentMode: 'list' | 'inline' | 'side-by-side';
 }
 
 const StatusBar: React.FC<StatusBarProps> = ({ commitish, totalFiles, currentMode }) => {
@@ -12,7 +12,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ commitish, totalFiles, currentMod
     <Box borderStyle="round" paddingX={1} marginBottom={1}>
       <Box flexGrow={1}>
         <Text bold color="cyan">
-          📋 ReviewIt TUI
+          📋 difit TUI
         </Text>
         <Text> | </Text>
         <Text color="yellow">{commitish}</Text>
@@ -22,11 +22,11 @@ const StatusBar: React.FC<StatusBarProps> = ({ commitish, totalFiles, currentMod
       <Box>
         <Text dimColor>
           [
-          {currentMode === 'list'
-            ? 'File List'
-            : currentMode === 'side-by-side'
-              ? 'Side-by-Side'
-              : 'Unified Diff'}
+          {currentMode === 'list' ?
+            'File List'
+          : currentMode === 'side-by-side' ?
+            'Side-by-Side'
+          : 'Inline Diff'}
           ]
         </Text>
       </Box>

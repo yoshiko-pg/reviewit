@@ -1,3 +1,9 @@
+import { execSync } from 'child_process';
+import { createInterface } from 'readline/promises';
+
+import { Octokit } from '@octokit/rest';
+import type { SimpleGit } from 'simple-git';
+
 export function validateCommitish(commitish: string): boolean {
   if (!commitish || typeof commitish !== 'string') {
     return false;
@@ -21,19 +27,46 @@ export function validateCommitish(commitish: string): boolean {
     /^[a-f0-9]{4,40}\^+$/i, // SHA hashes with ^ suffix (parent references)
     /^[a-f0-9]{4,40}~\d+$/i, // SHA hashes with ~N suffix (ancestor references)
     /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.
-    /^[a-zA-Z][a-zA-Z0-9_\-/.]*$/, // branch names, tags (must start with letter, no ^ or ~ in middle)
   ];
 
-  return validPatterns.some((pattern) => pattern.test(trimmed));
+  // Check if it matches any specific patterns first
+  if (validPatterns.some((pattern) => pattern.test(trimmed))) {
+    return true;
+  }
+
+  // For branch names, use git's rules
+  return isValidBranchName(trimmed);
+}
+
+function isValidBranchName(name: string): boolean {
+  // Git branch name rules
+  if (name.startsWith('-')) return false; // Cannot start with dash
+  if (name.endsWith('.')) return false; // Cannot end with dot
+  if (name === '@') return false; // Cannot be just @
+  if (name.includes('..')) return false; // No consecutive dots
+  if (name.includes('@{')) return false; // No @{ sequence
+  if (name.includes('//')) return false; // No consecutive slashes
+  if (name.startsWith('/') || name.endsWith('/')) return false; // No leading/trailing slashes
+  if (name.endsWith('.lock')) return false; // Cannot end with .lock
+
+  // Check for forbidden characters
+  const forbiddenChars = /[~^:?*[\\\x00-\x20\x7F]/;
+  if (forbiddenChars.test(name)) return false;
+
+  // Check path components
+  const components = name.split('/');
+  for (const component of components) {
+    if (component === '') return false; // Empty component
+    if (component.startsWith('.')) return false; // Component cannot start with dot
+    if (component.endsWith('.lock')) return false; // Component cannot end with .lock
+  }
+
+  return true;
 }
 
 export function shortHash(hash: string): string {
   return hash.substring(0, 7);
 }
-
-import { execSync } from 'child_process';
-
-import { Octokit } from '@octokit/rest';
 
 export function createCommitRangeString(baseHash: string, targetHash: string): string {
   return `${baseHash}...${targetHash}`;
@@ -118,9 +151,8 @@ export async function fetchPrDetails(prInfo: PullRequestInfo): Promise<PullReque
     };
   } catch (error) {
     if (error instanceof Error) {
-      const authHint = token
-        ? ''
-        : ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
+      const authHint =
+        token ? '' : ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
       throw new Error(`Failed to fetch PR details: ${error.message}${authHint}`);
     }
     throw new Error('Failed to fetch PR details: Unknown error');
@@ -222,4 +254,28 @@ export function validateDiffArguments(
   }
 
   return { valid: true };
+}
+
+export async function findUntrackedFiles(git: SimpleGit): Promise<string[]> {
+  const status = await git.status();
+  return status.not_added;
+}
+
+// Add files with --intent-to-add to make them visible in `git diff` without staging content
+export async function markFilesIntentToAdd(git: SimpleGit, files: string[]): Promise<void> {
+  await git.add(['--intent-to-add', ...files]);
+}
+
+export async function promptUser(message: string): Promise<boolean> {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const answer = await rl.question(message);
+  rl.close();
+
+  // Empty string (Enter) or 'y', 'yes' return true
+  const trimmed = answer.trim().toLowerCase();
+  return trimmed === '' || ['y', 'yes'].includes(trimmed);
 }

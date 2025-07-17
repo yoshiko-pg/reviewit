@@ -17,6 +17,12 @@
   --color-diff-deletion-bg: #67060c;
   --color-diff-deletion-border: #da3633;
   --color-diff-neutral-bg: #21262d;
+  --color-diff-selected-bg: #ae7c1426;
+  --color-diff-selected-border: #ae7c1466;
+
+  --color-comment-bg: #1c2128;
+  --color-comment-border: #373e47;
+  --color-comment-text: #e6edf3;
 }
 
 /* CSS Custom Properties for dynamic theming */
@@ -34,6 +40,11 @@ body {
   font-family: var(--app-font-family);
   line-height: 1.5;
   font-size: var(--app-font-size);
+}
+
+/* Enable smooth transition from fixed width to auto (Chrome/Edge 129+ only) */
+:root {
+  interpolate-size: allow-keywords;
 }
 
 button {

@@ -1,11 +1,13 @@
-import { ClipboardList, Columns, AlignLeft, Copy, Settings } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 
-import { type DiffResponse } from '../types/diff';
+import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
+import { GitHubIcon } from './components/GitHubIcon';
+import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useLocalComments } from './hooks/useLocalComments';
@@ -20,6 +22,8 @@ function App() {
   const [isCopiedAll, setIsCopiedAll] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 320px default width
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -34,6 +38,7 @@ function App() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsDragging(true);
     const startX = e.clientX;
     const startWidth = sidebarWidth;
 
@@ -43,6 +48,7 @@ function App() {
     };
 
     const handleMouseUp = () => {
+      setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -51,9 +57,54 @@ function App() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Check if file is a lock file that should be collapsed by default
+  const isLockFile = (filePath: string): boolean => {
+    const lockFiles = [
+      'pnpm-lock.yaml',
+      'package-lock.json',
+      'yarn.lock',
+      'Cargo.lock',
+      'Gemfile.lock',
+      'composer.lock',
+      'Pipfile.lock',
+      'poetry.lock',
+      'go.sum',
+      'mix.lock',
+    ];
+    const fileName = filePath.split('/').pop() || '';
+    return lockFiles.includes(fileName);
+  };
+
+  const fetchDiffData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
+      if (!response.ok) throw new Error('Failed to fetch diff data');
+      const data = (await response.json()) as DiffResponse;
+      setDiffData(data);
+
+      // Set diff mode from server response if provided
+      if (data.mode) {
+        setDiffMode(data.mode as 'side-by-side' | 'inline');
+      }
+
+      // Auto-collapse lock files
+      const lockFilesToCollapse = data.files
+        .filter((file) => isLockFile(file.path))
+        .map((file) => file.path);
+
+      if (lockFilesToCollapse.length > 0) {
+        setReviewedFiles((prev) => new Set([...prev, ...lockFilesToCollapse]));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }, [ignoreWhitespace]);
+
   useEffect(() => {
     void fetchDiffData();
-  }, [ignoreWhitespace]);
+  }, [fetchDiffData]);
 
   // Send comments to server before page unload
   useEffect(() => {
@@ -93,49 +144,9 @@ function App() {
     };
   }, []);
 
-  // Check if file is a lock file that should be collapsed by default
-  const isLockFile = (filePath: string): boolean => {
-    const lockFiles = [
-      'pnpm-lock.yaml',
-      'package-lock.json',
-      'yarn.lock',
-      'Cargo.lock',
-      'Gemfile.lock',
-      'composer.lock',
-      'Pipfile.lock',
-      'poetry.lock',
-      'go.sum',
-      'mix.lock',
-    ];
-    const fileName = filePath.split('/').pop() || '';
-    return lockFiles.includes(fileName);
-  };
-
-  const fetchDiffData = async () => {
-    try {
-      const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
-      if (!response.ok) throw new Error('Failed to fetch diff data');
-      const data = await response.json();
-      setDiffData(data);
-
-      // Auto-collapse lock files
-      const lockFilesToCollapse = data.files
-        .filter((file: any) => isLockFile(file.path))
-        .map((file: any) => file.path);
-
-      if (lockFilesToCollapse.length > 0) {
-        setReviewedFiles((prev) => new Set([...prev, ...lockFilesToCollapse]));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddComment = (
     file: string,
-    line: number,
+    line: LineNumber,
     body: string,
     codeContent?: string
   ): Promise<void> => {
@@ -205,28 +216,56 @@ function App() {
     <div className="h-screen flex flex-col">
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
-          className="px-4 py-3 border-r border-github-border"
+          className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
+            width: isFileTreeOpen ? `${sidebarWidth}px` : 'auto',
+            minWidth: isFileTreeOpen ? '200px' : 'auto',
+            maxWidth: isFileTreeOpen ? '600px' : 'auto',
           }}
         >
-          <h1 className="text-lg font-semibold text-github-text-primary m-0 flex items-center gap-2">
-            <ClipboardList size={20} />
-            ReviewIt
+          <h1>
+            <Logo style={{ height: '18px', color: 'var(--color-github-text-secondary)' }} />
           </h1>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsFileTreeOpen(!isFileTreeOpen)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title={isFileTreeOpen ? 'Collapse file tree' : 'Expand file tree'}
+              aria-expanded={isFileTreeOpen}
+              aria-controls="file-tree-panel"
+              aria-label="Toggle file tree panel"
+            >
+              {isFileTreeOpen ?
+                <PanelLeftClose size={18} />
+              : <PanelLeft size={18} />}
+            </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
+              title="Appearance Settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         </div>
-        <div className="w-1" />
+        <div
+          className={`border-r border-github-border ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+            height: 'calc(100% - 16px)',
+            margin: '8px 0',
+            transform: 'translateX(-2px)',
+          }}
+        />
         <div className="flex-1 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex bg-github-bg-tertiary border border-github-border rounded-md p-1">
               <button
                 onClick={() => setDiffMode('side-by-side')}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'side-by-side'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
+                  diffMode === 'side-by-side' ?
+                    'bg-github-bg-primary text-github-text-primary shadow-sm'
+                  : 'text-github-text-secondary hover:text-github-text-primary'
                 }`}
               >
                 <Columns size={14} />
@@ -235,9 +274,9 @@ function App() {
               <button
                 onClick={() => setDiffMode('inline')}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                  diffMode === 'inline'
-                    ? 'bg-github-bg-primary text-github-text-primary shadow-sm'
-                    : 'text-github-text-secondary hover:text-github-text-primary'
+                  diffMode === 'inline' ?
+                    'bg-github-bg-primary text-github-text-primary shadow-sm'
+                  : 'text-github-text-secondary hover:text-github-text-primary'
                 }`}
               >
                 <AlignLeft size={14} />
@@ -250,38 +289,71 @@ function App() {
               label="Ignore Whitespace"
               title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
             />
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-github-text-secondary hover:text-github-text-primary hover:bg-github-bg-tertiary rounded transition-colors"
-              title="Appearance Settings"
-            >
-              <Settings size={16} />
-            </button>
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
               <button
                 onClick={handleCopyAllComments}
-                className="text-xs px-3 py-1.5 bg-yellow-900/20 text-yellow-200 border border-yellow-600/50 rounded hover:bg-yellow-800/30 hover:border-yellow-500 transition-all whitespace-nowrap flex items-center gap-1.5"
-                title={`Copy all ${comments.length} comments to Claude Code`}
+                className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
+                style={{
+                  backgroundColor: 'var(--color-yellow-btn-bg)',
+                  color: 'var(--color-yellow-btn-text)',
+                  border: '1px solid var(--color-yellow-btn-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                }}
+                title={`Copy all ${comments.length} comments to AI coding agent`}
               >
                 <Copy size={12} />
                 {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
               </button>
             )}
+            <div className="flex flex-col gap-1 items-center">
+              <div className="text-xs">
+                {reviewedFiles.size === diffData.files.length ?
+                  'All diffs difit-ed!'
+                : `${reviewedFiles.size} / ${diffData.files.length} files viewed`}
+              </div>
+              <div
+                className="relative h-2 bg-github-bg-tertiary rounded-full overflow-hidden"
+                style={{
+                  width: '90px',
+                  border: '1px solid var(--color-github-border)',
+                }}
+              >
+                <div
+                  className="absolute top-0 right-0 h-full transition-all duration-300 ease-out"
+                  style={{
+                    width: `${((diffData.files.length - reviewedFiles.size) / diffData.files.length) * 100}%`,
+                    backgroundColor: (() => {
+                      const remainingPercent =
+                        ((diffData.files.length - reviewedFiles.size) / diffData.files.length) *
+                        100;
+                      if (remainingPercent > 50) return 'var(--color-github-accent)'; // green
+                      if (remainingPercent > 20) return 'var(--color-github-warning)'; // yellow
+                      return 'var(--color-github-danger)'; // red
+                    })(),
+                  }}
+                />
+              </div>
+            </div>
             <span>
               Reviewing:{' '}
               <code className="bg-github-bg-tertiary px-1.5 py-0.5 rounded text-xs text-github-text-primary">
-                {diffData.commit.includes('...') ? (
+                {diffData.commit.includes('...') ?
                   <>
                     <span className="text-github-text-secondary font-medium">
                       {diffData.commit.split('...')[0]}...
                     </span>
                     <span className="font-medium">{diffData.commit.split('...')[1]}</span>
                   </>
-                ) : (
-                  diffData.commit
-                )}
+                : diffData.commit}
               </code>
             </span>
             <span>
@@ -293,32 +365,58 @@ function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside
-          className="bg-github-bg-secondary border-r border-github-border overflow-y-auto"
+        <div
+          className={`relative overflow-hidden ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
           style={{
-            width: `${sidebarWidth}px`,
-            minWidth: '200px',
-            maxWidth: '600px',
+            width: isFileTreeOpen ? `${sidebarWidth}px` : '0px',
           }}
         >
-          <FileList
-            files={diffData.files}
-            onScrollToFile={(filePath) => {
-              const element = document.getElementById(
-                `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-              );
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+          <aside
+            id="file-tree-panel"
+            className="bg-github-bg-secondary border-r border-github-border overflow-y-auto flex flex-col"
+            style={{
+              width: `${sidebarWidth}px`,
+              minWidth: '200px',
+              maxWidth: '600px',
+              height: '100%',
             }}
-            comments={comments}
-            reviewedFiles={reviewedFiles}
-            onToggleReviewed={toggleFileReviewed}
-          />
-        </aside>
+          >
+            <div className="flex-1 overflow-y-auto">
+              <FileList
+                files={diffData.files}
+                onScrollToFile={(filePath) => {
+                  const element = document.getElementById(
+                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
+                  );
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                comments={comments}
+                reviewedFiles={reviewedFiles}
+                onToggleReviewed={toggleFileReviewed}
+              />
+            </div>
+            <div className="p-4 border-t border-github-border flex justify-end">
+              <a
+                href="https://github.com/yoshiko-pg/difit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-github-text-secondary hover:text-github-text-primary transition-colors"
+                title="View on GitHub"
+              >
+                <span className="text-sm">Star on GitHub</span>
+                <GitHubIcon style={{ height: '18px', width: '18px' }} />
+              </a>
+            </div>
+          </aside>
+        </div>
 
         <div
-          className="w-1 bg-github-border hover:bg-github-text-muted cursor-col-resize transition-colors"
+          className={`bg-github-border hover:bg-github-text-muted cursor-col-resize ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
+          style={{
+            width: isFileTreeOpen ? '4px' : '0px',
+          }}
           onMouseDown={handleMouseDown}
           title="Drag to resize file list"
         />
@@ -341,6 +439,8 @@ function App() {
                 onRemoveComment={removeComment}
                 onUpdateComment={updateComment}
                 syntaxTheme={settings.syntaxTheme}
+                baseCommitish={diffData.baseCommitish}
+                targetCommitish={diffData.targetCommitish}
               />
             </div>
           ))}

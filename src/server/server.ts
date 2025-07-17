@@ -1,28 +1,37 @@
+import { type Server } from 'http';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import express from 'express';
+import express, { type Express } from 'express';
 import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import { getFileExtension } from '../utils/fileUtils.js';
+
 import { GitDiffParser } from './git-diff.js';
+
+import { type Comment, type DiffResponse } from '@/types/diff.js';
 
 interface ServerOptions {
   targetCommitish: string;
   baseCommitish: string;
   preferredPort?: number;
+  host?: string;
   openBrowser?: boolean;
   mode?: string;
   ignoreWhitespace?: boolean;
 }
 
-export async function startServer(options: ServerOptions): Promise<{ port: number; url: string }> {
+export async function startServer(
+  options: ServerOptions
+): Promise<{ port: number; url: string; isEmpty?: boolean; server?: Server }> {
   const app = express();
   const parser = new GitDiffParser();
 
-  let diffData: any = null;
+  let diffData: DiffResponse;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
+  const diffMode = options.mode || 'side-by-side';
 
   app.use(express.json());
   app.use(express.text()); // For sendBeacon text/plain requests
@@ -57,25 +66,69 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
       );
     }
 
-    res.json({ ...diffData, ignoreWhitespace });
+    res.json({
+      ...diffData,
+      ignoreWhitespace,
+      mode: diffMode,
+      baseCommitish: options.baseCommitish,
+      targetCommitish: options.targetCommitish,
+    });
+  });
+
+  app.get(/^\/api\/blob\/(.*)$/, async (req, res) => {
+    try {
+      const filepath = req.params[0];
+      const ref = (req.query.ref as string) || 'HEAD';
+
+      const blob = await parser.getBlobContent(filepath, ref);
+
+      // Determine content type based on file extension
+      const ext = getFileExtension(filepath);
+      const contentTypes: { [key: string]: string } = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        bmp: 'image/bmp',
+        svg: 'image/svg+xml',
+        webp: 'image/webp',
+        ico: 'image/x-icon',
+        tiff: 'image/tiff',
+        tif: 'image/tiff',
+        avif: 'image/avif',
+        heic: 'image/heic',
+        heif: 'image/heif',
+      };
+
+      const contentType = contentTypes[ext || ''] || 'application/octet-stream';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.send(blob);
+    } catch (error) {
+      console.error('Error fetching blob:', error);
+      res.status(404).json({ error: 'File not found' });
+    }
   });
 
   // Store comments for final output
-  let finalComments: any[] = [];
+  let finalComments: Comment[] = [];
+
+  // Parse comments from request body (handles both JSON and text/plain)
+  function parseCommentsPayload(body: unknown): Comment[] {
+    const payload =
+      typeof body === 'string' ?
+        (JSON.parse(body) as { comments?: Comment[] })
+      : (body as { comments?: Comment[] });
+
+    return payload.comments || [];
+  }
 
   app.post('/api/comments', (req, res) => {
     try {
-      // Handle both JSON and text/plain content types (sendBeacon sends as text/plain)
-      let comments = [];
-      if (req.headers['content-type']?.includes('application/json')) {
-        comments = req.body.comments || [];
-      } else if (typeof req.body === 'string') {
-        const parsed = JSON.parse(req.body);
-        comments = parsed.comments || [];
-      } else {
-        comments = req.body.comments || [];
-      }
-      finalComments = comments;
+      finalComments = parseCommentsPayload(req.body);
       res.json({ success: true });
     } catch (error) {
       console.error('Error parsing comments:', error);
@@ -93,9 +146,9 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
   });
 
   // Function to format comments for output
-  function formatCommentsOutput(comments: any[]): string {
-    const prompts = comments.map((comment: any) => {
-      return `${comment.file}:${comment.line}\n${comment.body}`;
+  function formatCommentsOutput(comments: Comment[]): string {
+    const prompts = comments.map((comment: Comment) => {
+      return `${comment.file}:${Array.isArray(comment.line) ? `L${comment.line[0]}-L${comment.line[1]}` : `L${comment.line}`}\n${comment.body}`;
     });
 
     return [
@@ -158,12 +211,12 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
         <!DOCTYPE html>
         <html>
           <head>
-            <title>ReviewIt - Dev Mode</title>
+            <title>difit - Dev Mode</title>
           </head>
           <body>
             <div id="root"></div>
             <script>
-              console.log('ReviewIt development mode');
+              console.log('difit development mode');
               console.log('Diff data available at /api/diff');
             </script>
           </body>
@@ -172,9 +225,23 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     });
   }
 
-  const { port, url } = await startServerWithFallback(app, options.preferredPort || 3000);
+  const { port, url, server } = await startServerWithFallback(
+    app,
+    options.preferredPort || 3000,
+    options.host || 'localhost'
+  );
 
-  if (options.openBrowser) {
+  // Security warning for non-localhost binding
+  if (options.host && options.host !== '127.0.0.1' && options.host !== 'localhost') {
+    console.warn('\n⚠️  WARNING: Server is accessible from external network!');
+    console.warn(`   Binding to: ${options.host}:${port}`);
+    console.warn('   Make sure this is intended and your network is secure.\n');
+  }
+
+  // Check if diff is empty and skip browser opening
+  if (diffData.isEmpty) {
+    // Don't open browser if no differences found
+  } else if (options.openBrowser) {
     try {
       await open(url);
     } catch {
@@ -182,21 +249,23 @@ export async function startServer(options: ServerOptions): Promise<{ port: numbe
     }
   }
 
-  return { port, url };
+  return { port, url, isEmpty: diffData.isEmpty, server };
 }
 
 async function startServerWithFallback(
-  app: any,
-  preferredPort: number
-): Promise<{ port: number; url: string }> {
+  app: Express,
+  preferredPort: number,
+  host: string
+): Promise<{ port: number; url: string; server: Server }> {
   return new Promise((resolve, reject) => {
     // express's listen() method uses listen() method in node:net Server instance internally
     // https://expressjs.com/en/5x/api.html#app.listen
     // so, an error will be an instance of NodeJS.ErrnoException
-    app.listen(preferredPort, '127.0.0.1', (err: NodeJS.ErrnoException | undefined) => {
-      const url = `http://localhost:${preferredPort}`;
+    const server = app.listen(preferredPort, host, (err: NodeJS.ErrnoException | undefined) => {
+      const displayHost = host === '0.0.0.0' ? 'localhost' : host;
+      const url = `http://${displayHost}:${preferredPort}`;
       if (!err) {
-        resolve({ port: preferredPort, url });
+        resolve({ port: preferredPort, url, server });
         return;
       }
 
@@ -205,9 +274,9 @@ async function startServerWithFallback(
         // Try another port until it succeeds
         case 'EADDRINUSE': {
           console.log(`Port ${preferredPort} is busy, trying ${preferredPort + 1}...`);
-          return startServerWithFallback(app, preferredPort + 1)
-            .then(({ port, url }) => {
-              resolve({ port, url });
+          return startServerWithFallback(app, preferredPort + 1, host)
+            .then(({ port, url, server }) => {
+              resolve({ port, url, server });
             })
             .catch(reject);
         }

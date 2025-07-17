@@ -1,5 +1,6 @@
 import { Highlight } from 'prism-react-renderer';
 
+import { getFileExtension, getFileName } from '../../utils/fileUtils';
 import { useHighlightedCode } from '../hooks/useHighlightedCode';
 import Prism from '../utils/prism';
 import { getSyntaxTheme } from '../utils/syntaxThemes';
@@ -15,8 +16,8 @@ interface PrismSyntaxHighlighterProps {
 
 // Detect language from file extension
 function detectLanguage(filename: string): string {
-  const basename = filename.split('/').pop()?.toLowerCase() || '';
-  const ext = filename.split('.').pop()?.toLowerCase();
+  const basename = getFileName(filename).toLowerCase();
+  const ext = getFileExtension(filename);
 
   // Check for special filenames first
   const filenameMap: Record<string, string> = {
@@ -73,6 +74,9 @@ function detectLanguage(filename: string): string {
     conf: 'nginx',
     ini: 'ini',
     toml: 'toml',
+    sol: 'solidity',
+    vim: 'vim',
+    dart: 'dart',
   };
 
   return extensionMap[ext || ''] || 'text';
@@ -95,7 +99,7 @@ export function PrismSyntaxHighlighter({
   const theme = getSyntaxTheme(syntaxTheme);
 
   return (
-    <Highlight code={code} language={actualLang as any} theme={theme} prism={Prism}>
+    <Highlight code={code} language={actualLang} theme={theme} prism={Prism}>
       {({ style, tokens, getLineProps, getTokenProps }) => (
         <span
           className={className}

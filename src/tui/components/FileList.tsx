@@ -1,6 +1,7 @@
-import React from 'react';
 import { Box, Text } from 'ink';
-import { FileDiff } from '../../types/diff.js';
+import React from 'react';
+
+import { type FileDiff } from '../../types/diff.js';
 
 interface FileListProps {
   files: FileDiff[];

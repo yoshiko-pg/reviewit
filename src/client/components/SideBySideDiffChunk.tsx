@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
-import { type DiffChunk as DiffChunkType, type DiffLine, type Comment } from '../../types/diff';
+import {
+  type DiffChunk as DiffChunkType,
+  type DiffLine,
+  type Comment,
+  type LineNumber,
+  type LineSelection,
+} from '../../types/diff';
 
+import { CommentButton } from './CommentButton';
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
@@ -10,7 +17,7 @@ import type { AppearanceSettings } from './SettingsModal';
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
   comments: Comment[];
-  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -33,29 +40,61 @@ export function SideBySideDiffChunk({
   onUpdateComment,
   syntaxTheme,
 }: SideBySideDiffChunkProps) {
-  const [commentingLine, setCommentingLine] = useState<number | null>(null);
+  const [startLine, setStartLine] = useState<LineSelection | null>(null);
+  const [endLine, setEndLine] = useState<LineSelection | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [commentingLine, setCommentingLine] = useState<{
+    side: 'old' | 'new';
+    lineNumber: LineNumber;
+  } | null>(null);
+  const [hoveredLine, setHoveredLine] = useState<LineSelection | null>(null);
 
-  const handleAddComment = (lineNumber: number) => {
-    if (commentingLine === lineNumber) {
-      setCommentingLine(null);
-    } else {
-      setCommentingLine(lineNumber);
+  // Global mouse up handler for drag selection
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+        setStartLine(null);
+        setEndLine(null);
+      };
+
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
     }
-  };
+    return undefined;
+  }, [isDragging]);
 
-  const handleCancelComment = () => {
+  const handleAddComment = useCallback(
+    (side: 'old' | 'new', lineNumber: LineNumber) => {
+      if (commentingLine?.side === side && commentingLine?.lineNumber === lineNumber) {
+        setCommentingLine(null);
+      } else {
+        setCommentingLine({ side, lineNumber });
+      }
+    },
+    [commentingLine]
+  );
+
+  const handleCancelComment = useCallback(() => {
     setCommentingLine(null);
-  };
+  }, []);
 
-  const handleSubmitComment = async (body: string) => {
-    if (commentingLine !== null) {
-      await onAddComment(commentingLine, body);
-      setCommentingLine(null);
-    }
-  };
+  const handleSubmitComment = useCallback(
+    async (body: string) => {
+      if (commentingLine !== null) {
+        await onAddComment(commentingLine.lineNumber, body);
+        setCommentingLine(null);
+      }
+    },
+    [commentingLine, onAddComment]
+  );
 
   const getCommentsForLine = (lineNumber: number) => {
-    return comments.filter((c) => c.line === lineNumber);
+    return comments.filter((c) =>
+      Array.isArray(c.line) ? c.line[1] === lineNumber : c.line === lineNumber
+    );
   };
 
   const getCommentLayout = (sideLine: SideBySideLine): 'left' | 'right' | 'full' => {
@@ -73,6 +112,48 @@ export function SideBySideDiffChunk({
       return 'right';
     }
     return 'full';
+  };
+
+  const getSelectedLineStyle = (side: 'old' | 'new', sideLine: SideBySideLine): string => {
+    const lineNumber = side === 'old' ? sideLine.oldLineNumber : sideLine.newLineNumber;
+    if (!lineNumber) {
+      return '';
+    }
+
+    // Show selection during drag
+    if (isDragging && startLine && endLine && startLine.side === side && endLine.side === side) {
+      const min = Math.min(startLine.lineNumber, endLine.lineNumber);
+      const max = Math.max(startLine.lineNumber, endLine.lineNumber);
+      if (lineNumber >= min && lineNumber <= max) {
+        let classes =
+          'after:bg-blue-100 after:absolute after:inset-0 after:opacity-30 after:border-l-4 after:border-blue-500 after:pointer-events-none';
+        // Add top border for first line
+        if (lineNumber === min) {
+          classes += ' after:border-t-2';
+        }
+        // Add bottom border for last line
+        if (lineNumber === max) {
+          classes += ' after:border-b-2';
+        }
+        return classes;
+      }
+    }
+
+    // Show selection for existing comment
+    if (commentingLine && commentingLine.side === side) {
+      const lineNumberRange =
+        Array.isArray(commentingLine.lineNumber) ?
+          commentingLine.lineNumber
+        : [commentingLine.lineNumber, commentingLine.lineNumber];
+      const start = lineNumberRange[0];
+      const end = lineNumberRange[1];
+
+      if (start !== undefined && end !== undefined && lineNumber >= start && lineNumber <= end) {
+        return 'after:bg-diff-selected-bg after:absolute after:inset-0 after:border-l-5 after:border-l-diff-selected-border after:pointer-events-none';
+      }
+    }
+
+    return '';
   };
 
   // Convert unified diff to side-by-side format
@@ -158,43 +239,137 @@ export function SideBySideDiffChunk({
             // For side-by-side view, only show comments on the right side (new line numbers)
             // to avoid duplication. Comments are associated with line numbers and should
             // only be displayed once per line number.
-            const allComments = sideLine.newLineNumber
-              ? getCommentsForLine(sideLine.newLineNumber)
-              : sideLine.oldLineNumber
-                ? getCommentsForLine(sideLine.oldLineNumber)
-                : [];
+            const allComments =
+              sideLine.newLineNumber ? getCommentsForLine(sideLine.newLineNumber)
+              : sideLine.oldLineNumber ? getCommentsForLine(sideLine.oldLineNumber)
+              : [];
 
             return (
               <React.Fragment key={index}>
-                <tr className="group">
+                <tr
+                  className="group"
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLElement;
+                    const isInOldSide =
+                      target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                    const isInNewSide =
+                      target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                    if (
+                      isInOldSide &&
+                      sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete'
+                    ) {
+                      setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                    } else if (
+                      isInNewSide &&
+                      sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
+                    ) {
+                      setHoveredLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    const target = e.target as HTMLElement;
+                    const isInOldSide =
+                      target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                    const isInNewSide =
+                      target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                    // Update hover state based on mouse position
+                    if (
+                      isInOldSide &&
+                      sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete'
+                    ) {
+                      if (
+                        hoveredLine?.side !== 'old' ||
+                        hoveredLine?.lineNumber !== sideLine.oldLineNumber
+                      ) {
+                        setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                      }
+                    } else if (
+                      isInNewSide &&
+                      sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
+                    ) {
+                      if (
+                        hoveredLine?.side !== 'new' ||
+                        hoveredLine?.lineNumber !== sideLine.newLineNumber
+                      ) {
+                        setHoveredLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                      }
+                    }
+
+                    // Handle dragging
+                    if (isDragging && startLine) {
+                      if (startLine.side === 'old' && sideLine.oldLineNumber) {
+                        setEndLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                      } else if (startLine.side === 'new' && sideLine.newLineNumber) {
+                        setEndLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                      }
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredLine(null)}
+                >
                   {/* Old side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
-                    {sideLine.oldLineNumber || ''}
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                    <span className="pr-5">{sideLine.oldLineNumber || ''}</span>
+                    {hoveredLine?.side === 'old' &&
+                      hoveredLine?.lineNumber === sideLine.oldLineNumber &&
+                      sideLine.oldLine?.type === 'delete' && (
+                        <CommentButton
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (sideLine.oldLineNumber) {
+                              setStartLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                              setEndLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
+                              setIsDragging(true);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            e.stopPropagation();
+                            if (!sideLine.oldLineNumber || !startLine) {
+                              setIsDragging(false);
+                              setStartLine(null);
+                              setEndLine(null);
+                              return;
+                            }
+
+                            const actualEndLine =
+                              endLine && endLine.side === 'old' ?
+                                endLine.lineNumber
+                              : sideLine.oldLineNumber;
+                            if (
+                              startLine.side !== 'old' ||
+                              startLine.lineNumber === actualEndLine
+                            ) {
+                              handleAddComment('old', sideLine.oldLineNumber);
+                            } else {
+                              const min = Math.min(startLine.lineNumber, actualEndLine);
+                              const max = Math.max(startLine.lineNumber, actualEndLine);
+                              handleAddComment('old', [min, max]);
+                            }
+
+                            setIsDragging(false);
+                            setStartLine(null);
+                            setEndLine(null);
+                          }}
+                        />
+                      )}
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top border-r border-github-border relative ${
-                      sideLine.oldLine?.type === 'delete'
-                        ? 'bg-diff-deletion-bg cursor-pointer'
-                        : sideLine.oldLine?.type === 'normal'
-                          ? 'bg-transparent'
-                          : 'bg-github-bg-secondary'
-                    }`}
-                    onClick={() =>
-                      sideLine.oldLine?.type === 'delete' &&
-                      sideLine.oldLineNumber &&
-                      handleAddComment(sideLine.oldLineNumber)
-                    }
-                    title={
-                      sideLine.oldLine?.type === 'delete' && sideLine.oldLineNumber
-                        ? 'Click to add comment'
-                        : ''
-                    }
+                      sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg'
+                      : sideLine.oldLine?.type === 'normal' ? 'bg-transparent'
+                      : 'bg-github-bg-secondary'
+                    } ${getSelectedLineStyle('old', sideLine)}`}
                   >
                     {sideLine.oldLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.oldLine.content}
-                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
                         />
                       </div>
@@ -202,34 +377,63 @@ export function SideBySideDiffChunk({
                   </td>
 
                   {/* New side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top">
-                    {sideLine.newLineNumber || ''}
+                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                    <span className="pr-5">{sideLine.newLineNumber || ''}</span>
+                    {hoveredLine?.side === 'new' &&
+                      hoveredLine?.lineNumber === sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') && (
+                        <CommentButton
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (sideLine.newLineNumber) {
+                              setStartLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                              setEndLine({ side: 'new', lineNumber: sideLine.newLineNumber });
+                              setIsDragging(true);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            e.stopPropagation();
+                            if (!sideLine.newLineNumber || !startLine) {
+                              setIsDragging(false);
+                              setStartLine(null);
+                              setEndLine(null);
+                              return;
+                            }
+
+                            const actualEndLine =
+                              endLine && endLine.side === 'new' ?
+                                endLine.lineNumber
+                              : sideLine.newLineNumber;
+                            if (
+                              startLine.side !== 'new' ||
+                              startLine.lineNumber === actualEndLine
+                            ) {
+                              handleAddComment('new', sideLine.newLineNumber);
+                            } else {
+                              const min = Math.min(startLine.lineNumber, actualEndLine);
+                              const max = Math.max(startLine.lineNumber, actualEndLine);
+                              handleAddComment('new', [min, max]);
+                            }
+
+                            setIsDragging(false);
+                            setStartLine(null);
+                            setEndLine(null);
+                          }}
+                        />
+                      )}
                   </td>
                   <td
                     className={`w-1/2 p-0 align-top relative ${
-                      sideLine.newLine?.type === 'add'
-                        ? 'bg-diff-addition-bg cursor-pointer'
-                        : sideLine.newLine?.type === 'normal'
-                          ? 'bg-transparent cursor-pointer'
-                          : 'bg-github-bg-secondary'
-                    }`}
-                    onClick={() =>
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
-                      sideLine.newLineNumber &&
-                      handleAddComment(sideLine.newLineNumber)
-                    }
-                    title={
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') &&
-                      sideLine.newLineNumber
-                        ? 'Click to add comment'
-                        : ''
-                    }
+                      sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg'
+                      : sideLine.newLine?.type === 'normal' ? 'bg-transparent'
+                      : 'bg-github-bg-secondary'
+                    } ${getSelectedLineStyle('new', sideLine)}`}
                   >
                     {sideLine.newLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
                         <PrismSyntaxHighlighter
                           code={sideLine.newLine.content}
-                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
+                          className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
                         />
                       </div>
@@ -246,7 +450,11 @@ export function SideBySideDiffChunk({
                         return (
                           <div
                             key={comment.id}
-                            className={`flex ${layout === 'left' ? 'justify-start' : layout === 'right' ? 'justify-end' : 'justify-center'}`}
+                            className={`flex ${
+                              layout === 'left' ? 'justify-start'
+                              : layout === 'right' ? 'justify-end'
+                              : 'justify-center'
+                            }`}
                           >
                             <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
                               <InlineComment
@@ -265,15 +473,25 @@ export function SideBySideDiffChunk({
 
                 {/* Comment form row */}
                 {commentingLine &&
-                  ((commentingLine === sideLine.oldLineNumber &&
+                  ((commentingLine.side === 'old' &&
+                    commentingLine.lineNumber === sideLine.oldLineNumber &&
                     sideLine.oldLine?.type === 'delete') ||
-                    (commentingLine === sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' ||
-                        sideLine.newLine?.type === 'normal'))) && (
+                    (commentingLine.side === 'new' &&
+                      commentingLine.lineNumber === sideLine.newLineNumber &&
+                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')) ||
+                    (Array.isArray(commentingLine.lineNumber) &&
+                      ((commentingLine.side === 'new' &&
+                        commentingLine.lineNumber[1] === sideLine.newLineNumber) ||
+                        (commentingLine.side === 'old' &&
+                          commentingLine.lineNumber[1] === sideLine.oldLineNumber)))) && (
                     <tr className="bg-github-bg-secondary">
                       <td colSpan={4} className="p-0 border-t border-github-border">
                         <div
-                          className={`flex ${getCommentLayout(sideLine) === 'left' ? 'justify-start' : getCommentLayout(sideLine) === 'right' ? 'justify-end' : 'justify-center'}`}
+                          className={`flex ${
+                            getCommentLayout(sideLine) === 'left' ? 'justify-start'
+                            : getCommentLayout(sideLine) === 'right' ? 'justify-end'
+                            : 'justify-center'
+                          }`}
                         >
                           <div
                             className={`${getCommentLayout(sideLine) === 'full' ? 'w-full' : 'w-1/2'}`}

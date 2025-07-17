@@ -23,6 +23,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["src/**/*.test.ts"],
   "references": [{ "path": "./tsconfig.cli.json" }]
 }

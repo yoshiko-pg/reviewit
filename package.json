@@ -1,22 +1,22 @@
 {
-  "name": "reviewit",
-  "version": "1.1.8",
+  "name": "difit",
+  "version": "2.0.9",
   "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
   "type": "module",
   "engines": {
     "node": ">=21.0.0"
   },
   "bin": {
-    "reviewit": "./dist/cli/index.js"
+    "difit": "./dist/cli/index.js"
   },
   "main": "./dist/cli/index.js",
-  "homepage": "https://github.com/yoshiko-pg/reviewit",
+  "homepage": "https://github.com/yoshiko-pg/difit",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yoshiko-pg/reviewit.git"
+    "url": "https://github.com/yoshiko-pg/difit.git"
   },
   "bugs": {
-    "url": "https://github.com/yoshiko-pg/reviewit/issues"
+    "url": "https://github.com/yoshiko-pg/difit/issues"
   },
   "scripts": {
     "dev": "node scripts/dev.js",
@@ -50,10 +50,14 @@
     "simple-git": "^3.28.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.30.1",
+    "@prettier/plugin-oxc": "^0.0.4",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.16",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@tsconfig/strictest": "^2.0.5",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.8",
@@ -70,11 +74,14 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.3.0",
+    "happy-dom": "^18.0.1",
     "lefthook": "^1.11.14",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
+    "undici": "^7.11.0",
     "vite": "^7.0.0",
     "vitest": "^3.2.4"
   },

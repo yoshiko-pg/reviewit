@@ -1,14 +1,14 @@
 import {
   ChevronRight,
   ChevronDown,
-  FileText,
+  FileDiff,
   FolderOpen,
   Folder,
   FilePlus,
   FileX,
   FilePen,
   Search,
-  MessageCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -72,7 +72,36 @@ function buildFileTree(files: (DiffFile | NotebookDiffFile)[]): TreeNode {
     }
   });
 
-  return root;
+  // Collapse single child directories
+  const collapseDirectories = (node: TreeNode): TreeNode => {
+    if (!node.isDirectory || !node.children) {
+      return node;
+    }
+
+    // First, recursively collapse children
+    node.children = node.children.map(collapseDirectories);
+
+    // If this directory has only one child directory (no files), collapse them
+    if (node.children.length === 1 && node.children[0]?.isDirectory && node.children[0]?.children) {
+      const child = node.children[0];
+      if (child) {
+        // Don't collapse the root node - keep the full path structure
+        if (!node.name) {
+          return node;
+        }
+        return {
+          ...node,
+          name: `${node.name}/${child.name}`,
+          path: child.path,
+          children: child.children,
+        };
+      }
+    }
+
+    return node;
+  };
+
+  return collapseDirectories(root);
 }
 
 export function FileList({
@@ -142,7 +171,7 @@ export function FileList({
       case 'renamed':
         return <FilePen size={16} className="text-github-warning" />;
       default:
-        return <FileText size={16} className="text-github-text-secondary" />;
+        return <FileDiff size={16} className="text-github-text-secondary" />;
     }
   };
 
@@ -161,16 +190,6 @@ export function FileList({
   const renderTreeNode = (node: TreeNode, depth: number = 0): React.ReactNode => {
     if (node.isDirectory && node.children) {
       const isExpanded = expandedDirs.has(node.path);
-      // Check if this directory or any subdirectory has comments
-      const hasComments = (node: TreeNode): boolean => {
-        if (node.file && getCommentCount(node.file.path) > 0) return true;
-        if (node.children) {
-          return node.children.some((child) => hasComments(child));
-        }
-        return false;
-      };
-
-      const dirHasComments = hasComments(node);
 
       return (
         <div key={node.path}>
@@ -180,23 +199,18 @@ export function FileList({
               style={{ paddingLeft: `${depth * 16 + 16}px` }}
               onClick={() => toggleDirectory(node.path)}
             >
-              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-              {isExpanded ? (
+              {isExpanded ?
+                <ChevronDown size={16} />
+              : <ChevronRight size={16} />}
+              {isExpanded ?
                 <FolderOpen size={16} className="text-github-text-secondary" />
-              ) : (
-                <Folder size={16} className="text-github-text-secondary" />
-              )}
+              : <Folder size={16} className="text-github-text-secondary" />}
               <span
                 className="text-sm text-github-text-primary font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
                 title={node.name}
               >
                 {node.name}
               </span>
-              {dirHasComments && (
-                <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
-                  <MessageCircle size={12} />
-                </span>
-              )}
             </div>
           )}
           {(isExpanded || !node.name) &&
@@ -204,22 +218,23 @@ export function FileList({
         </div>
       );
     } else if (node.file) {
-      const commentCount = getCommentCount(node.file.path);
-      const isReviewed = reviewedFiles.has(node.file.path);
+      const file = node.file;
+      const commentCount = getCommentCount(file.path);
+      const isReviewed = reviewedFiles.has(file.path);
 
       return (
         <div
-          key={node.file.path}
+          key={file.path}
           className={`flex items-center gap-2 px-4 py-2 hover:bg-github-bg-tertiary cursor-pointer transition-colors ${
             isReviewed ? 'opacity-70' : ''
           }`}
           style={{ paddingLeft: `${depth * 16 + 16}px` }}
-          onClick={() => onScrollToFile(node.file!.path)}
+          onClick={() => onScrollToFile(file.path)}
         >
           <Checkbox
             checked={isReviewed}
             onChange={() => {
-              onToggleReviewed(node.file!.path);
+              onToggleReviewed(file.path);
             }}
             title={isReviewed ? 'Mark as not reviewed' : 'Mark as reviewed'}
             className="z-10"
@@ -234,8 +249,8 @@ export function FileList({
             {node.name}
           </span>
           {commentCount > 0 && (
-            <span className="bg-github-warning/20 text-github-warning text-xs px-1.5 py-0.5 rounded-full font-medium ml-auto flex items-center gap-1">
-              <MessageCircle size={12} />
+            <span className="text-github-warning text-sm font-medium ml-auto flex items-center gap-1">
+              <MessageSquare size={14} />
               {commentCount}
             </span>
           )}
@@ -268,8 +283,7 @@ export function FileList({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {filteredFileTree.children &&
-          filteredFileTree.children.map((child) => renderTreeNode(child))}
+        {filteredFileTree.children?.map((child) => renderTreeNode(child))}
       </div>
     </div>
   );

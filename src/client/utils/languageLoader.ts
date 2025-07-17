@@ -7,7 +7,7 @@ const loaded: Record<string, Promise<void>> = {};
 export function loadPrismLanguage(lang: string): Promise<void> {
   if (!loaded[lang]) {
     // Map specific languages to their import paths with dependencies
-    const languageImports: Record<string, () => Promise<any>> = {
+    const languageImports: Record<string, () => Promise<unknown>> = {
       bash: () => import('prismjs/components/prism-bash.js'),
       sh: () => import('prismjs/components/prism-bash.js'),
       shell: () => import('prismjs/components/prism-bash.js'),
@@ -24,6 +24,9 @@ export function loadPrismLanguage(lang: string): Promise<void> {
         await loadPrismLanguage('java');
         return import('prismjs/components/prism-scala.js');
       },
+      solidity: () => import('prismjs/components/prism-solidity.js'),
+      vim: () => import('prismjs/components/prism-vim.js'),
+      dart: () => import('prismjs/components/prism-dart.js'),
     };
 
     const importFn = languageImports[lang];

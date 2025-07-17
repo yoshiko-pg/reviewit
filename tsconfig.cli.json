@@ -24,6 +24,12 @@
     },
     "jsx": "react"
   },
-  "include": ["src/cli/**/*", "src/server/**/*", "src/types/**/*", "src/tui/**/*"],
+  "include": [
+    "src/cli/**/*",
+    "src/server/**/*",
+    "src/types/**/*",
+    "src/tui/**/*",
+    "src/utils/**/*"
+  ],
   "exclude": ["src/client/**/*", "node_modules", "dist", "tests"]
 }

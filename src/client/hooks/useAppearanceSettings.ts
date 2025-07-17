@@ -78,6 +78,22 @@ export function useAppearanceSettings() {
       root.style.setProperty('--color-diff-deletion-bg', '#ffd8d3');
       root.style.setProperty('--color-diff-deletion-border', '#cf222e');
       root.style.setProperty('--color-diff-neutral-bg', '#f1f3f4');
+
+      // Light comment colors
+      root.style.setProperty('--color-comment-bg', '#fff8e1');
+      root.style.setProperty('--color-comment-border', '#ffd54f');
+      root.style.setProperty('--color-comment-text', '#5d4037');
+
+      // Light yellow button colors
+      root.style.setProperty('--color-yellow-btn-bg', '#fef3c7');
+      root.style.setProperty('--color-yellow-btn-border', '#f59e0b');
+      root.style.setProperty('--color-yellow-btn-text', '#92400e');
+      root.style.setProperty('--color-yellow-btn-hover-bg', '#fde68a');
+      root.style.setProperty('--color-yellow-btn-hover-border', '#d97706');
+
+      // Light yellow path colors
+      root.style.setProperty('--color-yellow-path-bg', '#fde68a');
+      root.style.setProperty('--color-yellow-path-text', '#92400e');
     } else {
       // Dark theme colors (default)
       root.style.setProperty('--color-github-bg-primary', '#0d1117');
@@ -97,6 +113,22 @@ export function useAppearanceSettings() {
       root.style.setProperty('--color-diff-deletion-bg', '#67060c');
       root.style.setProperty('--color-diff-deletion-border', '#da3633');
       root.style.setProperty('--color-diff-neutral-bg', '#21262d');
+
+      // Dark comment colors
+      root.style.setProperty('--color-comment-bg', '#1c2128');
+      root.style.setProperty('--color-comment-border', '#373e47');
+      root.style.setProperty('--color-comment-text', '#e6edf3');
+
+      // Dark yellow button colors
+      root.style.setProperty('--color-yellow-btn-bg', 'rgba(180, 83, 9, 0.2)');
+      root.style.setProperty('--color-yellow-btn-border', 'rgba(217, 119, 6, 0.5)');
+      root.style.setProperty('--color-yellow-btn-text', '#fbbf24');
+      root.style.setProperty('--color-yellow-btn-hover-bg', 'rgba(180, 83, 9, 0.3)');
+      root.style.setProperty('--color-yellow-btn-hover-border', '#d97706');
+
+      // Dark yellow path colors
+      root.style.setProperty('--color-yellow-path-bg', 'rgba(180, 83, 9, 0.3)');
+      root.style.setProperty('--color-yellow-path-text', '#fbbf24');
     }
 
     // Update body background color
