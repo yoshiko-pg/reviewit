@@ -1,13 +1,14 @@
-import { MessageSquare } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
   type DiffChunk as DiffChunkType,
   type DiffLine,
   type Comment,
   type LineNumber,
+  type LineSelection,
 } from '../../types/diff';
 
+import { CommentButton } from './CommentButton';
 import { CommentForm } from './CommentForm';
 import { InlineComment } from './InlineComment';
 import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
@@ -39,19 +40,14 @@ export function SideBySideDiffChunk({
   onUpdateComment,
   syntaxTheme,
 }: SideBySideDiffChunkProps) {
-  const [startLine, setStartLine] = useState<{ side: 'old' | 'new'; lineNumber: number } | null>(
-    null
-  );
-  const [endLine, setEndLine] = useState<{ side: 'old' | 'new'; lineNumber: number } | null>(null);
+  const [startLine, setStartLine] = useState<LineSelection | null>(null);
+  const [endLine, setEndLine] = useState<LineSelection | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [commentingLine, setCommentingLine] = useState<{
     side: 'old' | 'new';
     lineNumber: LineNumber;
   } | null>(null);
-  const [hoveredLine, setHoveredLine] = useState<{
-    side: 'old' | 'new';
-    lineNumber: number;
-  } | null>(null);
+  const [hoveredLine, setHoveredLine] = useState<LineSelection | null>(null);
 
   // Global mouse up handler for drag selection
   useEffect(() => {
@@ -70,24 +66,30 @@ export function SideBySideDiffChunk({
     return undefined;
   }, [isDragging]);
 
-  const handleAddComment = (side: 'old' | 'new', lineNumber: LineNumber) => {
-    if (commentingLine?.side === side && commentingLine?.lineNumber === lineNumber) {
-      setCommentingLine(null);
-    } else {
-      setCommentingLine({ side, lineNumber });
-    }
-  };
+  const handleAddComment = useCallback(
+    (side: 'old' | 'new', lineNumber: LineNumber) => {
+      if (commentingLine?.side === side && commentingLine?.lineNumber === lineNumber) {
+        setCommentingLine(null);
+      } else {
+        setCommentingLine({ side, lineNumber });
+      }
+    },
+    [commentingLine]
+  );
 
-  const handleCancelComment = () => {
+  const handleCancelComment = useCallback(() => {
     setCommentingLine(null);
-  };
+  }, []);
 
-  const handleSubmitComment = async (body: string) => {
-    if (commentingLine !== null) {
-      await onAddComment(commentingLine.lineNumber, body);
-      setCommentingLine(null);
-    }
-  };
+  const handleSubmitComment = useCallback(
+    async (body: string) => {
+      if (commentingLine !== null) {
+        await onAddComment(commentingLine.lineNumber, body);
+        setCommentingLine(null);
+      }
+    },
+    [commentingLine, onAddComment]
+  );
 
   const getCommentsForLine = (lineNumber: number) => {
     return comments.filter((c) =>
@@ -316,23 +318,7 @@ export function SideBySideDiffChunk({
                     {hoveredLine?.side === 'old' &&
                       hoveredLine?.lineNumber === sideLine.oldLineNumber &&
                       sideLine.oldLine?.type === 'delete' && (
-                        <button
-                          className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded transition-all duration-150 hover:scale-110 z-10"
-                          style={{
-                            backgroundColor: 'var(--color-yellow-btn-bg)',
-                            color: 'var(--color-yellow-btn-text)',
-                            border: '1px solid var(--color-yellow-btn-border)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-yellow-btn-hover-bg)';
-                            e.currentTarget.style.borderColor =
-                              'var(--color-yellow-btn-hover-border)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
-                            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
-                          }}
+                        <CommentButton
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             if (sideLine.oldLineNumber) {
@@ -369,10 +355,7 @@ export function SideBySideDiffChunk({
                             setStartLine(null);
                             setEndLine(null);
                           }}
-                          title="Add a comment"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
+                        />
                       )}
                   </td>
                   <td
@@ -399,23 +382,7 @@ export function SideBySideDiffChunk({
                     {hoveredLine?.side === 'new' &&
                       hoveredLine?.lineNumber === sideLine.newLineNumber &&
                       (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') && (
-                        <button
-                          className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded transition-all duration-150 hover:scale-110 z-10"
-                          style={{
-                            backgroundColor: 'var(--color-yellow-btn-bg)',
-                            color: 'var(--color-yellow-btn-text)',
-                            border: '1px solid var(--color-yellow-btn-border)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-yellow-btn-hover-bg)';
-                            e.currentTarget.style.borderColor =
-                              'var(--color-yellow-btn-hover-border)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
-                            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
-                          }}
+                        <CommentButton
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             if (sideLine.newLineNumber) {
@@ -452,10 +419,7 @@ export function SideBySideDiffChunk({
                             setStartLine(null);
                             setEndLine(null);
                           }}
-                          title="Add a comment"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
+                        />
                       )}
                   </td>
                   <td

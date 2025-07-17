@@ -1,5 +1,4 @@
-import { MessageSquare } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
   type DiffChunk as DiffChunkType,
@@ -9,8 +8,8 @@ import {
 } from '../../types/diff';
 
 import { CommentForm } from './CommentForm';
+import { DiffLineRow } from './DiffLineRow';
 import { InlineComment } from './InlineComment';
-import { PrismSyntaxHighlighter } from './PrismSyntaxHighlighter';
 import type { AppearanceSettings } from './SettingsModal';
 import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 
@@ -39,7 +38,6 @@ export function DiffChunk({
   const [endLine, setEndLine] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [commentingLine, setCommentingLine] = useState<LineNumber | null>(null);
-  const [commentingLineContent, setCommentingLineContent] = useState<string | null>(null);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
 
   // Global mouse up handler for drag selection
@@ -59,50 +57,30 @@ export function DiffChunk({
     return undefined;
   }, [isDragging]);
 
-  const getLineClass = (line: DiffLine) => {
-    switch (line.type) {
-      case 'add':
-        return 'bg-diff-addition-bg';
-      case 'delete':
-        return 'bg-diff-deletion-bg';
-      default:
-        return 'bg-transparent';
-    }
-  };
+  const handleAddComment = useCallback(
+    (lineNumber: LineNumber) => {
+      if (commentingLine === lineNumber) {
+        setCommentingLine(null);
+      } else {
+        setCommentingLine(lineNumber);
+      }
+    },
+    [commentingLine]
+  );
 
-  const getLinePrefix = (line: DiffLine) => {
-    switch (line.type) {
-      case 'add':
-        return '+';
-      case 'delete':
-        return '-';
-      default:
-        return ' ';
-    }
-  };
-
-  const handleAddComment = (lineNumber: LineNumber, lineContent?: string) => {
-    if (commentingLine === lineNumber) {
-      setCommentingLine(null);
-      setCommentingLineContent(null);
-    } else {
-      setCommentingLine(lineNumber);
-      setCommentingLineContent(lineContent || null);
-    }
-  };
-
-  const handleCancelComment = () => {
+  const handleCancelComment = useCallback(() => {
     setCommentingLine(null);
-    setCommentingLineContent(null);
-  };
+  }, []);
 
-  const handleSubmitComment = async (body: string) => {
-    if (commentingLine !== null) {
-      await onAddComment(commentingLine, body, commentingLineContent || undefined);
-      setCommentingLine(null);
-      setCommentingLineContent(null);
-    }
-  };
+  const handleSubmitComment = useCallback(
+    async (body: string) => {
+      if (commentingLine !== null) {
+        await onAddComment(commentingLine, body);
+        setCommentingLine(null);
+      }
+    },
+    [commentingLine, onAddComment]
+  );
 
   const getCommentsForLine = (lineNumber: number) => {
     return comments.filter((c) =>
@@ -186,10 +164,11 @@ export function DiffChunk({
 
             return (
               <React.Fragment key={index}>
-                <tr
-                  className={`group ${getLineClass(line)} relative ${getSelectedLineStyle(
-                    line.newLineNumber || line.oldLineNumber
-                  )}`}
+                <DiffLineRow
+                  line={line}
+                  index={index}
+                  hoveredLine={hoveredLine}
+                  selectedLineStyle={getSelectedLineStyle(line.newLineNumber || line.oldLineNumber)}
                   onMouseEnter={() => {
                     const lineNumber = line.newLineNumber || line.oldLineNumber;
                     if (lineNumber) {
@@ -205,88 +184,40 @@ export function DiffChunk({
                       }
                     }
                   }}
-                >
-                  <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative">
-                    {line.oldLineNumber || ''}
-                  </td>
-                  <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
-                    <span className="pr-5">{line.newLineNumber || ''}</span>
-                    {hoveredLine === (line.newLineNumber || line.oldLineNumber) &&
-                      (line.newLineNumber || line.oldLineNumber) && (
-                        <button
-                          className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded transition-all duration-150 hover:scale-110 z-10"
-                          style={{
-                            backgroundColor: 'var(--color-yellow-btn-bg)',
-                            color: 'var(--color-yellow-btn-text)',
-                            border: '1px solid var(--color-yellow-btn-border)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-yellow-btn-hover-bg)';
-                            e.currentTarget.style.borderColor =
-                              'var(--color-yellow-btn-hover-border)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
-                            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
-                          }}
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            const lineNumber = line.newLineNumber || line.oldLineNumber;
-                            if (lineNumber) {
-                              setStartLine(lineNumber);
-                              setEndLine(lineNumber);
-                              setIsDragging(true);
-                            }
-                          }}
-                          onMouseUp={(e) => {
-                            e.stopPropagation();
-                            const lineNumber = line.newLineNumber || line.oldLineNumber;
-                            if (!lineNumber || !startLine) {
-                              setIsDragging(false);
-                              setStartLine(null);
-                              setEndLine(null);
-                              return;
-                            }
+                  onCommentButtonMouseDown={(e) => {
+                    e.stopPropagation();
+                    const lineNumber = line.newLineNumber || line.oldLineNumber;
+                    if (lineNumber) {
+                      setStartLine(lineNumber);
+                      setEndLine(lineNumber);
+                      setIsDragging(true);
+                    }
+                  }}
+                  onCommentButtonMouseUp={(e) => {
+                    e.stopPropagation();
+                    const lineNumber = line.newLineNumber || line.oldLineNumber;
+                    if (!lineNumber || !startLine) {
+                      setIsDragging(false);
+                      setStartLine(null);
+                      setEndLine(null);
+                      return;
+                    }
 
-                            const actualEndLine = endLine || lineNumber;
-                            if (startLine === actualEndLine) {
-                              handleAddComment(lineNumber, line.content);
-                            } else {
-                              const min = Math.min(startLine, actualEndLine);
-                              const max = Math.max(startLine, actualEndLine);
-                              handleAddComment([min, max], line.content);
-                            }
+                    const actualEndLine = endLine || lineNumber;
+                    if (startLine === actualEndLine) {
+                      handleAddComment(lineNumber);
+                    } else {
+                      const min = Math.min(startLine, actualEndLine);
+                      const max = Math.max(startLine, actualEndLine);
+                      handleAddComment([min, max]);
+                    }
 
-                            setIsDragging(false);
-                            setStartLine(null);
-                            setEndLine(null);
-                          }}
-                          title="Add a comment"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
-                      )}
-                  </td>
-                  <td className="p-0 w-full relative align-top">
-                    <div className="flex items-center relative min-h-[20px]">
-                      <span
-                        className={`w-5 text-center text-github-text-muted flex-shrink-0 bg-github-bg-secondary border-r border-github-border ${
-                          line.type === 'add' ? 'text-github-accent bg-diff-addition-bg'
-                          : line.type === 'delete' ? 'text-github-danger bg-diff-deletion-bg'
-                          : ''
-                        }`}
-                      >
-                        {getLinePrefix(line)}
-                      </span>
-                      <PrismSyntaxHighlighter
-                        code={line.content}
-                        className="flex-1 px-3 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
-                        syntaxTheme={syntaxTheme}
-                      />
-                    </div>
-                  </td>
-                </tr>
+                    setIsDragging(false);
+                    setStartLine(null);
+                    setEndLine(null);
+                  }}
+                  syntaxTheme={syntaxTheme}
+                />
 
                 {lineComments.map((comment) => {
                   const layout = getCommentLayout(line);

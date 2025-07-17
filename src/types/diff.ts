@@ -55,3 +55,8 @@ export interface Comment {
   timestamp: string;
   codeContent?: string; // The actual code content for this line
 }
+
+export interface LineSelection {
+  side: 'old' | 'new';
+  lineNumber: number;
+}
