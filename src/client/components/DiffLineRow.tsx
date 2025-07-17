@@ -76,7 +76,7 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
           )}
         </td>
         <td className="p-0 w-full relative align-top">
-          <div className="flex items-center relative min-h-[20px]">
+          <div className="flex items-center relative min-h-[16px]">
             <span
               className={`w-5 text-center text-github-text-muted flex-shrink-0 bg-github-bg-secondary border-r border-github-border ${
                 line.type === 'add' ? 'text-github-accent bg-diff-addition-bg'
