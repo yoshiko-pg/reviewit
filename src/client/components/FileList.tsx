@@ -17,7 +17,7 @@ import { type DiffFile, type NotebookDiffFile, type Comment } from '../../types/
 import { Checkbox } from './Checkbox';
 
 interface FileListProps {
-  files: (DiffFile | NotebookDiffFile)[];
+  files: DiffFile[];
   onScrollToFile: (path: string) => void;
   comments: Comment[];
   reviewedFiles: Set<string>;

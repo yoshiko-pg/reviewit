@@ -23,7 +23,7 @@ const DIFF_CHUNK_HEADERS = {
 
 interface NotebookData {
   cells: NotebookCell[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   nbformat?: number;
   nbformat_minor?: number;
 }
@@ -390,7 +390,14 @@ export class NotebookDiffParser {
         added.push(newOutput);
       } else if (oldOutput && !newOutput) {
         deleted.push(oldOutput);
-      } else if (oldOutput && newOutput && !this.objectsEqual(oldOutput, newOutput)) {
+      } else if (
+        oldOutput &&
+        newOutput &&
+        !this.objectsEqual(
+          oldOutput as unknown as Record<string, unknown>,
+          newOutput as unknown as Record<string, unknown>
+        )
+      ) {
         modified.push({ old: oldOutput, new: newOutput });
       }
     }
@@ -445,9 +452,9 @@ export class NotebookDiffParser {
 
     // Handle data output
     if (output.data) {
-      const textData = output.data['text/plain'];
+      const textData = output.data['text/plain'] as string | string[] | undefined;
       if (textData) {
-        return Array.isArray(textData) ? textData.join('') : textData;
+        return Array.isArray(textData) ? textData.join('') : String(textData);
       }
       return JSON.stringify(output.data, null, 2);
     }
@@ -462,8 +469,8 @@ export class NotebookDiffParser {
   }
 
   private hasMetadataChanged(
-    oldMetadata?: Record<string, any>,
-    newMetadata?: Record<string, any>
+    oldMetadata?: Record<string, unknown>,
+    newMetadata?: Record<string, unknown>
   ): boolean {
     return !this.objectsEqual(oldMetadata, newMetadata);
   }
@@ -498,10 +505,15 @@ export class NotebookDiffParser {
     if (!a && !b) return true;
     if (!a || !b) return false;
     if (a.length !== b.length) return false;
-    return a.every((output, index) => this.objectsEqual(output, b[index]));
+    return a.every((output, index) =>
+      this.objectsEqual(
+        output as unknown as Record<string, unknown>,
+        b[index] as unknown as Record<string, unknown>
+      )
+    );
   }
 
-  private objectsEqual(a?: Record<string, any>, b?: Record<string, any>): boolean {
+  private objectsEqual(a?: Record<string, unknown>, b?: Record<string, unknown>): boolean {
     if (!a && !b) return true;
     if (!a || !b) return false;
 
@@ -515,8 +527,8 @@ export class NotebookDiffParser {
     }
   }
 
-  private sortObjectKeys(obj: Record<string, any>): Record<string, any> {
-    const sorted: Record<string, any> = {};
+  private sortObjectKeys(obj: Record<string, unknown>): Record<string, unknown> {
+    const sorted: Record<string, unknown> = {};
     Object.keys(obj)
       .sort()
       .forEach((key) => {

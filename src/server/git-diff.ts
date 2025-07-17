@@ -8,11 +8,11 @@ import {
 
 import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
 import {
+  type GeneralDiffFile,
   type DiffFile,
   type DiffChunk,
   type DiffLine,
   type DiffResponse,
-  type NotebookDiffFile,
 } from '../types/diff.js';
 
 import { NotebookDiffParser } from './notebook-diff.js';
@@ -100,8 +100,8 @@ export class GitDiffParser {
     summary: DiffResult['files'],
     targetCommitish: string,
     baseCommitish: string
-  ): Promise<(DiffFile | NotebookDiffFile)[]> {
-    const files: (DiffFile | NotebookDiffFile)[] = [];
+  ): Promise<DiffFile[]> {
+    const files: DiffFile[] = [];
     const fileBlocks = diffText.split(/^diff --git /m).slice(1);
 
     for (let i = 0; i < fileBlocks.length; i++) {
@@ -110,7 +110,10 @@ export class GitDiffParser {
 
       if (!summaryItem) continue;
 
-      const filePath = summaryItem.file || summaryItem.to || summaryItem.from;
+      const filePath =
+        summaryItem.file ||
+        (summaryItem as DiffResultTextFile & { to?: string }).to ||
+        (summaryItem as DiffResultTextFile & { from?: string }).from;
 
       if (filePath && filePath.endsWith('.ipynb')) {
         // Handle Jupyter notebook files
@@ -144,7 +147,7 @@ export class GitDiffParser {
   private parseFileBlock(
     block: string,
     summary: DiffResultTextFile | DiffResultBinaryFile
-  ): DiffFile | null {
+  ): GeneralDiffFile | null {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
@@ -155,7 +158,7 @@ export class GitDiffParser {
     const newPath = pathMatch[2];
     const path = newPath;
 
-    let status: DiffFile['status'] = 'modified';
+    let status: GeneralDiffFile['status'] = 'modified';
 
     // Check for new file mode (added files)
     const newFileMode = lines.find((line) => line.startsWith('new file mode'));

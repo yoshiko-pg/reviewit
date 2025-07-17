@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight, Play, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
-import { type CellDiff, type Comment } from '../../types/diff';
+import { type CellDiff, type Comment, type LineNumber } from '../../types/diff';
 
 import { DiffChunk } from './DiffChunk';
 
@@ -9,7 +9,7 @@ interface NotebookCellDiffProps {
   cellDiff: CellDiff;
   comments: Comment[];
   diffMode: 'side-by-side' | 'inline';
-  onAddComment: (line: number, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -52,10 +52,14 @@ export function NotebookCellDiff({
                 onClick={() => setShowOutputs(!showOutputs)}
                 className="flex items-center gap-2 text-sm font-medium text-github-text-primary mb-2 hover:text-github-accent transition-colors"
               >
-                {showOutputs ? <Eye size={14} /> : <EyeOff size={14} />}
+                {showOutputs ?
+                  <Eye size={14} />
+                : <EyeOff size={14} />}
                 <Play size={14} />
                 Output Changes
-                {showOutputs ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {showOutputs ?
+                  <ChevronDown size={14} />
+                : <ChevronRight size={14} />}
               </button>
 
               {showOutputs && (
@@ -84,10 +88,14 @@ export function NotebookCellDiff({
                 onClick={() => setShowMetadata(!showMetadata)}
                 className="flex items-center gap-2 text-sm font-medium text-github-text-primary mb-2 hover:text-github-accent transition-colors"
               >
-                {showMetadata ? <Eye size={14} /> : <EyeOff size={14} />}
+                {showMetadata ?
+                  <Eye size={14} />
+                : <EyeOff size={14} />}
                 <RotateCcw size={14} />
                 Metadata Changes
-                {showMetadata ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {showMetadata ?
+                  <ChevronDown size={14} />
+                : <ChevronRight size={14} />}
               </button>
 
               {showMetadata && (
