@@ -1,7 +1,8 @@
 import { ChevronDown, ChevronRight, Play, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
-import { type CellDiff, type Comment, type LineNumber } from '../../types/diff';
+import { type Comment, type LineNumber } from '../../types/diff';
+import { type CellDiff } from '../../types/notebook';
 
 import { DiffChunk } from './DiffChunk';
 

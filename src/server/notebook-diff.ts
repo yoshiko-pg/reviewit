@@ -1,14 +1,13 @@
 import { simpleGit, type SimpleGit } from 'simple-git';
 
 import { validateDiffArguments } from '../cli/utils.js';
+import { type DiffChunk, type DiffLine } from '../types/diff.js';
 import {
   type NotebookCell,
   type CellDiff,
   type NotebookDiffFile,
-  type DiffChunk,
-  type DiffLine,
   type NotebookOutput,
-} from '../types/diff.js';
+} from '../types/notebook.js';
 
 // Constants for better maintainability
 const NOTEBOOK_FORMATS = {

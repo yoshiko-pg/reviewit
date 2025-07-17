@@ -1,4 +1,4 @@
-import { type DiffFile, type Comment, type LineNumber } from '../../types/diff';
+import { type DiffFile, type Comment, type LineNumber, isNotebookDiffFile } from '../../types/diff';
 import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
@@ -29,9 +29,6 @@ interface DiffFileViewFactoryProps {
 }
 
 // Type guards
-function isNotebookDiffFile(file: DiffFile): file is import('../../types/diff').NotebookDiffFile {
-  return 'cellDiffs' in file;
-}
 
 function isGeneralDiffFile(file: DiffFile): file is import('../../types/diff').GeneralDiffFile {
   return 'chunks' in file;

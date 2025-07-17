@@ -1,6 +1,7 @@
 import { BookOpen, Code, FileType, FileText } from 'lucide-react';
 
-import { type NotebookDiffFile, type Comment, type LineNumber } from '../../types/diff';
+import { type Comment, type LineNumber } from '../../types/diff';
+import { type NotebookDiffFile } from '../../types/notebook';
 
 import { DiffFileHeader } from './DiffFileHeader';
 import { NotebookCellDiff } from './NotebookCellDiff';

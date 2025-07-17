@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type DiffFile, type NotebookDiffFile, type Comment } from '../../types/diff';
+import { type DiffFile, type Comment } from '../../types/diff';
+import { type NotebookDiffFile } from '../../types/notebook';
 
 import { Checkbox } from './Checkbox';
 

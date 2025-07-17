@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type GeneralDiffFile, type NotebookDiffFile } from '../../types/diff';
+import { type GeneralDiffFile } from '../../types/diff';
+import { type NotebookDiffFile } from '../../types/notebook';
 
 type DiffFileHeaderProps = {
   file: GeneralDiffFile | NotebookDiffFile;
