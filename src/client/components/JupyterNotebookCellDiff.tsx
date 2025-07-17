@@ -6,7 +6,7 @@ import { type CellDiff } from '../../types/notebook';
 
 import { DiffChunk } from './DiffChunk';
 
-interface NotebookCellDiffProps {
+interface JupyterNotebookCellDiffProps {
   cellDiff: CellDiff;
   comments: Comment[];
   diffMode: 'side-by-side' | 'inline';
@@ -16,7 +16,7 @@ interface NotebookCellDiffProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
 }
 
-export function NotebookCellDiff({
+export function JupyterNotebookCellDiff({
   cellDiff,
   comments,
   diffMode,
@@ -24,7 +24,7 @@ export function NotebookCellDiff({
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
-}: NotebookCellDiffProps) {
+}: JupyterNotebookCellDiffProps) {
   const [showMetadata, setShowMetadata] = useState(false);
   const [showOutputs, setShowOutputs] = useState(true);
 

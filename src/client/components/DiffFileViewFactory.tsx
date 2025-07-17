@@ -1,4 +1,10 @@
-import { type DiffFile, type Comment, type LineNumber, isNotebookDiffFile } from '../../types/diff';
+import {
+  type DiffFile,
+  type GeneralDiffFile,
+  type Comment,
+  type LineNumber,
+  isNotebookDiffFile,
+} from '../../types/diff';
 import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
@@ -26,12 +32,6 @@ interface DiffFileViewFactoryProps {
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
   baseCommitish?: string;
   targetCommitish?: string;
-}
-
-// Type guards
-
-function isGeneralDiffFile(file: DiffFile): file is import('../../types/diff').GeneralDiffFile {
-  return 'chunks' in file;
 }
 
 export function DiffFileViewFactory({
@@ -67,33 +67,28 @@ export function DiffFileViewFactory({
     );
   }
 
-  // 2. Regular files (must be GeneralDiffFile)
-  if (isGeneralDiffFile(file)) {
-    return (
-      <GeneralDiffFileView
-        file={file}
-        comments={comments}
-        diffMode={diffMode}
-        reviewedFiles={reviewedFiles}
-        onToggleReviewed={onToggleReviewed}
-        onAddComment={onAddComment}
-        onGeneratePrompt={onGeneratePrompt}
-        onRemoveComment={onRemoveComment}
-        onUpdateComment={onUpdateComment}
-        syntaxTheme={syntaxTheme}
-        baseCommitish={baseCommitish}
-        targetCommitish={targetCommitish}
-      />
-    );
-  }
-
-  // Fallback (should not happen with proper typing)
-  return <div>Unsupported file type</div>;
+  // 2. Regular files (automatically narrowed to GeneralDiffFile)
+  return (
+    <GeneralDiffFileView
+      file={file}
+      comments={comments}
+      diffMode={diffMode}
+      reviewedFiles={reviewedFiles}
+      onToggleReviewed={onToggleReviewed}
+      onAddComment={onAddComment}
+      onGeneratePrompt={onGeneratePrompt}
+      onRemoveComment={onRemoveComment}
+      onUpdateComment={onUpdateComment}
+      syntaxTheme={syntaxTheme}
+      baseCommitish={baseCommitish}
+      targetCommitish={targetCommitish}
+    />
+  );
 }
 
 // Component for regular (non-notebook) files
 interface GeneralDiffFileViewProps {
-  file: import('../../types/diff').GeneralDiffFile;
+  file: GeneralDiffFile;
   comments: Comment[];
   diffMode: 'side-by-side' | 'inline';
   reviewedFiles: Set<string>;

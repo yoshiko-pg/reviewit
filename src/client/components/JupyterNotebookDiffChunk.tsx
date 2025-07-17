@@ -4,7 +4,7 @@ import { type Comment, type LineNumber } from '../../types/diff';
 import { type NotebookDiffFile } from '../../types/notebook';
 
 import { DiffFileHeader } from './DiffFileHeader';
-import { NotebookCellDiff } from './NotebookCellDiff';
+import { JupyterNotebookCellDiff } from './JupyterNotebookCellDiff';
 
 interface JupyterNotebookDiffChunkProps {
   file: NotebookDiffFile;
@@ -111,7 +111,7 @@ export function JupyterNotebookDiffChunk({
                         {cellDiff.status}
                       </span>
                     </div>
-                    <NotebookCellDiff
+                    <JupyterNotebookCellDiff
                       cellDiff={cellDiff}
                       comments={comments.filter((c) => c.file === file.path)}
                       diffMode={diffMode}
