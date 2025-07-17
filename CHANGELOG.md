@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.9] - 2025-07-17
+
+### Changed
+
+- Replace full line click with dedicated comment button on line numbers for commenting
+- Make code area selectable for text copying
+- Simplify ESLint config by extracting shared rules and plugins to reduce duplication
+
+### Fixed
+
+- Fix issue where same line numbers in old/new sides both show comment forms
+- Resolve ESLint warnings across the codebase with proper type handling
+
 ## [2.0.8] - 2025-07-15
 
 ### Changed
@@ -378,7 +391,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...HEAD
+[2.0.9]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...v2.0.9
 [2.0.8]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...v2.0.8
 [2.0.7]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...v2.0.7
 [2.0.6]: https://github.com/yoshiko-pg/difit/compare/v2.0.5...v2.0.6
