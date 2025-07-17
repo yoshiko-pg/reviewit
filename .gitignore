@@ -40,3 +40,6 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# kiro
+.kiro
