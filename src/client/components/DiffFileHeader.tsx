@@ -12,11 +12,11 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { type GeneralDiffFile } from '../../types/diff';
+import { type DiffFile, type GeneralDiffFile } from '../../types/diff';
 import { type NotebookDiffFile } from '../../types/notebook';
 
 type DiffFileHeaderProps = {
-  file: GeneralDiffFile | NotebookDiffFile;
+  file: DiffFile;
   isCollapsed: boolean;
   onToggleReviewed: (path: string) => void;
   reviewedFiles: Set<string>;
@@ -32,7 +32,7 @@ export function DiffFileHeader({
 }: DiffFileHeaderProps) {
   const [isCopied, setIsCopied] = useState(false);
 
-  const getFileIcon = (status: GeneralDiffFile['status'] | NotebookDiffFile['status']) => {
+  const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
       case 'added':
         return <FilePlus size={16} className="text-github-accent" />;

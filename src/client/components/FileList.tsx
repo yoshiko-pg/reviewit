@@ -13,7 +13,6 @@ import {
 import { useState } from 'react';
 
 import { type DiffFile, type Comment } from '../../types/diff';
-import { type NotebookDiffFile } from '../../types/notebook';
 
 import { Checkbox } from './Checkbox';
 
@@ -30,10 +29,10 @@ interface TreeNode {
   path: string;
   isDirectory: boolean;
   children?: TreeNode[];
-  file?: DiffFile | NotebookDiffFile;
+  file?: DiffFile;
 }
 
-function buildFileTree(files: (DiffFile | NotebookDiffFile)[]): TreeNode {
+function buildFileTree(files: DiffFile[]): TreeNode {
   const root: TreeNode = {
     name: '',
     path: '',
