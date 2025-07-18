@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import type { DiffFile, Comment } from '../../types/diff';
+import type { GeneralDiffFile, Comment } from '../../types/diff';
 
 import { DiffViewer } from './DiffViewer';
 
@@ -41,7 +41,7 @@ describe('DiffViewer', () => {
     vi.clearAllMocks();
   });
 
-  const createMockFile = (overrides: Partial<DiffFile> = {}): DiffFile => ({
+  const createMockFile = (overrides: Partial<GeneralDiffFile> = {}): GeneralDiffFile => ({
     path: 'test.txt',
     status: 'modified',
     additions: 5,

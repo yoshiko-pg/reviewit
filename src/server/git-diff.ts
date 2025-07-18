@@ -7,13 +7,23 @@ import {
 } from 'simple-git';
 
 import { validateDiffArguments, shortHash, createCommitRangeString } from '../cli/utils.js';
-import { type DiffFile, type DiffChunk, type DiffLine, type DiffResponse } from '../types/diff.js';
+import {
+  type GeneralDiffFile,
+  type DiffFile,
+  type DiffChunk,
+  type DiffLine,
+  type DiffResponse,
+} from '../types/diff.js';
+
+import { NotebookDiffParser } from './notebook-diff.js';
 
 export class GitDiffParser {
   private git: SimpleGit;
+  private notebookDiffParser: NotebookDiffParser;
 
   constructor(repoPath = process.cwd()) {
     this.git = simpleGit(repoPath);
+    this.notebookDiffParser = new NotebookDiffParser(repoPath);
   }
 
   async parseDiff(
@@ -66,7 +76,12 @@ export class GitDiffParser {
       const diffSummary = await this.git.diffSummary(diffArgs);
       const diffRaw = await this.git.diff(['--color=never', ...diffArgs]);
 
-      const files = this.parseUnifiedDiff(diffRaw, diffSummary.files);
+      const files = await this.parseUnifiedDiff(
+        diffRaw,
+        diffSummary.files,
+        targetCommitish,
+        baseCommitish
+      );
 
       return {
         commit: resolvedCommit,
@@ -80,7 +95,12 @@ export class GitDiffParser {
     }
   }
 
-  private parseUnifiedDiff(diffText: string, summary: DiffResult['files']): DiffFile[] {
+  private async parseUnifiedDiff(
+    diffText: string,
+    summary: DiffResult['files'],
+    targetCommitish: string,
+    baseCommitish: string
+  ): Promise<DiffFile[]> {
     const files: DiffFile[] = [];
     const fileBlocks = diffText.split(/^diff --git /m).slice(1);
 
@@ -90,9 +110,34 @@ export class GitDiffParser {
 
       if (!summaryItem) continue;
 
-      const file = this.parseFileBlock(block, summaryItem);
-      if (file) {
-        files.push(file);
+      const filePath =
+        summaryItem.file ||
+        (summaryItem as DiffResultTextFile & { to?: string }).to ||
+        (summaryItem as DiffResultTextFile & { from?: string }).from;
+
+      if (filePath && filePath.endsWith('.ipynb')) {
+        // Handle Jupyter notebook files
+        try {
+          const notebookFile = await this.notebookDiffParser.parseNotebookDiff(
+            targetCommitish,
+            baseCommitish,
+            filePath
+          );
+          files.push(notebookFile);
+        } catch {
+          console.error(`Failed to parse notebook ${filePath}`);
+          // Fallback to regular diff parsing
+          const file = this.parseFileBlock(block, summaryItem);
+          if (file) {
+            files.push(file);
+          }
+        }
+      } else {
+        // Handle regular text files
+        const file = this.parseFileBlock(block, summaryItem);
+        if (file) {
+          files.push(file);
+        }
       }
     }
 
@@ -102,7 +147,7 @@ export class GitDiffParser {
   private parseFileBlock(
     block: string,
     summary: DiffResultTextFile | DiffResultBinaryFile
-  ): DiffFile | null {
+  ): GeneralDiffFile | null {
     const lines = block.split('\n');
     const headerLine = lines[0];
 
@@ -113,7 +158,7 @@ export class GitDiffParser {
     const newPath = pathMatch[2];
     const path = newPath;
 
-    let status: DiffFile['status'] = 'modified';
+    let status: GeneralDiffFile['status'] = 'modified';
 
     // Check for new file mode (added files)
     const newFileMode = lines.find((line) => line.startsWith('new file mode'));

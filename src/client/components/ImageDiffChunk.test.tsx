@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import type { DiffFile } from '../../types/diff';
+import type { GeneralDiffFile } from '../../types/diff';
 
 import { ImageDiffChunk } from './ImageDiffChunk';
 
@@ -16,7 +16,7 @@ describe('ImageDiffChunk', () => {
 
   describe('File status handling', () => {
     it('renders deleted image correctly', () => {
-      const deletedFile: DiffFile = {
+      const deletedFile: GeneralDiffFile = {
         path: 'test.jpg',
         oldPath: 'test.jpg',
         status: 'deleted',
@@ -33,7 +33,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('renders added image correctly', () => {
-      const addedFile: DiffFile = {
+      const addedFile: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'added',
         additions: 1,
@@ -49,7 +49,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('renders modified image correctly in side-by-side mode', () => {
-      const modifiedFile: DiffFile = {
+      const modifiedFile: GeneralDiffFile = {
         path: 'test.jpg',
         oldPath: 'test.jpg',
         status: 'modified',
@@ -69,7 +69,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('renders modified image correctly in inline mode', () => {
-      const modifiedFile: DiffFile = {
+      const modifiedFile: GeneralDiffFile = {
         path: 'test.jpg',
         oldPath: 'test.jpg',
         status: 'modified',
@@ -89,7 +89,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('handles renamed image correctly', () => {
-      const renamedFile: DiffFile = {
+      const renamedFile: GeneralDiffFile = {
         path: 'new-name.jpg',
         oldPath: 'old-name.jpg',
         status: 'renamed',
@@ -110,7 +110,7 @@ describe('ImageDiffChunk', () => {
 
   describe('Image loading with custom refs', () => {
     it('sets correct image src URLs with custom commitish', () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         oldPath: 'old-test.jpg',
         status: 'modified',
@@ -127,7 +127,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('uses default refs when not provided', () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         oldPath: 'old-test.jpg',
         status: 'modified',
@@ -146,7 +146,7 @@ describe('ImageDiffChunk', () => {
 
   describe('Error handling', () => {
     it('handles image load errors gracefully', () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'added',
         additions: 1,
@@ -169,7 +169,7 @@ describe('ImageDiffChunk', () => {
 
   describe('Checkerboard background', () => {
     it('applies checkerboard style to images for transparency support', () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.png',
         status: 'added',
         additions: 1,
@@ -190,7 +190,7 @@ describe('ImageDiffChunk', () => {
 
   describe('Image information display', () => {
     it('shows image dimensions and file size when available', async () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'added',
         additions: 1,
@@ -218,7 +218,7 @@ describe('ImageDiffChunk', () => {
     });
 
     it('handles fetch errors gracefully', async () => {
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'added',
         additions: 1,
@@ -261,7 +261,7 @@ describe('ImageDiffChunk', () => {
   describe('Utility functions', () => {
     it('formats file size correctly', async () => {
       // Test the file size formatting through component behavior
-      const file: DiffFile = {
+      const file: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'added',
         additions: 1,
@@ -292,7 +292,7 @@ describe('ImageDiffChunk', () => {
 
   describe('Return null case', () => {
     it('returns null for unsupported file status', () => {
-      const unsupportedFile: DiffFile = {
+      const unsupportedFile: GeneralDiffFile = {
         path: 'test.jpg',
         status: 'modified',
         additions: 1,

@@ -1,4 +1,4 @@
-export interface DiffFile {
+export interface GeneralDiffFile {
   path: string;
   oldPath?: string;
   status: 'modified' | 'added' | 'deleted' | 'renamed';
@@ -56,7 +56,19 @@ export interface Comment {
   codeContent?: string; // The actual code content for this line
 }
 
+// Import notebook types from separate file
+export type { NotebookDiffFile, NotebookDiff } from './notebook';
+import type { NotebookDiffFile } from './notebook';
+
 export interface LineSelection {
   side: 'old' | 'new';
   lineNumber: number;
+}
+
+// Union type for all diff file types
+export type DiffFile = GeneralDiffFile | NotebookDiffFile;
+
+// Type guard to check if file is a NotebookDiffFile
+export function isNotebookDiffFile(file: DiffFile): file is NotebookDiffFile {
+  return 'cellDiffs' in file;
 }
