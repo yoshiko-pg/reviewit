@@ -42,8 +42,8 @@ describe('GitDiffParser', () => {
     // Get mocked functions
     const childProcess = await import('child_process');
     const fs = await import('fs');
-    mockExecFileSync = childProcess.execFileSync as any;
-    mockReadFileSync = fs.readFileSync as any;
+    mockExecFileSync = childProcess.execFileSync;
+    mockReadFileSync = fs.readFileSync;
   });
 
   afterEach(() => {

@@ -6,7 +6,6 @@ interface CheckboxProps {
   label?: string;
   className?: string;
   title?: string;
-  test?: string;
 }
 
 export function Checkbox({ checked, onChange, label, className = '', title }: CheckboxProps) {

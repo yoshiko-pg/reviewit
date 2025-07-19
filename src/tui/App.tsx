@@ -69,10 +69,8 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
         if (input === 'd') {
           setViewMode('inline');
         }
-      } else {
-        if (key.escape || input === 'b') {
-          setViewMode('list');
-        }
+      } else if (key.escape || input === 'b') {
+        setViewMode('list');
       }
     },
     { isActive: true }
@@ -112,12 +110,7 @@ const App: React.FC<AppProps> = ({ targetCommitish, baseCommitish, mode }) => {
             initialFileIndex={selectedFileIndex}
             onBack={() => setViewMode('list')}
           />
-        : <DiffViewer
-            files={files}
-            initialFileIndex={selectedFileIndex}
-            onBack={() => setViewMode('list')}
-          />
-        }
+        : <DiffViewer files={files} initialFileIndex={selectedFileIndex} />}
       </Box>
       <Box borderStyle="single" paddingX={1}>
         <Text dimColor>
