@@ -6,7 +6,6 @@ import { type FileDiff } from '../../types/diff.js';
 interface DiffViewerProps {
   files: FileDiff[];
   initialFileIndex: number;
-  onBack: () => void;
 }
 
 const DiffViewer: React.FC<DiffViewerProps> = ({ files, initialFileIndex }) => {
