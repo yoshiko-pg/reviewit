@@ -307,20 +307,48 @@ export function useKeyboardNavigation({
     (direction: 'next' | 'prev') => {
       if (files.length === 0) return;
 
-      let targetIndex = cursor?.fileIndex ?? -1;
+      // Calculate target file index
+      let targetFileIndex = cursor?.fileIndex ?? -1;
       if (direction === 'next') {
-        targetIndex = (targetIndex + 1) % files.length;
+        targetFileIndex = (targetFileIndex + 1) % files.length;
       } else {
-        targetIndex = targetIndex <= 0 ? files.length - 1 : targetIndex - 1;
+        targetFileIndex = targetFileIndex <= 0 ? files.length - 1 : targetFileIndex - 1;
       }
 
-      const file = files[targetIndex];
-      if (file) {
-        setCursor(null); // Reset cursor when navigating files
-        scrollToElement(`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`);
+      // Find the first navigable line in the target file
+      const targetFile = files[targetFileIndex];
+      if (!targetFile || targetFile.chunks.length === 0) return;
+
+      // Look for the first line in the file
+      for (let chunkIndex = 0; chunkIndex < targetFile.chunks.length; chunkIndex++) {
+        const chunk = targetFile.chunks[chunkIndex];
+        if (chunk && chunk.lines.length > 0) {
+          // Create a position for the first line
+          const position: CursorPosition = {
+            fileIndex: targetFileIndex,
+            chunkIndex,
+            lineIndex: 0,
+            side: cursor?.side ?? 'right',
+          };
+
+          // Fix side if needed
+          const fixed = fixSide(position, files);
+          setCursor(fixed);
+
+          // Scroll to the file header first
+          const fileElementId = `file-${targetFile.path.replace(/[^a-zA-Z0-9]/g, '-')}`;
+          scrollToElement(fileElementId);
+
+          // Then highlight the first line
+          setTimeout(() => {
+            scrollToElement(getElementId(fixed, viewMode));
+          }, 100);
+
+          return;
+        }
       }
     },
-    [cursor, files, scrollToElement]
+    [cursor, files, scrollToElement, viewMode]
   );
 
   const switchSide = useCallback(

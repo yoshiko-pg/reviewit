@@ -174,8 +174,13 @@ describe('useKeyboardNavigation', () => {
         window.dispatchEvent(event);
       });
 
-      // After navigating to file, cursor is reset
-      expect(result.current.cursor).toBe(null);
+      // After navigating to file, cursor should be set to the first line of the file
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'left', // Fixed to left because first line is a delete line
+      });
       // The getElementById should be called to find the file element
       expect(mockGetElementById).toHaveBeenCalledWith('file-file1-ts');
     });
@@ -204,8 +209,13 @@ describe('useKeyboardNavigation', () => {
         window.dispatchEvent(event);
       });
 
-      // Cursor should be reset after file navigation
-      expect(result.current.cursor).toBe(null);
+      // Cursor should be set to the first line of file0
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'left', // Fixed to left because first line is a delete line
+      });
     });
 
     it('should wrap around when navigating past boundaries', () => {
