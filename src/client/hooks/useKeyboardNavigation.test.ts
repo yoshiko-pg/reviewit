@@ -62,8 +62,8 @@ describe('useKeyboardNavigation', () => {
   ];
 
   const mockComments = [
-    { id: '1', file: 'file1.ts', line: 5, body: 'Comment 1', timestamp: new Date().toISOString() },
-    { id: '2', file: 'file2.ts', line: 22, body: 'Comment 2', timestamp: new Date().toISOString() },
+    { id: '1', file: 'file1.ts', line: 1, body: 'Comment 1', timestamp: new Date().toISOString() }, // On the add line
+    { id: '2', file: 'file2.ts', line: 20, body: 'Comment 2', timestamp: new Date().toISOString() }, // On the add line in file2
   ];
 
   const mockToggleReviewed = vi.fn();
@@ -206,8 +206,8 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
-  describe('Hunk Navigation (n/p)', () => {
-    it('should navigate to next hunk with n key', () => {
+  describe('Chunk Navigation (n/p)', () => {
+    it('should navigate to next chunk with n key (continuous add/delete treated as single chunk)', () => {
       const { result } = renderHook(() =>
         useKeyboardNavigation({
           files: mockFiles,
@@ -217,16 +217,21 @@ describe('useKeyboardNavigation', () => {
       );
 
       expect(result.current.currentHunkIndex).toBe(-1);
+      expect(result.current.currentSide).toBe('right'); // Start on right side
 
+      // First press - should go to first change chunk (on right side: add line at index 1)
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'n' });
         window.dispatchEvent(event);
       });
 
+      // First chunk is the delete/add pair at hunk 0, starting with delete line
       expect(result.current.currentHunkIndex).toBe(0);
       expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-0'); // Delete line (first line of first chunk)
+      expect(result.current.currentSide).toBe('left'); // Switched to left side for delete line
 
-      // Navigate to next hunk in same file
+      // Navigate to next chunk (add/delete pair in hunk 1)
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'n' });
         window.dispatchEvent(event);
@@ -234,8 +239,10 @@ describe('useKeyboardNavigation', () => {
 
       expect(result.current.currentHunkIndex).toBe(1);
       expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-1-line-0'); // Add line (first line of second chunk)
+      expect(result.current.currentSide).toBe('right'); // Switched to right side for add line
 
-      // Navigate to hunk in next file
+      // Navigate to next chunk (add line in file2)
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'n' });
         window.dispatchEvent(event);
@@ -243,9 +250,22 @@ describe('useKeyboardNavigation', () => {
 
       expect(result.current.currentHunkIndex).toBe(0);
       expect(result.current.currentFileIndex).toBe(1);
+      expect(result.current.currentLineId).toBe('file-1-chunk-0-line-0'); // Add line in file2
+      expect(result.current.currentSide).toBe('right'); // Stays on right side
+
+      // Navigate to next chunk (wraps back to first chunk)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'n' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.currentHunkIndex).toBe(0);
+      expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-0'); // Back to first chunk
+      expect(result.current.currentSide).toBe('left'); // Switched to left side
     });
 
-    it('should navigate to previous hunk with p key', () => {
+    it('should navigate to previous chunk with p key (continuous add/delete treated as single chunk)', () => {
       const { result } = renderHook(() =>
         useKeyboardNavigation({
           files: mockFiles,
@@ -254,12 +274,27 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
-      // Start at last hunk
+      // First navigate to file2 (3 n key presses: chunk0->chunk1->file2)
       act(() => {
-        result.current.setCurrentFileIndex(1);
-        result.current.setCurrentHunkIndex(0);
+        const event = new KeyboardEvent('keydown', { key: 'n' });
+        window.dispatchEvent(event);
+      });
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'n' });
+        window.dispatchEvent(event);
+      });
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'n' });
+        window.dispatchEvent(event);
       });
 
+      // Now we should be at file 1, chunk 0 (add line)
+      expect(result.current.currentHunkIndex).toBe(0);
+      expect(result.current.currentFileIndex).toBe(1);
+      expect(result.current.currentLineId).toBe('file-1-chunk-0-line-0');
+      expect(result.current.currentSide).toBe('right');
+
+      // Navigate back to previous chunk (second chunk of file0)
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'p' });
         window.dispatchEvent(event);
@@ -267,6 +302,30 @@ describe('useKeyboardNavigation', () => {
 
       expect(result.current.currentHunkIndex).toBe(1);
       expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-1-line-0'); // Add line in hunk 1
+      expect(result.current.currentSide).toBe('right'); // Switched to right side
+
+      // Navigate back to previous chunk (first chunk of file0)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'p' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.currentHunkIndex).toBe(0);
+      expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-0'); // Delete line in first chunk
+      expect(result.current.currentSide).toBe('left'); // Switched to left side
+
+      // Navigate back to previous chunk (wraps to last chunk)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'p' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.currentHunkIndex).toBe(0);
+      expect(result.current.currentFileIndex).toBe(1);
+      expect(result.current.currentLineId).toBe('file-1-chunk-0-line-0'); // Back to last chunk (file2)
+      expect(result.current.currentSide).toBe('right'); // Switched to right side
     });
   });
 
@@ -280,21 +339,25 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
+      // First comment is on line 1 (add line) in file1.ts
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
         window.dispatchEvent(event);
       });
 
+      expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-1'); // Add line with comment
       expect(result.current.currentCommentIndex).toBe(0);
-      expect(result.current.currentFileIndex).toBe(0); // Should jump to file with first comment
 
+      // Second comment is on line 20 in file2.ts
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
         window.dispatchEvent(event);
       });
 
+      expect(result.current.currentFileIndex).toBe(1);
+      expect(result.current.currentLineId).toBe('file-1-chunk-0-line-0');
       expect(result.current.currentCommentIndex).toBe(1);
-      expect(result.current.currentFileIndex).toBe(1); // Should jump to file with second comment
     });
 
     it('should navigate to previous comment with P key', () => {
@@ -306,16 +369,24 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
-      // Start at second comment
+      // Navigate to second comment first
       act(() => {
-        result.current.setCurrentCommentIndex(1);
+        const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
+        window.dispatchEvent(event);
+      });
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
+        window.dispatchEvent(event);
       });
 
+      // Now navigate back
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'P', shiftKey: true });
         window.dispatchEvent(event);
       });
 
+      expect(result.current.currentFileIndex).toBe(0);
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-1');
       expect(result.current.currentCommentIndex).toBe(0);
     });
   });

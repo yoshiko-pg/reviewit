@@ -46,17 +46,6 @@ export function useKeyboardNavigation({
   const [currentCommentIndex, setCurrentCommentIndex] = useState(-1);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-  // Create a flat list of all hunks with their file indices
-  const allHunks = useMemo(() => {
-    const hunks: Array<{ fileIndex: number; hunkIndex: number; element?: HTMLElement }> = [];
-    files.forEach((file, fileIndex) => {
-      file.chunks.forEach((_, hunkIndex) => {
-        hunks.push({ fileIndex, hunkIndex });
-      });
-    });
-    return hunks;
-  }, [files]);
-
   // Create a flat list of all navigable lines with unique IDs
   const allLines = useMemo(() => {
     const lines: NavigableLine[] = [];
@@ -219,81 +208,236 @@ export function useKeyboardNavigation({
     [allLines, currentLineId, currentSide, files, scrollToElement]
   );
 
-  const navigateToHunk = useCallback(
+  // Check if a line is the first line of a change chunk (continuous add/delete lines)
+  // Following Gerrit's approach: continuous add/delete lines form a single chunk
+  const isFirstLineOfChangeChunk = useCallback(
+    (fileIndex: number, chunkIndex: number, lineIndex: number): boolean => {
+      // First line in a hunk is always start of chunk if it's a change
+      if (lineIndex === 0) {
+        const line = files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex];
+        return line?.type !== 'normal';
+      }
+
+      // Check if previous line exists and is normal
+      const prevLine = files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex - 1];
+      const currentLine = files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex];
+
+      if (!currentLine || currentLine.type === 'normal') return false;
+      if (!prevLine || prevLine.type === 'normal') return true;
+
+      // Continuous add/delete lines are part of same chunk
+      return false;
+    },
+    [files]
+  );
+
+  // Navigate to next/previous change chunk across all files (n/p keys)
+  const navigateToChunk = useCallback(
     (direction: 'next' | 'prev') => {
-      if (allHunks.length === 0) return;
-
-      let currentGlobalIndex = -1;
-      if (currentFileIndex >= 0 && currentHunkIndex >= 0) {
-        currentGlobalIndex = allHunks.findIndex(
-          (h) => h.fileIndex === currentFileIndex && h.hunkIndex === currentHunkIndex
-        );
+      // Collect all chunk start positions across all files
+      interface ChunkStart {
+        fileIndex: number;
+        chunkIndex: number;
+        lineIndex: number;
       }
 
-      let newGlobalIndex: number;
-      if (direction === 'next') {
-        newGlobalIndex = (currentGlobalIndex + 1) % allHunks.length;
-      } else {
-        newGlobalIndex =
-          currentGlobalIndex === -1 ?
-            allHunks.length - 1
-          : (currentGlobalIndex - 1 + allHunks.length) % allHunks.length;
-      }
+      const allChunks: ChunkStart[] = [];
 
-      const newHunk = allHunks[newGlobalIndex];
-      if (newHunk) {
-        setCurrentFileIndex(newHunk.fileIndex);
-        setCurrentHunkIndex(newHunk.hunkIndex);
+      files.forEach((file, fileIndex) => {
+        file.chunks.forEach((chunk, chunkIndex) => {
+          chunk.lines.forEach((_, lineIndex) => {
+            if (isFirstLineOfChangeChunk(fileIndex, chunkIndex, lineIndex)) {
+              allChunks.push({ fileIndex, chunkIndex, lineIndex });
+            }
+          });
+        });
+      });
 
-        // Find the first changed line in this hunk
-        const firstLineInHunk = allLines.find(
-          (line) => line.fileIndex === newHunk.fileIndex && line.chunkIndex === newHunk.hunkIndex
-        );
+      if (allChunks.length === 0) return;
 
-        if (firstLineInHunk) {
-          setCurrentLineId(firstLineInHunk.id);
-          scrollToElement(firstLineInHunk.id);
-        } else {
-          setCurrentLineId(null);
-          const file = files[newHunk.fileIndex];
-          if (file) {
-            scrollToElement(
-              `chunk-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${newHunk.hunkIndex}`
-            );
+      // Find current chunk (the chunk we're in or just passed)
+      let currentChunkIdx = -1;
+      if (currentLineId) {
+        // Parse current position from lineId
+        const match = currentLineId.match(/file-(\d+)-chunk-(\d+)-line-(\d+)/);
+        if (match) {
+          const [, fileStr, chunkStr, lineStr] = match;
+          const currentFile = parseInt(fileStr || '0', 10);
+          const currentChunk = parseInt(chunkStr || '0', 10);
+          const currentLine = parseInt(lineStr || '0', 10);
+
+          // Find which chunk we're in or just after
+          for (let i = allChunks.length - 1; i >= 0; i--) {
+            const chunk = allChunks[i];
+            if (
+              chunk &&
+              (chunk.fileIndex < currentFile ||
+                (chunk.fileIndex === currentFile && chunk.chunkIndex < currentChunk) ||
+                (chunk.fileIndex === currentFile &&
+                  chunk.chunkIndex === currentChunk &&
+                  chunk.lineIndex <= currentLine))
+            ) {
+              currentChunkIdx = i;
+              break;
+            }
           }
         }
       }
+
+      // Navigate to target chunk
+      let targetChunk: ChunkStart | undefined;
+      if (direction === 'next') {
+        targetChunk =
+          currentChunkIdx >= allChunks.length - 1 ? allChunks[0] : allChunks[currentChunkIdx + 1];
+      } else {
+        targetChunk =
+          currentChunkIdx <= 0 ? allChunks[allChunks.length - 1] : allChunks[currentChunkIdx - 1];
+      }
+
+      if (!targetChunk) return;
+
+      // Get the actual line to navigate to
+      const line =
+        files[targetChunk.fileIndex]?.chunks[targetChunk.chunkIndex]?.lines[targetChunk.lineIndex];
+      if (!line) return;
+
+      // Build the line ID
+      const targetLineId = `file-${targetChunk.fileIndex}-chunk-${targetChunk.chunkIndex}-line-${targetChunk.lineIndex}`;
+
+      // Determine which side to use in side-by-side mode
+      let targetSide = currentSide;
+      if (line.type === 'delete') {
+        targetSide = 'left';
+      } else if (line.type === 'add') {
+        targetSide = 'right';
+      }
+      // For normal lines, keep current side
+
+      // Update state
+      setCurrentFileIndex(targetChunk.fileIndex);
+      setCurrentHunkIndex(targetChunk.chunkIndex);
+      setCurrentLineId(targetLineId);
+      setCurrentSide(targetSide);
+
+      // Scroll to element
+      const elementId =
+        allLines.some((l) => l.side) ? `${targetLineId}-${targetSide}` : targetLineId;
+      scrollToElement(elementId);
     },
-    [allHunks, allLines, currentFileIndex, currentHunkIndex, files, scrollToElement]
+    [files, currentLineId, currentSide, isFirstLineOfChangeChunk, allLines, scrollToElement]
   );
 
+  // Check if a line has comments
+  const lineHasComment = useCallback(
+    (line: NavigableLine): boolean => {
+      return sortedComments.some((comment) => {
+        const file = files[line.fileIndex];
+        if (!file || file.path !== comment.file) return false;
+
+        const lineNumber = Array.isArray(comment.line) ? comment.line[0] : comment.line;
+        return line.oldLineNumber === lineNumber || line.newLineNumber === lineNumber;
+      });
+    },
+    [sortedComments, files]
+  );
+
+  // Navigate to next/previous comment from current cursor position (N/P keys)
   const navigateToComment = useCallback(
     (direction: 'next' | 'prev') => {
       if (sortedComments.length === 0) return;
 
-      let newIndex: number;
-      if (direction === 'next') {
-        newIndex = (currentCommentIndex + 1) % sortedComments.length;
-      } else {
-        newIndex =
-          currentCommentIndex === -1 ?
-            sortedComments.length - 1
-          : (currentCommentIndex - 1 + sortedComments.length) % sortedComments.length;
+      // Filter lines by current side for side-by-side mode
+      const filteredLines = allLines.filter((line) => !line.side || line.side === currentSide);
+
+      // Filter to only include lines with comments
+      const linesWithComments = filteredLines.filter((line) => lineHasComment(line));
+
+      if (linesWithComments.length === 0) return;
+
+      // Find current position
+      let currentIndex = -1;
+      if (currentLineId) {
+        // Find where we are in the sorted list of all lines
+        const currentLineIndex = filteredLines.findIndex((line) => line.id === currentLineId);
+
+        if (currentLineIndex >= 0) {
+          // Find the nearest line with comment at or before current position
+          for (let i = linesWithComments.length - 1; i >= 0; i--) {
+            const lineWithComment = linesWithComments[i];
+            if (lineWithComment) {
+              const lineWithCommentIndex = filteredLines.findIndex(
+                (l) => l.id === lineWithComment.id
+              );
+              if (lineWithCommentIndex <= currentLineIndex) {
+                currentIndex = i;
+                break;
+              }
+            }
+          }
+        }
       }
 
-      setCurrentCommentIndex(newIndex);
+      let targetLine: NavigableLine | undefined;
+      if (direction === 'next') {
+        if (currentIndex === -1 || currentIndex >= linesWithComments.length - 1) {
+          // No current position or at last comment, go to first comment
+          targetLine = linesWithComments[0];
+        } else {
+          // Go to next comment
+          targetLine = linesWithComments[currentIndex + 1];
+        }
+      } else {
+        if (currentIndex <= 0) {
+          // No current position or at first comment, go to last comment
+          targetLine = linesWithComments[linesWithComments.length - 1];
+        } else {
+          // Go to previous comment
+          targetLine = linesWithComments[currentIndex - 1];
+        }
+      }
 
-      const comment = sortedComments[newIndex];
-      if (comment) {
-        const fileIndex = files.findIndex((f) => f.path === comment.file);
-        if (fileIndex >= 0) {
-          setCurrentFileIndex(fileIndex);
+      if (targetLine) {
+        setCurrentFileIndex(targetLine.fileIndex);
+        setCurrentHunkIndex(targetLine.chunkIndex);
+
+        // In side-by-side mode, switch to the side where the comment exists
+        if (targetLine.side) {
+          if (targetLine.type === 'delete') {
+            setCurrentSide('left');
+          } else if (targetLine.type === 'add') {
+            setCurrentSide('right');
+          }
+          // For normal lines, keep current side
         }
 
-        scrollToElement(`comment-${comment.id}`);
+        setCurrentLineId(targetLine.id);
+        const elementId = targetLine.side ? `${targetLine.id}-${targetLine.side}` : targetLine.id;
+        scrollToElement(elementId);
+
+        // Find the associated comment and update index
+        const file = files[targetLine.fileIndex];
+        if (file) {
+          const lineNumber = targetLine.oldLineNumber || targetLine.newLineNumber;
+          const commentIndex = sortedComments.findIndex(
+            (comment) =>
+              comment.file === file.path &&
+              (Array.isArray(comment.line) ? comment.line[0] : comment.line) === lineNumber
+          );
+          if (commentIndex >= 0) {
+            setCurrentCommentIndex(commentIndex);
+
+            // Also scroll to the comment itself after a short delay
+            setTimeout(() => {
+              const comment = sortedComments[commentIndex];
+              if (comment) {
+                scrollToElement(`comment-${comment.id}`);
+              }
+            }, 100);
+          }
+        }
       }
     },
-    [sortedComments, currentCommentIndex, files, scrollToElement]
+    [allLines, currentLineId, currentSide, lineHasComment, sortedComments, files, scrollToElement]
   );
 
   const handleKeyDown = useCallback(
@@ -344,11 +488,11 @@ export function useKeyboardNavigation({
           break;
         case 'n':
           event.preventDefault();
-          navigateToHunk('next');
+          navigateToChunk('next');
           break;
         case 'p':
           event.preventDefault();
-          navigateToHunk('prev');
+          navigateToChunk('prev');
           break;
         case 'N':
           if (event.shiftKey) {
@@ -393,7 +537,7 @@ export function useKeyboardNavigation({
       allLines,
       navigateToFile,
       navigateToLine,
-      navigateToHunk,
+      navigateToChunk,
       navigateToComment,
       files,
       onToggleReviewed,

@@ -71,19 +71,25 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </section>
 
           <section>
-            <h3 className="text-sm font-semibold text-github-text-primary mb-2">Hunk Navigation</h3>
+            <h3 className="text-sm font-semibold text-github-text-primary mb-2">
+              Chunk Navigation
+            </h3>
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   n
                 </kbd>
-                <span className="text-github-text-secondary">Next hunk (across files)</span>
+                <span className="text-github-text-secondary">
+                  Next change chunk (added/deleted lines)
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   p
                 </kbd>
-                <span className="text-github-text-secondary">Previous hunk (across files)</span>
+                <span className="text-github-text-secondary">
+                  Previous change chunk (added/deleted lines)
+                </span>
               </div>
             </div>
           </section>
