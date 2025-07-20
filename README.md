@@ -110,8 +110,8 @@ difit supports syntax highlighting for multiple programming languages with dynam
 - **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
 - **Web Technologies**: HTML, CSS, JSON, XML, Markdown
 - **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
-- **Backend Languages**: PHP, SQL, Ruby, Java, Scala, C#
-- **Systems Languages**: C, C++, Rust, Go
+- **Backend Languages**: PHP, SQL, Ruby, Java, Scala
+- **Systems Languages**: C, C++, C#, Rust, Go
 - **Mobile Languages**: Swift, Kotlin, Dart
 - **Others**: Python, YAML, Solidity, Vim script
 
