@@ -1,4 +1,4 @@
-import { Copy, Eraser, ChevronDown } from 'lucide-react';
+import { Copy, Eraser, ChevronDown, Check } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 interface CommentsDropdownProps {
@@ -60,7 +60,9 @@ export function CommentsDropdown({
           }}
           title={`Copy all ${commentsCount} comments to AI coding agent`}
         >
-          <Copy size={12} />
+          {isCopiedAll ?
+            <Check size={12} />
+          : <Copy size={12} />}
           {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${commentsCount})`}
         </button>
         <button
