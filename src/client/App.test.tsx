@@ -71,14 +71,16 @@ describe('App Component - Clear Comments Functionality', () => {
     mockFetch(mockDiffResponse);
   });
 
-  describe('Delete All Comments Button', () => {
+  describe('Cleanup All Prompt Button', () => {
     it('should not show delete button when no comments exist', async () => {
       mockComments = [];
 
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Delete All Comments')).not.toBeInTheDocument();
+        // Cleanup All Prompt should not be visible without comments (dropdown doesn't exist)
+        expect(screen.queryByText('Copy All Prompt')).not.toBeInTheDocument();
+        expect(screen.queryByText('Cleanup All Prompt')).not.toBeInTheDocument();
       });
     });
 
@@ -96,11 +98,17 @@ describe('App Component - Clear Comments Functionality', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Delete All Comments')).toBeInTheDocument();
+        // Find and click the dropdown toggle button (chevron)
+        const dropdownToggle = screen.getByTitle('More options');
+        fireEvent.click(dropdownToggle);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Cleanup All Prompt')).toBeInTheDocument();
       });
     });
 
-    it('should show confirmation dialog when delete button is clicked', async () => {
+    it('should call clearAllComments immediately when delete button is clicked', async () => {
       mockComments = [
         { id: '1', file: 'test.ts', line: 10, body: 'Comment 1', timestamp: '2024-01-01' },
         { id: '2', file: 'test.ts', line: 20, body: 'Comment 2', timestamp: '2024-01-01' },
@@ -109,43 +117,17 @@ describe('App Component - Clear Comments Functionality', () => {
       render(<App />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByText('Delete All Comments');
-        fireEvent.click(deleteButton);
+        // First, open the dropdown
+        const dropdownToggle = screen.getByTitle('More options');
+        fireEvent.click(dropdownToggle);
       });
 
-      expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to delete all 2 comments?');
-    });
-
-    it('should call clearAllComments when user confirms deletion', async () => {
-      mockComments = [
-        { id: '1', file: 'test.ts', line: 10, body: 'Comment 1', timestamp: '2024-01-01' },
-      ];
-      mockConfirm.mockReturnValue(true);
-
-      render(<App />);
-
       await waitFor(() => {
-        const deleteButton = screen.getByText('Delete All Comments');
+        const deleteButton = screen.getByText('Cleanup All Prompt');
         fireEvent.click(deleteButton);
       });
 
       expect(mockClearAllComments).toHaveBeenCalled();
-    });
-
-    it('should not call clearAllComments when user cancels deletion', async () => {
-      mockComments = [
-        { id: '1', file: 'test.ts', line: 10, body: 'Comment 1', timestamp: '2024-01-01' },
-      ];
-      mockConfirm.mockReturnValue(false);
-
-      render(<App />);
-
-      await waitFor(() => {
-        const deleteButton = screen.getByText('Delete All Comments');
-        fireEvent.click(deleteButton);
-      });
-
-      expect(mockClearAllComments).not.toHaveBeenCalled();
     });
   });
 

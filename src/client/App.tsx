@@ -1,17 +1,10 @@
-import {
-  Columns,
-  AlignLeft,
-  Copy,
-  Settings,
-  PanelLeftClose,
-  PanelLeft,
-  Trash2,
-} from 'lucide-react';
+import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
+import { CommentsDropdown } from './components/CommentsDropdown';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
@@ -311,45 +304,12 @@ function App() {
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
-              <>
-                <button
-                  onClick={handleCopyAllComments}
-                  className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
-                  style={{
-                    backgroundColor: 'var(--color-yellow-btn-bg)',
-                    color: 'var(--color-yellow-btn-text)',
-                    border: '1px solid var(--color-yellow-btn-border)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
-                    e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
-                    e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
-                  }}
-                  title={`Copy all ${comments.length} comments to AI coding agent`}
-                >
-                  <Copy size={12} />
-                  {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
-                </button>
-                <button
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Are you sure you want to delete all ${comments.length} comments?`
-                      )
-                    ) {
-                      clearAllComments();
-                    }
-                  }}
-                  className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5 text-github-danger hover:text-github-danger-hover bg-github-bg-tertiary hover:bg-github-danger-subtle border border-github-border hover:border-github-danger"
-                  title={`Delete all ${comments.length} comments`}
-                >
-                  <Trash2 size={12} />
-                  Delete All Comments
-                </button>
-              </>
+              <CommentsDropdown
+                commentsCount={comments.length}
+                isCopiedAll={isCopiedAll}
+                onCopyAll={handleCopyAllComments}
+                onDeleteAll={clearAllComments}
+              />
             )}
             <div className="flex flex-col gap-1 items-center">
               <div className="text-xs">
