@@ -39,7 +39,9 @@ interface DiffViewerProps {
   targetCommitish?: string;
   isCurrentFile?: boolean;
   currentHunkIndex?: number;
-  currentLineInFile?: { hunkIndex: number; lineIndex: number } | null;
+  currentLineId?: string | null;
+  currentSide?: 'left' | 'right';
+  fileIndex?: number;
 }
 
 export function DiffViewer({
@@ -57,7 +59,9 @@ export function DiffViewer({
   targetCommitish,
   isCurrentFile = false,
   currentHunkIndex = -1,
-  currentLineInFile = null,
+  currentLineId = null,
+  currentSide = 'right',
+  fileIndex = 0,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
@@ -187,7 +191,6 @@ export function DiffViewer({
                   <DiffChunk
                     chunk={chunk}
                     chunkIndex={index}
-                    filePath={file.path}
                     comments={comments}
                     onAddComment={handleAddComment}
                     onGeneratePrompt={onGeneratePrompt}
@@ -195,11 +198,9 @@ export function DiffViewer({
                     onUpdateComment={onUpdateComment}
                     mode={diffMode}
                     syntaxTheme={syntaxTheme}
-                    currentLineIndex={
-                      isFocused && currentLineInFile?.hunkIndex === index ?
-                        currentLineInFile.lineIndex
-                      : -1
-                    }
+                    currentLineId={currentLineId}
+                    currentSide={currentSide}
+                    fileIndex={fileIndex}
                   />
                 </div>
               );

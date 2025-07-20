@@ -60,12 +60,15 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
     const lineNumber = line.newLineNumber || line.oldLineNumber;
     const showCommentButton = hoveredLine === lineNumber && lineNumber;
 
+    const highlightClass =
+      isCurrentLine ?
+        'outline outline-2 outline-blue-500 outline-offset-[-2px] bg-blue-100/50 dark:bg-blue-900/30'
+      : '';
+
     return (
       <tr
         id={lineId}
-        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${
-          isCurrentLine ? 'ring-2 ring-github-accent ring-inset bg-github-highlight' : ''
-        }`}
+        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${highlightClass}`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}

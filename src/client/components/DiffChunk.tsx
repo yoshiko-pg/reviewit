@@ -16,7 +16,6 @@ import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 interface DiffChunkProps {
   chunk: DiffChunkType;
   chunkIndex: number;
-  filePath: string;
   comments: Comment[];
   onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
@@ -24,13 +23,14 @@ interface DiffChunkProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
-  currentLineIndex?: number;
+  currentLineId?: string | null;
+  currentSide?: 'left' | 'right';
+  fileIndex?: number;
 }
 
 export function DiffChunk({
   chunk,
   chunkIndex,
-  filePath,
   comments,
   onAddComment,
   onGeneratePrompt,
@@ -38,7 +38,9 @@ export function DiffChunk({
   onUpdateComment,
   mode = 'inline',
   syntaxTheme,
-  currentLineIndex = -1,
+  currentLineId = null,
+  currentSide = 'right',
+  fileIndex = 0,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
   const [endLine, setEndLine] = useState<number | null>(null);
@@ -152,14 +154,15 @@ export function DiffChunk({
       <SideBySideDiffChunk
         chunk={chunk}
         chunkIndex={chunkIndex}
-        filePath={filePath}
         comments={comments}
         onAddComment={onAddComment}
         onGeneratePrompt={onGeneratePrompt}
         onRemoveComment={onRemoveComment}
         onUpdateComment={onUpdateComment}
         syntaxTheme={syntaxTheme}
-        currentLineIndex={currentLineIndex}
+        currentLineId={currentLineId}
+        currentSide={currentSide}
+        fileIndex={fileIndex}
       />
     );
   }
@@ -170,14 +173,17 @@ export function DiffChunk({
         <tbody>
           {chunk.lines.map((line, index) => {
             const lineComments = getCommentsForLine(line.newLineNumber || line.oldLineNumber || 0);
+            // Generate ID for all lines to match the format used in useKeyboardNavigation
+            const lineId = `file-${fileIndex}-chunk-${chunkIndex}-line-${index}`;
+            const isCurrentLine = lineId === currentLineId;
 
             return (
               <React.Fragment key={index}>
                 <DiffLineRow
                   line={line}
                   index={index}
-                  lineId={`line-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}-${chunkIndex}-${index}`}
-                  isCurrentLine={currentLineIndex === index}
+                  lineId={lineId}
+                  isCurrentLine={isCurrentLine}
                   hoveredLine={hoveredLine}
                   selectedLineStyle={getSelectedLineStyle(line.newLineNumber || line.oldLineNumber)}
                   onMouseEnter={() => {

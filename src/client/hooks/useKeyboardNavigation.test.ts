@@ -82,14 +82,15 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
-      expect(result.current.currentLineIndex).toBe(-1);
+      expect(result.current.currentLineId).toBe(null);
 
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'j' });
         window.dispatchEvent(event);
       });
 
-      expect(result.current.currentLineIndex).toBeGreaterThan(-1);
+      // Should navigate to the first navigable line on the right side (add line at index 1)
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-1');
     });
 
     it('should navigate to previous line with k key', () => {
@@ -101,7 +102,7 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
-      // Navigate to second line first (index 1)
+      // Navigate to second line first
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'j' });
         window.dispatchEvent(event);
@@ -111,14 +112,17 @@ describe('useKeyboardNavigation', () => {
         window.dispatchEvent(event);
       });
 
-      const secondLineIndex = result.current.currentLineIndex;
+      // With right side filtering, we should be at the normal line (index 2)
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-2');
 
+      // Navigate back with k
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'k' });
         window.dispatchEvent(event);
       });
 
-      expect(result.current.currentLineIndex).toBe(secondLineIndex - 1);
+      // Should go back to the add line (index 1)
+      expect(result.current.currentLineId).toBe('file-0-chunk-0-line-1');
     });
   });
 

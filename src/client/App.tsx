@@ -64,12 +64,18 @@ function App() {
     });
   };
 
-  const { currentFileIndex, currentHunkIndex, currentLineIndex, isHelpOpen, setIsHelpOpen } =
-    useKeyboardNavigation({
-      files: diffData?.files || [],
-      comments,
-      onToggleReviewed: toggleFileReviewed,
-    });
+  const {
+    currentFileIndex,
+    currentHunkIndex,
+    currentLineId,
+    currentSide,
+    isHelpOpen,
+    setIsHelpOpen,
+  } = useKeyboardNavigation({
+    files: diffData?.files || [],
+    comments,
+    onToggleReviewed: toggleFileReviewed,
+  });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -453,43 +459,6 @@ function App() {
 
         <main className="flex-1 overflow-y-auto">
           {diffData.files.map((file, fileIndex) => {
-            // Calculate currentLineInFile based on the global currentLineIndex
-            let currentLineInFile = null;
-            if (fileIndex === currentFileIndex && currentLineIndex >= 0) {
-              // Count lines in previous files first
-              let globalIndex = 0;
-              for (let fIdx = 0; fIdx < fileIndex; fIdx++) {
-                const prevFile = diffData.files[fIdx];
-                if (prevFile) {
-                  prevFile.chunks.forEach((chunk) => {
-                    chunk.lines.forEach((line) => {
-                      if (line.type === 'add' || line.type === 'delete') {
-                        globalIndex++;
-                      }
-                    });
-                  });
-                }
-              }
-
-              // Find which line in this file corresponds to the global line index
-              for (let hIdx = 0; hIdx < file.chunks.length; hIdx++) {
-                const chunk = file.chunks[hIdx];
-                if (chunk) {
-                  for (let lIdx = 0; lIdx < chunk.lines.length; lIdx++) {
-                    const line = chunk.lines[lIdx];
-                    if (line && (line.type === 'add' || line.type === 'delete')) {
-                      if (globalIndex === currentLineIndex) {
-                        currentLineInFile = { hunkIndex: hIdx, lineIndex: lIdx };
-                        break;
-                      }
-                      globalIndex++;
-                    }
-                  }
-                }
-                if (currentLineInFile) break;
-              }
-            }
-
             return (
               <div
                 key={file.path}
@@ -511,7 +480,9 @@ function App() {
                   targetCommitish={diffData.targetCommitish}
                   isCurrentFile={fileIndex === currentFileIndex}
                   currentHunkIndex={fileIndex === currentFileIndex ? currentHunkIndex : -1}
-                  currentLineInFile={currentLineInFile}
+                  currentLineId={currentLineId}
+                  currentSide={currentSide}
+                  fileIndex={fileIndex}
                 />
               </div>
             );

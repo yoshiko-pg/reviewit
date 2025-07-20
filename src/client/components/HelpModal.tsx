@@ -28,15 +28,25 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             <h3 className="text-sm font-semibold text-github-text-primary mb-2">Line Navigation</h3>
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
-                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
-                  j
-                </kbd>
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    j
+                  </kbd>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    ↓
+                  </kbd>
+                </div>
                 <span className="text-github-text-secondary">Next line</span>
               </div>
               <div className="flex justify-between text-sm">
-                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
-                  k
-                </kbd>
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    k
+                  </kbd>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    ↑
+                  </kbd>
+                </div>
                 <span className="text-github-text-secondary">Previous line</span>
               </div>
             </div>
@@ -94,6 +104,36 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   P
                 </kbd>
                 <span className="text-github-text-secondary">Previous comment</span>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold text-github-text-primary mb-2">
+              Side Navigation (Side-by-side mode)
+            </h3>
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    h
+                  </kbd>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    ←
+                  </kbd>
+                </div>
+                <span className="text-github-text-secondary">Focus left side</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    l
+                  </kbd>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    →
+                  </kbd>
+                </div>
+                <span className="text-github-text-secondary">Focus right side</span>
               </div>
             </div>
           </section>
