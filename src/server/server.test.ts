@@ -499,4 +499,54 @@ describe('Server Integration Tests', () => {
       }
     });
   });
+
+  describe('Clear Comments functionality', () => {
+    it('includes clearComments flag in diff response when provided', async () => {
+      const { port, server } = await startServer({
+        targetCommitish: 'HEAD',
+        baseCommitish: 'HEAD^',
+        clearComments: true,
+      });
+      servers.push(server);
+
+      const response = await fetch(`http://localhost:${port}/api/diff`);
+      const data = (await response.json()) as any;
+
+      expect(response.ok).toBe(true);
+      expect(data.clearComments).toBe(true);
+    });
+
+    it('does not include clearComments flag when not provided', async () => {
+      const { port, server } = await startServer({
+        targetCommitish: 'HEAD',
+        baseCommitish: 'HEAD^',
+      });
+      servers.push(server);
+
+      const response = await fetch(`http://localhost:${port}/api/diff`);
+      const data = (await response.json()) as any;
+
+      expect(response.ok).toBe(true);
+      expect(data.clearComments).toBeUndefined();
+    });
+
+    it('preserves clearComments flag across diff requests', async () => {
+      const { port, server } = await startServer({
+        targetCommitish: 'HEAD',
+        baseCommitish: 'HEAD^',
+        clearComments: true,
+      });
+      servers.push(server);
+
+      // First request
+      const response1 = await fetch(`http://localhost:${port}/api/diff`);
+      const data1 = (await response1.json()) as any;
+      expect(data1.clearComments).toBe(true);
+
+      // Second request with different ignoreWhitespace
+      const response2 = await fetch(`http://localhost:${port}/api/diff?ignoreWhitespace=true`);
+      const data2 = (await response2.json()) as any;
+      expect(data2.clearComments).toBe(true);
+    });
+  });
 });

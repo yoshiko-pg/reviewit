@@ -28,6 +28,7 @@ interface CliOptions {
   mode: string;
   tui?: boolean;
   pr?: string;
+  clean?: boolean;
 }
 
 const program = new Command();
@@ -51,6 +52,7 @@ program
   .option('--mode <mode>', 'diff mode (side-by-side or inline)', 'side-by-side')
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
+  .option('--clean', 'start with a clean slate by clearing all existing comments')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Determine target and base commitish
@@ -130,10 +132,15 @@ program
         host: options.host,
         openBrowser: options.open,
         mode: options.mode,
+        clearComments: options.clean,
       });
 
       console.log(`\n🚀 difit server started on ${url}`);
       console.log(`📋 Reviewing: ${targetCommitish}`);
+
+      if (options.clean) {
+        console.log('🧹 Starting with a clean slate - all existing comments will be cleared');
+      }
 
       if (isEmpty) {
         console.log(

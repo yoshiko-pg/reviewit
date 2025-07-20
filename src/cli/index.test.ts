@@ -196,6 +196,11 @@ describe('CLI index.ts', () => {
         args: ['--mode', 'inline'],
         expectedOptions: { mode: 'inline' },
       },
+      {
+        name: '--clean option',
+        args: ['--clean'],
+        expectedOptions: { clean: true },
+      },
     ])('$name', async ({ args, expectedOptions }) => {
       mockFindUntrackedFiles.mockResolvedValue([]);
 
@@ -210,6 +215,7 @@ describe('CLI index.ts', () => {
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
         .option('--pr <url>', 'pr')
+        .option('--clean', 'start with a clean slate by clearing all existing comments')
         .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
           let targetCommitish = commitish;
           let baseCommitish = commitish + '^';
@@ -221,6 +227,7 @@ describe('CLI index.ts', () => {
             host: options.host,
             openBrowser: options.open,
             mode: options.mode,
+            clearComments: options.clean,
           });
         });
 
@@ -233,6 +240,7 @@ describe('CLI index.ts', () => {
         host: expectedOptions.host || '',
         openBrowser: expectedOptions.open !== false,
         mode: expectedOptions.mode || 'side-by-side',
+        clearComments: expectedOptions.clean,
       };
 
       expect(mockStartServer).toHaveBeenCalledWith(expectedCall);
@@ -405,6 +413,110 @@ describe('CLI index.ts', () => {
         'Error: --pr option cannot be used with positional arguments'
       );
       expect(process.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('Clean flag functionality', () => {
+    it('displays clean message when flag is used', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+      mockStartServer.mockResolvedValue({
+        port: 3000,
+        url: 'http://localhost:3000',
+        isEmpty: false,
+      });
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .option('--clean', 'start with a clean slate by clearing all existing comments')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          const { url } = await startServer({
+            targetCommitish: commitish,
+            baseCommitish: commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            clearComments: options.clean,
+          });
+
+          console.log(`\n🚀 difit server started on ${url}`);
+          console.log(`📋 Reviewing: ${commitish}`);
+
+          if (options.clean) {
+            console.log('🧹 Starting with a clean slate - all existing comments will be cleared');
+          }
+        });
+
+      await program.parseAsync(['--clean'], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clearComments: true,
+        })
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        '🧹 Starting with a clean slate - all existing comments will be cleared'
+      );
+    });
+
+    it('does not display clean message when flag is not used', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+      mockStartServer.mockResolvedValue({
+        port: 3000,
+        url: 'http://localhost:3000',
+        isEmpty: false,
+      });
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .option('--clean', 'start with a clean slate by clearing all existing comments')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          const { url } = await startServer({
+            targetCommitish: commitish,
+            baseCommitish: commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            clearComments: options.clean,
+          });
+
+          console.log(`\n🚀 difit server started on ${url}`);
+          console.log(`📋 Reviewing: ${commitish}`);
+
+          if (options.clean) {
+            console.log('🧹 Starting with a clean slate - all existing comments will be cleared');
+          }
+        });
+
+      await program.parseAsync([], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clearComments: undefined,
+        })
+      );
+      expect(console.log).not.toHaveBeenCalledWith(
+        '🧹 Starting with a clean slate - all existing comments will be cleared'
+      );
     });
   });
 
