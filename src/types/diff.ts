@@ -43,6 +43,7 @@ export interface DiffResponse {
   mode?: string;
   baseCommitish?: string;
   targetCommitish?: string;
+  clearComments?: boolean;
 }
 
 export type LineNumber = number | [number, number];

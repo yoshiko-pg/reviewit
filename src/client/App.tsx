@@ -1,5 +1,13 @@
-import { Columns, AlignLeft, Copy, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import {
+  Columns,
+  AlignLeft,
+  Copy,
+  Settings,
+  PanelLeftClose,
+  PanelLeft,
+  Trash2,
+} from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { type DiffResponse, type LineNumber } from '../types/diff';
 
@@ -32,6 +40,7 @@ function App() {
     addComment,
     removeComment,
     updateComment,
+    clearAllComments,
     generatePrompt,
     generateAllCommentsPrompt,
   } = useLocalComments(diffData?.commit);
@@ -105,6 +114,16 @@ function App() {
   useEffect(() => {
     void fetchDiffData();
   }, [fetchDiffData]);
+
+  // Clear comments on initial load if requested via CLI flag
+  const hasCleanedRef = useRef(false);
+  useEffect(() => {
+    if (diffData?.clearComments && !hasCleanedRef.current) {
+      hasCleanedRef.current = true;
+      clearAllComments();
+      console.log('✅ All existing comments cleared as requested via --clean flag');
+    }
+  }, [diffData?.clearComments, clearAllComments]);
 
   // Send comments to server before page unload
   useEffect(() => {
@@ -292,27 +311,45 @@ function App() {
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
             {comments.length > 0 && (
-              <button
-                onClick={handleCopyAllComments}
-                className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
-                style={{
-                  backgroundColor: 'var(--color-yellow-btn-bg)',
-                  color: 'var(--color-yellow-btn-text)',
-                  border: '1px solid var(--color-yellow-btn-border)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
-                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
-                  e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
-                }}
-                title={`Copy all ${comments.length} comments to AI coding agent`}
-              >
-                <Copy size={12} />
-                {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
-              </button>
+              <>
+                <button
+                  onClick={handleCopyAllComments}
+                  className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5"
+                  style={{
+                    backgroundColor: 'var(--color-yellow-btn-bg)',
+                    color: 'var(--color-yellow-btn-text)',
+                    border: '1px solid var(--color-yellow-btn-border)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                    e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                    e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+                  }}
+                  title={`Copy all ${comments.length} comments to AI coding agent`}
+                >
+                  <Copy size={12} />
+                  {isCopiedAll ? 'Copied All!' : `Copy All Prompt (${comments.length})`}
+                </button>
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Are you sure you want to delete all ${comments.length} comments?`
+                      )
+                    ) {
+                      clearAllComments();
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded transition-all whitespace-nowrap flex items-center gap-1.5 text-github-danger hover:text-github-danger-hover bg-github-bg-tertiary hover:bg-github-danger-subtle border border-github-border hover:border-github-danger"
+                  title={`Delete all ${comments.length} comments`}
+                >
+                  <Trash2 size={12} />
+                  Delete All Comments
+                </button>
+              </>
             )}
             <div className="flex flex-col gap-1 items-center">
               <div className="text-xs">

@@ -21,6 +21,7 @@ interface ServerOptions {
   openBrowser?: boolean;
   mode?: string;
   ignoreWhitespace?: boolean;
+  clearComments?: boolean;
 }
 
 export async function startServer(
@@ -72,6 +73,7 @@ export async function startServer(
       mode: diffMode,
       baseCommitish: options.baseCommitish,
       targetCommitish: options.targetCommitish,
+      clearComments: options.clearComments,
     });
   });
 
