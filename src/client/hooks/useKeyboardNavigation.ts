@@ -249,6 +249,12 @@ export function useKeyboardNavigation({
       const key = `${file.path}:${lineNum}`;
       return commentIndex.has(key);
     },
+
+    // File navigation - first line of each file
+    file: (pos: CursorPosition): boolean => {
+      // Only match the first line of the first chunk in each file
+      return pos.chunkIndex === 0 && pos.lineIndex === 0;
+    },
   };
 
   // Navigation commands
@@ -305,50 +311,28 @@ export function useKeyboardNavigation({
 
   const navigateToFile = useCallback(
     (direction: 'next' | 'prev') => {
-      if (files.length === 0) return;
+      const result = navigate(direction, filters.file);
+      if (result.position) {
+        setCursor(result.position);
 
-      // Calculate target file index
-      let targetFileIndex = cursor?.fileIndex ?? -1;
-      if (direction === 'next') {
-        targetFileIndex = (targetFileIndex + 1) % files.length;
-      } else {
-        targetFileIndex = targetFileIndex <= 0 ? files.length - 1 : targetFileIndex - 1;
-      }
-
-      // Find the first navigable line in the target file
-      const targetFile = files[targetFileIndex];
-      if (!targetFile || targetFile.chunks.length === 0) return;
-
-      // Look for the first line in the file
-      for (let chunkIndex = 0; chunkIndex < targetFile.chunks.length; chunkIndex++) {
-        const chunk = targetFile.chunks[chunkIndex];
-        if (chunk && chunk.lines.length > 0) {
-          // Create a position for the first line
-          const position: CursorPosition = {
-            fileIndex: targetFileIndex,
-            chunkIndex,
-            lineIndex: 0,
-            side: cursor?.side ?? 'right',
-          };
-
-          // Fix side if needed
-          const fixed = fixSide(position, files);
-          setCursor(fixed);
-
-          // Scroll to the file header first
-          const fileElementId = `file-${targetFile.path.replace(/[^a-zA-Z0-9]/g, '-')}`;
+        // Scroll to file header first
+        const file = files[result.position.fileIndex];
+        if (file) {
+          const fileElementId = `file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`;
           scrollToElement(fileElementId);
 
           // Then highlight the first line
-          setTimeout(() => {
-            scrollToElement(getElementId(fixed, viewMode));
-          }, 100);
-
-          return;
+          if (result.scrollTarget) {
+            setTimeout(() => {
+              if (result.scrollTarget) {
+                scrollToElement(result.scrollTarget);
+              }
+            }, 100);
+          }
         }
       }
     },
-    [cursor, files, scrollToElement, viewMode]
+    [navigate, filters.file, files, scrollToElement]
   );
 
   const switchSide = useCallback(
