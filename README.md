@@ -83,6 +83,7 @@ difit automatically handles GitHub authentication using:
 | `--no-open`      | false        | Don't automatically open browser                                       |
 | `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                                  |
 | `--tui`          | false        | Use terminal UI mode instead of web interface                          |
+| `--clean`        | false        | Clear all existing comments on startup                                 |
 
 ## 💬 Comment System
 
