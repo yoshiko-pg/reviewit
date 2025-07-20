@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.10] - 2025-07-20
+
+### Added
+
+- `--clean` flag to clear existing comments on startup and Button menu for cleanup all prompts
+- GitHub Enterprise support for --pr option
+- C# syntax highlighting support
+
+### Removed
+
+- Unused props from Checkbox and DiffViewer components
+
+### Thanks
+
+- [@hatayama](https://github.com/hatayama) for adding C# syntax highlighting support #52
+- [@haya14busa](https://github.com/haya14busa) for adding --clean flag to clear existing comments on startup #51
+- [@noritaka1166](https://github.com/noritaka1166) for removing unused props from Checkbox and DiffViewer components #49
+
 ## [2.0.9] - 2025-07-17
 
 ### Changed
@@ -391,7 +409,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...HEAD
+[2.0.10]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...v2.0.10
 [2.0.9]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...v2.0.9
 [2.0.8]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...v2.0.8
 [2.0.7]: https://github.com/yoshiko-pg/difit/compare/v2.0.6...v2.0.7
