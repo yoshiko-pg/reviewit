@@ -8,10 +8,12 @@ import { CommentsDropdown } from './components/CommentsDropdown';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
+import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
 
 function App() {
@@ -40,6 +42,33 @@ function App() {
     generatePrompt,
     generateAllCommentsPrompt,
   } = useLocalComments(diffData?.commit);
+
+  const toggleFileReviewed = (filePath: string) => {
+    setReviewedFiles((prev) => {
+      const newSet = new Set(prev);
+      const wasReviewed = newSet.has(filePath);
+
+      if (wasReviewed) {
+        newSet.delete(filePath);
+      } else {
+        newSet.add(filePath);
+        // When marking as reviewed (closing file), scroll to the file header
+        setTimeout(() => {
+          const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'instant', block: 'start' });
+          }
+        }, 100);
+      }
+      return newSet;
+    });
+  };
+
+  const { currentFileIndex, currentHunkIndex, isHelpOpen, setIsHelpOpen } = useKeyboardNavigation({
+    files: diffData?.files || [],
+    comments,
+    onToggleReviewed: toggleFileReviewed,
+  });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -197,27 +226,6 @@ function App() {
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
     }
-  };
-
-  const toggleFileReviewed = (filePath: string) => {
-    setReviewedFiles((prev) => {
-      const newSet = new Set(prev);
-      const wasReviewed = newSet.has(filePath);
-
-      if (wasReviewed) {
-        newSet.delete(filePath);
-      } else {
-        newSet.add(filePath);
-        // When marking as reviewed (closing file), scroll to the file header
-        setTimeout(() => {
-          const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'instant', block: 'start' });
-          }
-        }, 100);
-      }
-      return newSet;
-    });
   };
 
   if (loading) {
@@ -415,6 +423,7 @@ function App() {
                 comments={comments}
                 reviewedFiles={reviewedFiles}
                 onToggleReviewed={toggleFileReviewed}
+                currentFileIndex={currentFileIndex}
               />
             </div>
             <div className="p-4 border-t border-github-border flex justify-end">
@@ -442,7 +451,7 @@ function App() {
         />
 
         <main className="flex-1 overflow-y-auto">
-          {diffData.files.map((file) => (
+          {diffData.files.map((file, fileIndex) => (
             <div
               key={file.path}
               id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
@@ -461,6 +470,8 @@ function App() {
                 syntaxTheme={settings.syntaxTheme}
                 baseCommitish={diffData.baseCommitish}
                 targetCommitish={diffData.targetCommitish}
+                isCurrentFile={fileIndex === currentFileIndex}
+                currentHunkIndex={fileIndex === currentFileIndex ? currentHunkIndex : -1}
               />
             </div>
           ))}
@@ -473,6 +484,8 @@ function App() {
         settings={settings}
         onSettingsChange={updateSettings}
       />
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }

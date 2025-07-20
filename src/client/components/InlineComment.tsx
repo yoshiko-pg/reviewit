@@ -49,7 +49,10 @@ export function InlineComment({
   };
 
   return (
-    <div className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm">
+    <div
+      id={`comment-${comment.id}`}
+      className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm"
+    >
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
           <span

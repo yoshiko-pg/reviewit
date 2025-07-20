@@ -22,6 +22,7 @@ interface FileListProps {
   comments: Comment[];
   reviewedFiles: Set<string>;
   onToggleReviewed: (path: string) => void;
+  currentFileIndex?: number;
 }
 
 interface TreeNode {
@@ -110,6 +111,7 @@ export function FileList({
   comments,
   reviewedFiles,
   onToggleReviewed,
+  currentFileIndex = -1,
 }: FileListProps) {
   const fileTree = buildFileTree(files);
 
@@ -221,13 +223,15 @@ export function FileList({
       const file = node.file;
       const commentCount = getCommentCount(file.path);
       const isReviewed = reviewedFiles.has(file.path);
+      const fileIndex = files.findIndex((f) => f.path === file.path);
+      const isFocused = fileIndex === currentFileIndex;
 
       return (
         <div
           key={file.path}
           className={`flex items-center gap-2 px-4 py-2 hover:bg-github-bg-tertiary cursor-pointer transition-colors ${
             isReviewed ? 'opacity-70' : ''
-          }`}
+          } ${isFocused ? 'bg-github-bg-tertiary ring-2 ring-github-accent ring-inset' : ''}`}
           style={{ paddingLeft: `${depth * 16 + 16}px` }}
           onClick={() => onScrollToFile(file.path)}
         >
