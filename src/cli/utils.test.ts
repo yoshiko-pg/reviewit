@@ -254,6 +254,7 @@ describe('CLI Utils', () => {
         owner: 'owner',
         repo: 'repo',
         pullNumber: 123,
+        hostname: 'github.com',
       });
     });
 
@@ -263,6 +264,7 @@ describe('CLI Utils', () => {
         owner: 'owner',
         repo: 'repo',
         pullNumber: 456,
+        hostname: 'github.com',
       });
     });
 
@@ -272,6 +274,7 @@ describe('CLI Utils', () => {
         owner: 'owner',
         repo: 'repo',
         pullNumber: 789,
+        hostname: 'github.com',
       });
     });
 
@@ -281,12 +284,30 @@ describe('CLI Utils', () => {
         owner: 'owner-name',
         repo: 'repo_name',
         pullNumber: 123,
+        hostname: 'github.com',
+      });
+    });
+
+    it('should parse GitHub Enterprise PR URLs', () => {
+      const result1 = parseGitHubPrUrl('https://github.enterprise.com/owner/repo/pull/123');
+      expect(result1).toEqual({
+        owner: 'owner',
+        repo: 'repo',
+        pullNumber: 123,
+        hostname: 'github.enterprise.com',
+      });
+
+      const result2 = parseGitHubPrUrl('https://git.company.io/team/project/pull/456');
+      expect(result2).toEqual({
+        owner: 'team',
+        repo: 'project',
+        pullNumber: 456,
+        hostname: 'git.company.io',
       });
     });
 
     it('should return null for invalid URLs', () => {
       expect(parseGitHubPrUrl('not-a-url')).toBe(null);
-      expect(parseGitHubPrUrl('https://example.com/owner/repo/pull/123')).toBe(null);
       expect(parseGitHubPrUrl('https://github.com/owner/repo/issues/123')).toBe(null);
       expect(parseGitHubPrUrl('https://github.com/owner/repo')).toBe(null);
       expect(parseGitHubPrUrl('https://github.com/owner/repo/pull/abc')).toBe(null);

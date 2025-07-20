@@ -414,6 +414,66 @@ describe('CLI index.ts', () => {
       );
       expect(process.exit).toHaveBeenCalledWith(1);
     });
+
+    it('resolves GitHub Enterprise PR commits correctly', async () => {
+      const prUrl = 'https://github.enterprise.com/owner/repo/pull/456';
+      const prCommits = {
+        targetCommitish: 'xyz789',
+        baseCommitish: 'uvw012',
+      };
+
+      mockResolvePrCommits.mockResolvedValue(prCommits);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          let targetCommitish = commitish;
+          let baseCommitish: string;
+
+          if (options.pr) {
+            if (commitish !== 'HEAD' || _compareWith) {
+              console.error('Error: --pr option cannot be used with positional arguments');
+              process.exit(1);
+            }
+
+            const prCommits = await resolvePrCommits(options.pr);
+            targetCommitish = prCommits.targetCommitish;
+            baseCommitish = prCommits.baseCommitish;
+          } else {
+            baseCommitish = commitish + '^';
+          }
+
+          await startServer({
+            targetCommitish,
+            baseCommitish,
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+          });
+        });
+
+      await program.parseAsync(['--pr', prUrl], { from: 'user' });
+
+      expect(mockResolvePrCommits).toHaveBeenCalledWith(prUrl);
+      expect(mockStartServer).toHaveBeenCalledWith({
+        targetCommitish: 'xyz789',
+        baseCommitish: 'uvw012',
+        preferredPort: undefined,
+        host: '',
+        openBrowser: true,
+        mode: 'side-by-side',
+      });
+    });
   });
 
   describe('Clean flag functionality', () => {

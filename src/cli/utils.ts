@@ -76,6 +76,7 @@ export interface PullRequestInfo {
   owner: string;
   repo: string;
   pullNumber: number;
+  hostname: string;
 }
 
 export interface PullRequestDetails {
@@ -89,10 +90,8 @@ export function parseGitHubPrUrl(url: string): PullRequestInfo | null {
   try {
     const urlObj = new URL(url);
 
-    if (urlObj.hostname !== 'github.com') {
-      return null;
-    }
-
+    // Allow any hostname for GitHub Enterprise support
+    // Just validate the path structure
     const pathParts = urlObj.pathname.split('/').filter(Boolean);
 
     if (pathParts.length < 4 || pathParts[2] !== 'pull') {
@@ -107,7 +106,7 @@ export function parseGitHubPrUrl(url: string): PullRequestInfo | null {
       return null;
     }
 
-    return { owner, repo, pullNumber };
+    return { owner, repo, pullNumber, hostname: urlObj.hostname };
   } catch {
     return null;
   }
@@ -132,9 +131,16 @@ function getGitHubToken(): string | undefined {
 export async function fetchPrDetails(prInfo: PullRequestInfo): Promise<PullRequestDetails> {
   const token = getGitHubToken();
 
-  const octokit = new Octokit({
+  const octokitOptions: ConstructorParameters<typeof Octokit>[0] = {
     auth: token,
-  });
+  };
+
+  // For GitHub Enterprise, set the base URL
+  if (prInfo.hostname !== 'github.com') {
+    octokitOptions.baseUrl = `https://${prInfo.hostname}/api/v3`;
+  }
+
+  const octokit = new Octokit(octokitOptions);
 
   try {
     const { data: pr } = await octokit.rest.pulls.get({
@@ -198,7 +204,7 @@ export async function resolvePrCommits(
   const prInfo = parseGitHubPrUrl(prUrl);
   if (!prInfo) {
     throw new Error(
-      'Invalid GitHub PR URL format. Expected: https://github.com/owner/repo/pull/123'
+      'Invalid GitHub PR URL format. Expected: https://github.com/owner/repo/pull/123 or https://github.enterprise.com/owner/repo/pull/123'
     );
   }
 
