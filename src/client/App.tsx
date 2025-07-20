@@ -64,18 +64,19 @@ function App() {
     });
   };
 
-  const {
-    currentFileIndex,
-    currentHunkIndex,
-    currentLineId,
-    currentSide,
-    isHelpOpen,
-    setIsHelpOpen,
-  } = useKeyboardNavigation({
+  const { cursor, isHelpOpen, setIsHelpOpen } = useKeyboardNavigation({
     files: diffData?.files || [],
     comments,
+    viewMode: diffMode,
     onToggleReviewed: toggleFileReviewed,
   });
+
+  // Derive values from cursor for backward compatibility
+  const currentFileIndex = cursor?.fileIndex ?? -1;
+  const currentHunkIndex = cursor?.chunkIndex ?? -1;
+  const currentLineId =
+    cursor ? `file-${cursor.fileIndex}-chunk-${cursor.chunkIndex}-line-${cursor.lineIndex}` : null;
+  const currentSide = cursor?.side ?? 'right';
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
