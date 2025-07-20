@@ -315,24 +315,13 @@ export function useKeyboardNavigation({
       if (result.position) {
         setCursor(result.position);
 
-        // Scroll to file header first
-        const file = files[result.position.fileIndex];
-        if (file) {
-          const fileElementId = `file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`;
-          scrollToElement(fileElementId);
-
-          // Then highlight the first line
-          if (result.scrollTarget) {
-            setTimeout(() => {
-              if (result.scrollTarget) {
-                scrollToElement(result.scrollTarget);
-              }
-            }, 100);
-          }
+        // Scroll to the first line of the file
+        if (result.scrollTarget) {
+          scrollToElement(result.scrollTarget);
         }
       }
     },
-    [navigate, filters.file, files, scrollToElement]
+    [navigate, filters.file, scrollToElement]
   );
 
   const switchSide = useCallback(

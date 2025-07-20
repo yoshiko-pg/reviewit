@@ -181,8 +181,8 @@ describe('useKeyboardNavigation', () => {
         lineIndex: 0,
         side: 'left', // Fixed to left because first line is a delete line
       });
-      // The getElementById should be called to find the file element
-      expect(mockGetElementById).toHaveBeenCalledWith('file-file1-ts');
+      // The getElementById should be called to find the first line element
+      expect(mockGetElementById).toHaveBeenCalledWith('file-0-chunk-0-line-0');
     });
 
     it('should navigate to previous file with [ key', () => {
