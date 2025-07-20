@@ -10,6 +10,7 @@ import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
+import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useLocalComments } from './hooks/useLocalComments';
 
@@ -25,6 +26,8 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [showSparkles, setShowSparkles] = useState(false);
+  const [hasTriggeredSparkles, setHasTriggeredSparkles] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -117,6 +120,25 @@ function App() {
       console.log('✅ All existing comments cleared as requested via --clean flag');
     }
   }, [diffData?.clearComments, clearAllComments]);
+
+  // Trigger sparkle animation when all files are viewed
+  useEffect(() => {
+    if (diffData) {
+      // Reset the trigger flag when not all files are viewed
+      if (reviewedFiles.size < diffData.files.length) {
+        setHasTriggeredSparkles(false);
+      }
+      // Show sparkles when all files are viewed and not already triggered
+      else if (reviewedFiles.size === diffData.files.length && !hasTriggeredSparkles) {
+        setShowSparkles(true);
+        setHasTriggeredSparkles(true);
+        // Hide sparkles after animation completes
+        setTimeout(() => {
+          setShowSparkles(false);
+        }, 1000); // Reduced from 2000ms to 1000ms for faster animation
+      }
+    }
+  }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
 
   // Send comments to server before page unload
   useEffect(() => {
@@ -312,10 +334,11 @@ function App() {
               />
             )}
             <div className="flex flex-col gap-1 items-center">
-              <div className="text-xs">
+              <div className="text-xs relative">
                 {reviewedFiles.size === diffData.files.length ?
                   'All diffs difit-ed!'
                 : `${reviewedFiles.size} / ${diffData.files.length} files viewed`}
+                <SparkleAnimation isActive={showSparkles} />
               </div>
               <div
                 className="relative h-2 bg-github-bg-tertiary rounded-full overflow-hidden"
