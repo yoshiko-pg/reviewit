@@ -9,9 +9,33 @@ import { useKeyboardNavigation } from './useKeyboardNavigation';
 Element.prototype.scrollIntoView = vi.fn();
 const mockGetElementById = vi.spyOn(document, 'getElementById');
 
+// Mock window properties
+Object.defineProperty(window, 'innerHeight', {
+  writable: true,
+  configurable: true,
+  value: 768,
+});
+
+Object.defineProperty(window, 'pageYOffset', {
+  writable: true,
+  configurable: true,
+  value: 0,
+});
+
+window.scrollTo = vi.fn();
+
 // Helper to create mock elements
 const createMockElement = () => ({
   scrollIntoView: vi.fn(),
+  getBoundingClientRect: vi.fn(() => ({
+    top: 100,
+    bottom: 200,
+    left: 0,
+    right: 100,
+    width: 100,
+    height: 100,
+  })),
+  offsetTop: 150,
 });
 
 describe('useKeyboardNavigation', () => {

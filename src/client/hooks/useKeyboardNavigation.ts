@@ -101,11 +101,41 @@ export function useKeyboardNavigation({
     return index;
   }, [comments]);
 
-  // Scroll to element
+  // Smart scroll to element with Gerrit-style behavior
   const scrollToElement = useCallback((elementId: string) => {
     const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'instant', block: 'center' });
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    // Check if element is visible
+    const isVisible = rect.top >= 0 && rect.bottom <= viewportHeight;
+
+    // If not visible, always scroll
+    if (!isVisible) {
+      // Position element at 1/3 from top with 100px header margin
+      const targetScrollTop = element.offsetTop - viewportHeight / 3 - 100;
+      window.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: 'instant',
+      });
+      return;
+    }
+
+    // Element is visible - only scroll if:
+    // 1. Bottom edge is not visible AND
+    // 2. Scroll would move down (not up)
+    const isBottomHidden = rect.bottom > viewportHeight;
+    const targetScrollTop = element.offsetTop - viewportHeight / 3 - 100;
+    const wouldScrollDown = targetScrollTop > scrollTop;
+
+    if (isBottomHidden && wouldScrollDown) {
+      window.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: 'instant',
+      });
     }
   }, []);
 
