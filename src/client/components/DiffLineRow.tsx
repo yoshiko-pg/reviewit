@@ -9,6 +9,8 @@ import type { AppearanceSettings } from './SettingsModal';
 interface DiffLineRowProps {
   line: DiffLine;
   index: number;
+  lineId?: string;
+  isCurrentLine?: boolean;
   hoveredLine: number | null;
   selectedLineStyle: string;
   onMouseEnter: () => void;
@@ -44,6 +46,8 @@ const getLinePrefix = (line: DiffLine) => {
 export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
   ({
     line,
+    lineId,
+    isCurrentLine = false,
     hoveredLine,
     selectedLineStyle,
     onMouseEnter,
@@ -58,7 +62,10 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
 
     return (
       <tr
-        className={`group ${getLineClass(line)} relative ${selectedLineStyle}`}
+        id={lineId}
+        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${
+          isCurrentLine ? 'ring-2 ring-github-accent ring-inset bg-github-highlight' : ''
+        }`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}

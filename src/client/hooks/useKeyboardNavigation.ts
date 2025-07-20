@@ -11,10 +11,12 @@ interface UseKeyboardNavigationProps {
 interface UseKeyboardNavigationReturn {
   currentFileIndex: number;
   currentHunkIndex: number;
+  currentLineIndex: number;
   currentCommentIndex: number;
   isHelpOpen: boolean;
   setCurrentFileIndex: (index: number) => void;
   setCurrentHunkIndex: (index: number) => void;
+  setCurrentLineIndex: (index: number) => void;
   setCurrentCommentIndex: (index: number) => void;
   setIsHelpOpen: (open: boolean) => void;
 }
@@ -26,6 +28,7 @@ export function useKeyboardNavigation({
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [currentFileIndex, setCurrentFileIndex] = useState(-1);
   const [currentHunkIndex, setCurrentHunkIndex] = useState(-1);
+  const [currentLineIndex, setCurrentLineIndex] = useState(-1);
   const [currentCommentIndex, setCurrentCommentIndex] = useState(-1);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -38,6 +41,35 @@ export function useKeyboardNavigation({
       });
     });
     return hunks;
+  }, [files]);
+
+  // Create a flat list of all changed lines (additions and deletions)
+  const allLines = useMemo(() => {
+    const lines: Array<{
+      fileIndex: number;
+      hunkIndex: number;
+      lineIndex: number;
+      type: 'add' | 'delete';
+      lineNumber: number;
+    }> = [];
+
+    files.forEach((file, fileIndex) => {
+      file.chunks.forEach((chunk, hunkIndex) => {
+        chunk.lines.forEach((line, lineIndex) => {
+          if (line.type === 'add' || line.type === 'delete') {
+            lines.push({
+              fileIndex,
+              hunkIndex,
+              lineIndex,
+              type: line.type,
+              lineNumber:
+                line.type === 'add' ? (line.newLineNumber ?? 0) : (line.oldLineNumber ?? 0),
+            });
+          }
+        });
+      });
+    });
+    return lines;
   }, [files]);
 
   // Sort comments by file and line number
@@ -67,6 +99,7 @@ export function useKeyboardNavigation({
       const newIndex = ((index % files.length) + files.length) % files.length;
       setCurrentFileIndex(newIndex);
       setCurrentHunkIndex(-1);
+      setCurrentLineIndex(-1);
 
       const file = files[newIndex];
       if (file) {
@@ -74,6 +107,41 @@ export function useKeyboardNavigation({
       }
     },
     [files, scrollToElement]
+  );
+
+  const navigateToLine = useCallback(
+    (direction: 'next' | 'prev') => {
+      if (allLines.length === 0) return;
+
+      let currentGlobalIndex = -1;
+      if (currentLineIndex >= 0) {
+        currentGlobalIndex = currentLineIndex;
+      }
+
+      let newGlobalIndex: number;
+      if (direction === 'next') {
+        newGlobalIndex = (currentGlobalIndex + 1) % allLines.length;
+      } else {
+        newGlobalIndex =
+          currentGlobalIndex === -1 ?
+            allLines.length - 1
+          : (currentGlobalIndex - 1 + allLines.length) % allLines.length;
+      }
+
+      const newLine = allLines[newGlobalIndex];
+      if (newLine) {
+        setCurrentFileIndex(newLine.fileIndex);
+        setCurrentHunkIndex(newLine.hunkIndex);
+        setCurrentLineIndex(newGlobalIndex);
+
+        const file = files[newLine.fileIndex];
+        if (file) {
+          const lineId = `line-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${newLine.hunkIndex}-${newLine.lineIndex}`;
+          scrollToElement(lineId);
+        }
+      }
+    },
+    [allLines, currentLineIndex, files, scrollToElement]
   );
 
   const navigateToHunk = useCallback(
@@ -102,13 +170,23 @@ export function useKeyboardNavigation({
         setCurrentFileIndex(newHunk.fileIndex);
         setCurrentHunkIndex(newHunk.hunkIndex);
 
+        // Find the first changed line in this hunk
+        const firstLineInHunk = allLines.findIndex(
+          (line) => line.fileIndex === newHunk.fileIndex && line.hunkIndex === newHunk.hunkIndex
+        );
+        setCurrentLineIndex(firstLineInHunk >= 0 ? firstLineInHunk : -1);
+
         const file = files[newHunk.fileIndex];
-        if (file) {
+        if (file && firstLineInHunk >= 0) {
+          const line = allLines[firstLineInHunk];
+          const lineId = `line-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${line?.hunkIndex ?? 0}-${line?.lineIndex ?? 0}`;
+          scrollToElement(lineId);
+        } else if (file) {
           scrollToElement(`chunk-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${newHunk.hunkIndex}`);
         }
       }
     },
-    [allHunks, currentFileIndex, currentHunkIndex, files, scrollToElement]
+    [allHunks, allLines, currentFileIndex, currentHunkIndex, files, scrollToElement]
   );
 
   const navigateToComment = useCallback(
@@ -152,9 +230,17 @@ export function useKeyboardNavigation({
       switch (event.key) {
         case 'j':
           event.preventDefault();
-          navigateToFile(currentFileIndex + 1);
+          navigateToLine('next');
           break;
         case 'k':
+          event.preventDefault();
+          navigateToLine('prev');
+          break;
+        case ']':
+          event.preventDefault();
+          navigateToFile(currentFileIndex + 1);
+          break;
+        case '[':
           event.preventDefault();
           navigateToFile(currentFileIndex - 1);
           break;
@@ -185,9 +271,16 @@ export function useKeyboardNavigation({
           }
           break;
         case 'c':
-          // Comment functionality will be added later
-          // For now, just prevent default
           event.preventDefault();
+          // Add comment at current line
+          if (currentLineIndex >= 0 && allLines[currentLineIndex]) {
+            const currentLine = allLines[currentLineIndex];
+            const file = files[currentLine.fileIndex];
+            if (file) {
+              // TODO: Trigger comment form at the current line
+              console.log('Add comment at line:', currentLine);
+            }
+          }
           break;
         case '?':
           event.preventDefault();
@@ -197,7 +290,10 @@ export function useKeyboardNavigation({
     },
     [
       currentFileIndex,
+      currentLineIndex,
+      allLines,
       navigateToFile,
+      navigateToLine,
       navigateToHunk,
       navigateToComment,
       files,
@@ -216,10 +312,12 @@ export function useKeyboardNavigation({
   return {
     currentFileIndex,
     currentHunkIndex,
+    currentLineIndex,
     currentCommentIndex,
     isHelpOpen,
     setCurrentFileIndex,
     setCurrentHunkIndex,
+    setCurrentLineIndex,
     setCurrentCommentIndex,
     setIsHelpOpen,
   };

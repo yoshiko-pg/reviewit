@@ -15,8 +15,29 @@ describe('useKeyboardNavigation', () => {
       oldPath: 'file1.ts',
       status: 'modified',
       chunks: [
-        { oldStart: 1, oldLines: 3, newStart: 1, newLines: 3, header: '', lines: [] },
-        { oldStart: 10, oldLines: 5, newStart: 10, newLines: 5, header: '', lines: [] },
+        {
+          oldStart: 1,
+          oldLines: 3,
+          newStart: 1,
+          newLines: 3,
+          header: '@@ -1,3 +1,3 @@',
+          lines: [
+            { type: 'delete', content: '-old line', oldLineNumber: 1 },
+            { type: 'add', content: '+new line', newLineNumber: 1 },
+            { type: 'normal', content: ' context', oldLineNumber: 2, newLineNumber: 2 },
+          ],
+        },
+        {
+          oldStart: 10,
+          oldLines: 5,
+          newStart: 10,
+          newLines: 5,
+          header: '@@ -10,5 +10,5 @@',
+          lines: [
+            { type: 'add', content: '+added line', newLineNumber: 10 },
+            { type: 'delete', content: '-removed line', oldLineNumber: 11 },
+          ],
+        },
       ],
       additions: 5,
       deletions: 3,
@@ -25,7 +46,16 @@ describe('useKeyboardNavigation', () => {
       path: 'file2.ts',
       oldPath: 'file2.ts',
       status: 'modified',
-      chunks: [{ oldStart: 20, oldLines: 2, newStart: 20, newLines: 2, header: '', lines: [] }],
+      chunks: [
+        {
+          oldStart: 20,
+          oldLines: 2,
+          newStart: 20,
+          newLines: 2,
+          header: '@@ -20,2 +20,2 @@',
+          lines: [{ type: 'add', content: '+new content', newLineNumber: 20 }],
+        },
+      ],
       additions: 2,
       deletions: 1,
     },
@@ -42,8 +72,58 @@ describe('useKeyboardNavigation', () => {
     vi.clearAllMocks();
   });
 
-  describe('File Navigation (j/k)', () => {
-    it('should navigate to next file with j key', () => {
+  describe('Line Navigation (j/k)', () => {
+    it('should navigate to next line with j key', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      expect(result.current.currentLineIndex).toBe(-1);
+
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.currentLineIndex).toBeGreaterThan(-1);
+    });
+
+    it('should navigate to previous line with k key', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Navigate to second line first (index 1)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      const secondLineIndex = result.current.currentLineIndex;
+
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'k' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.currentLineIndex).toBe(secondLineIndex - 1);
+    });
+  });
+
+  describe('File Navigation (]/[)', () => {
+    it('should navigate to next file with ] key', () => {
       const { result } = renderHook(() =>
         useKeyboardNavigation({
           files: mockFiles,
@@ -55,21 +135,21 @@ describe('useKeyboardNavigation', () => {
       expect(result.current.currentFileIndex).toBe(-1);
 
       act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'j' });
+        const event = new KeyboardEvent('keydown', { key: ']' });
         window.dispatchEvent(event);
       });
 
       expect(result.current.currentFileIndex).toBe(0);
 
       act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'j' });
+        const event = new KeyboardEvent('keydown', { key: ']' });
         window.dispatchEvent(event);
       });
 
       expect(result.current.currentFileIndex).toBe(1);
     });
 
-    it('should navigate to previous file with k key', () => {
+    it('should navigate to previous file with [ key', () => {
       const { result } = renderHook(() =>
         useKeyboardNavigation({
           files: mockFiles,
@@ -84,7 +164,7 @@ describe('useKeyboardNavigation', () => {
       });
 
       act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'k' });
+        const event = new KeyboardEvent('keydown', { key: '[' });
         window.dispatchEvent(event);
       });
 
@@ -106,7 +186,7 @@ describe('useKeyboardNavigation', () => {
       });
 
       act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'j' });
+        const event = new KeyboardEvent('keydown', { key: ']' });
         window.dispatchEvent(event);
       });
 
@@ -114,7 +194,7 @@ describe('useKeyboardNavigation', () => {
 
       // Navigate before first file
       act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'k' });
+        const event = new KeyboardEvent('keydown', { key: '[' });
         window.dispatchEvent(event);
       });
 

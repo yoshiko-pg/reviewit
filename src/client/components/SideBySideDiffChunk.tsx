@@ -16,12 +16,15 @@ import type { AppearanceSettings } from './SettingsModal';
 
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
+  chunkIndex: number;
+  filePath: string;
   comments: Comment[];
   onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  currentLineIndex?: number;
 }
 
 interface SideBySideLine {

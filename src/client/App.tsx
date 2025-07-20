@@ -64,11 +64,12 @@ function App() {
     });
   };
 
-  const { currentFileIndex, currentHunkIndex, isHelpOpen, setIsHelpOpen } = useKeyboardNavigation({
-    files: diffData?.files || [],
-    comments,
-    onToggleReviewed: toggleFileReviewed,
-  });
+  const { currentFileIndex, currentHunkIndex, currentLineIndex, isHelpOpen, setIsHelpOpen } =
+    useKeyboardNavigation({
+      files: diffData?.files || [],
+      comments,
+      onToggleReviewed: toggleFileReviewed,
+    });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -451,30 +452,70 @@ function App() {
         />
 
         <main className="flex-1 overflow-y-auto">
-          {diffData.files.map((file, fileIndex) => (
-            <div
-              key={file.path}
-              id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
-              className="mb-6"
-            >
-              <DiffViewer
-                file={file}
-                comments={comments.filter((c) => c.file === file.path)}
-                diffMode={diffMode}
-                reviewedFiles={reviewedFiles}
-                onToggleReviewed={toggleFileReviewed}
-                onAddComment={handleAddComment}
-                onGeneratePrompt={generatePrompt}
-                onRemoveComment={removeComment}
-                onUpdateComment={updateComment}
-                syntaxTheme={settings.syntaxTheme}
-                baseCommitish={diffData.baseCommitish}
-                targetCommitish={diffData.targetCommitish}
-                isCurrentFile={fileIndex === currentFileIndex}
-                currentHunkIndex={fileIndex === currentFileIndex ? currentHunkIndex : -1}
-              />
-            </div>
-          ))}
+          {diffData.files.map((file, fileIndex) => {
+            // Calculate currentLineInFile based on the global currentLineIndex
+            let currentLineInFile = null;
+            if (fileIndex === currentFileIndex && currentLineIndex >= 0) {
+              // Count lines in previous files first
+              let globalIndex = 0;
+              for (let fIdx = 0; fIdx < fileIndex; fIdx++) {
+                const prevFile = diffData.files[fIdx];
+                if (prevFile) {
+                  prevFile.chunks.forEach((chunk) => {
+                    chunk.lines.forEach((line) => {
+                      if (line.type === 'add' || line.type === 'delete') {
+                        globalIndex++;
+                      }
+                    });
+                  });
+                }
+              }
+
+              // Find which line in this file corresponds to the global line index
+              for (let hIdx = 0; hIdx < file.chunks.length; hIdx++) {
+                const chunk = file.chunks[hIdx];
+                if (chunk) {
+                  for (let lIdx = 0; lIdx < chunk.lines.length; lIdx++) {
+                    const line = chunk.lines[lIdx];
+                    if (line && (line.type === 'add' || line.type === 'delete')) {
+                      if (globalIndex === currentLineIndex) {
+                        currentLineInFile = { hunkIndex: hIdx, lineIndex: lIdx };
+                        break;
+                      }
+                      globalIndex++;
+                    }
+                  }
+                }
+                if (currentLineInFile) break;
+              }
+            }
+
+            return (
+              <div
+                key={file.path}
+                id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                className="mb-6"
+              >
+                <DiffViewer
+                  file={file}
+                  comments={comments.filter((c) => c.file === file.path)}
+                  diffMode={diffMode}
+                  reviewedFiles={reviewedFiles}
+                  onToggleReviewed={toggleFileReviewed}
+                  onAddComment={handleAddComment}
+                  onGeneratePrompt={generatePrompt}
+                  onRemoveComment={removeComment}
+                  onUpdateComment={updateComment}
+                  syntaxTheme={settings.syntaxTheme}
+                  baseCommitish={diffData.baseCommitish}
+                  targetCommitish={diffData.targetCommitish}
+                  isCurrentFile={fileIndex === currentFileIndex}
+                  currentHunkIndex={fileIndex === currentFileIndex ? currentHunkIndex : -1}
+                  currentLineInFile={currentLineInFile}
+                />
+              </div>
+            );
+          })}
         </main>
       </div>
 

@@ -15,6 +15,8 @@ import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 
 interface DiffChunkProps {
   chunk: DiffChunkType;
+  chunkIndex: number;
+  filePath: string;
   comments: Comment[];
   onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
@@ -22,10 +24,13 @@ interface DiffChunkProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  currentLineIndex?: number;
 }
 
 export function DiffChunk({
   chunk,
+  chunkIndex,
+  filePath,
   comments,
   onAddComment,
   onGeneratePrompt,
@@ -33,6 +38,7 @@ export function DiffChunk({
   onUpdateComment,
   mode = 'inline',
   syntaxTheme,
+  currentLineIndex = -1,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
   const [endLine, setEndLine] = useState<number | null>(null);
@@ -145,12 +151,15 @@ export function DiffChunk({
     return (
       <SideBySideDiffChunk
         chunk={chunk}
+        chunkIndex={chunkIndex}
+        filePath={filePath}
         comments={comments}
         onAddComment={onAddComment}
         onGeneratePrompt={onGeneratePrompt}
         onRemoveComment={onRemoveComment}
         onUpdateComment={onUpdateComment}
         syntaxTheme={syntaxTheme}
+        currentLineIndex={currentLineIndex}
       />
     );
   }
@@ -167,6 +176,8 @@ export function DiffChunk({
                 <DiffLineRow
                   line={line}
                   index={index}
+                  lineId={`line-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}-${chunkIndex}-${index}`}
+                  isCurrentLine={currentLineIndex === index}
                   hoveredLine={hoveredLine}
                   selectedLineStyle={getSelectedLineStyle(line.newLineNumber || line.oldLineNumber)}
                   onMouseEnter={() => {
