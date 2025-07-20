@@ -77,6 +77,7 @@ function detectLanguage(filename: string): string {
     sol: 'solidity',
     vim: 'vim',
     dart: 'dart',
+    cs: 'csharp',
   };
 
   return extensionMap[ext || ''] || 'text';
