@@ -1,7 +1,7 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft, Keyboard } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { type DiffResponse, type LineNumber, type Comment } from '../types/diff';
+import { type DiffResponse, type LineNumber, type Comment, type DiffComment } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { CommentsDropdown } from './components/CommentsDropdown';
@@ -16,9 +16,10 @@ import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { WordHighlightProvider } from './contexts/WordHighlightContext';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useCombinedComments } from './hooks/useCombinedComments';
 import { useFileWatch } from './hooks/useFileWatch';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
-import { useLocalComments } from './hooks/useLocalComments';
+import { useViewedFiles } from './hooks/useViewedFiles';
 import { getFileElementId } from './utils/domUtils';
 import { findCommentPosition } from './utils/navigation/positionHelpers';
 
@@ -40,35 +41,79 @@ function App() {
 
   const { settings, updateSettings } = useAppearanceSettings();
 
+  // Helper function to convert DiffComment to Comment for compatibility
+  const convertDiffCommentsToComments = (diffComments: DiffComment[]): Comment[] => {
+    return diffComments.map((dc) => ({
+      id: dc.id,
+      file: dc.filePath,
+      line:
+        typeof dc.position.line === 'number' ?
+          dc.position.line
+        : [dc.position.line.start, dc.position.line.end],
+      body: dc.body,
+      timestamp: dc.createdAt,
+      codeContent: dc.codeSnapshot?.content,
+    }));
+  };
+
+  // Feature flag for new comment system (can be toggled via settings later)
+  const [useNewCommentSystem] = useState(false);
+
+  // Combined comments system that supports both old and new formats
   const {
     comments,
-    addComment,
+    addComment: addCommentBase,
     removeComment,
     updateComment,
     clearAllComments,
     generatePrompt,
     generateAllCommentsPrompt,
-  } = useLocalComments(diffData?.commit);
+  } = useCombinedComments(
+    diffData?.commit,
+    diffData?.baseCommitish,
+    diffData?.targetCommitish,
+    diffData?.commit, // Using commit as currentCommitHash for now
+    undefined, // branchToHash map - could be populated from server data
+    useNewCommentSystem
+  );
 
-  const toggleFileReviewed = (filePath: string) => {
-    setReviewedFiles((prev) => {
-      const newSet = new Set(prev);
-      const wasReviewed = newSet.has(filePath);
+  // Viewed files management with the new system
+  const { viewedFiles, toggleFileViewed } = useViewedFiles(
+    diffData?.baseCommitish,
+    diffData?.targetCommitish,
+    diffData?.commit,
+    undefined
+  );
 
-      if (wasReviewed) {
-        newSet.delete(filePath);
-      } else {
-        newSet.add(filePath);
-        // When marking as reviewed (closing file), scroll to the file header
-        setTimeout(() => {
-          const element = document.getElementById(getFileElementId(filePath));
-          if (element) {
-            element.scrollIntoView({ behavior: 'instant', block: 'start' });
-          }
-        }, 100);
+  // Combine old reviewedFiles state with new viewedFiles for backward compatibility
+  const allReviewedFiles = useNewCommentSystem ? viewedFiles : reviewedFiles;
+
+  const toggleFileReviewed = async (filePath: string) => {
+    if (useNewCommentSystem && diffData) {
+      const file = diffData.files.find((f) => f.path === filePath);
+      if (file) {
+        await toggleFileViewed(filePath, file);
       }
-      return newSet;
-    });
+    } else {
+      setReviewedFiles((prev) => {
+        const newSet = new Set(prev);
+        const wasReviewed = newSet.has(filePath);
+
+        if (wasReviewed) {
+          newSet.delete(filePath);
+        } else {
+          newSet.add(filePath);
+          // When marking as reviewed (closing file), scroll to the file header
+          setTimeout(() => {
+            const element = document.getElementById(getFileElementId(filePath));
+            if (element) {
+              element.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+          }, 100);
+        }
+        return newSet;
+      });
+    }
   };
 
   // State to trigger comment creation from keyboard
@@ -85,9 +130,9 @@ function App() {
 
   const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
-    comments,
+    comments: convertDiffCommentsToComments(comments),
     viewMode: diffMode,
-    reviewedFiles,
+    reviewedFiles: allReviewedFiles,
     onToggleReviewed: toggleFileReviewed,
     onCreateComment: () => {
       if (cursor) {
@@ -200,11 +245,11 @@ function App() {
   useEffect(() => {
     if (diffData) {
       // Reset the trigger flag when not all files are viewed
-      if (reviewedFiles.size < diffData.files.length) {
+      if (allReviewedFiles.size < diffData.files.length) {
         setHasTriggeredSparkles(false);
       }
       // Show sparkles when all files are viewed and not already triggered
-      else if (reviewedFiles.size === diffData.files.length && !hasTriggeredSparkles) {
+      else if (allReviewedFiles.size === diffData.files.length && !hasTriggeredSparkles) {
         setShowSparkles(true);
         setHasTriggeredSparkles(true);
         // Hide sparkles after animation completes
@@ -213,7 +258,7 @@ function App() {
         }, 1000);
       }
     }
-  }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
+  }, [allReviewedFiles.size, diffData, hasTriggeredSparkles]);
 
   // Send comments to server whenever they change and before page unload
   useEffect(() => {
@@ -268,9 +313,43 @@ function App() {
     file: string,
     line: LineNumber,
     body: string,
-    codeContent?: string
+    codeContent?: string,
+    chunkHeader?: string,
+    side?: 'old' | 'new'
   ): Promise<void> => {
-    addComment(file, line, body, codeContent);
+    if (useNewCommentSystem) {
+      // New system requires additional parameters
+      addCommentBase({
+        filePath: file,
+        body,
+        side: side || 'new',
+        line: typeof line === 'number' ? line : { start: line[0], end: line[1] },
+        chunkHeader: chunkHeader || '',
+        codeSnapshot:
+          codeContent ?
+            {
+              content: codeContent,
+              language: undefined,
+            }
+          : undefined,
+      });
+    } else {
+      // Old system compatibility
+      addCommentBase({
+        filePath: file,
+        body,
+        side: 'new',
+        line: typeof line === 'number' ? line : { start: line[0], end: line[1] },
+        chunkHeader: '',
+        codeSnapshot:
+          codeContent ?
+            {
+              content: codeContent,
+              language: undefined,
+            }
+          : undefined,
+      });
+    }
     return Promise.resolve();
   };
 
@@ -443,9 +522,9 @@ function App() {
               )}
               <div className="flex flex-col gap-1 items-center">
                 <div className="text-xs relative">
-                  {reviewedFiles.size === diffData.files.length ?
+                  {allReviewedFiles.size === diffData.files.length ?
                     'All diffs difit-ed!'
-                  : `${reviewedFiles.size} / ${diffData.files.length} files viewed`}
+                  : `${allReviewedFiles.size} / ${diffData.files.length} files viewed`}
                   <SparkleAnimation isActive={showSparkles} />
                 </div>
                 <div
@@ -458,10 +537,11 @@ function App() {
                   <div
                     className="absolute top-0 right-0 h-full transition-all duration-300 ease-out"
                     style={{
-                      width: `${((diffData.files.length - reviewedFiles.size) / diffData.files.length) * 100}%`,
+                      width: `${((diffData.files.length - allReviewedFiles.size) / diffData.files.length) * 100}%`,
                       backgroundColor: (() => {
                         const remainingPercent =
-                          ((diffData.files.length - reviewedFiles.size) / diffData.files.length) *
+                          ((diffData.files.length - allReviewedFiles.size) /
+                            diffData.files.length) *
                           100;
                         if (remainingPercent > 50) return 'var(--color-github-accent)'; // green
                         if (remainingPercent > 20) return 'var(--color-github-warning)'; // yellow
@@ -518,8 +598,8 @@ function App() {
                       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  comments={comments}
-                  reviewedFiles={reviewedFiles}
+                  comments={convertDiffCommentsToComments(comments)}
+                  reviewedFiles={allReviewedFiles}
                   onToggleReviewed={toggleFileReviewed}
                   selectedFileIndex={cursor?.fileIndex ?? null}
                 />
@@ -562,12 +642,14 @@ function App() {
                 <div key={file.path} id={getFileElementId(file.path)} className="mb-6">
                   <DiffViewer
                     file={file}
-                    comments={comments.filter((c) => c.file === file.path)}
+                    comments={convertDiffCommentsToComments(
+                      comments.filter((c) => c.filePath === file.path)
+                    )}
                     diffMode={diffMode}
-                    reviewedFiles={reviewedFiles}
+                    reviewedFiles={allReviewedFiles}
                     onToggleReviewed={toggleFileReviewed}
                     onAddComment={handleAddComment}
-                    onGeneratePrompt={generatePrompt}
+                    onGeneratePrompt={(comment) => generatePrompt(comment.id)}
                     onRemoveComment={removeComment}
                     onUpdateComment={updateComment}
                     syntaxTheme={settings.syntaxTheme}
@@ -605,9 +687,9 @@ function App() {
           isOpen={isCommentsListOpen}
           onClose={() => setIsCommentsListOpen(false)}
           onNavigate={handleNavigateToComment}
-          comments={comments}
+          comments={convertDiffCommentsToComments(comments)}
           onRemoveComment={removeComment}
-          onGeneratePrompt={generatePrompt}
+          onGeneratePrompt={(comment) => generatePrompt(comment.id)}
           onUpdateComment={updateComment}
         />
       </div>

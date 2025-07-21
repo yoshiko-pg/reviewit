@@ -18,7 +18,12 @@ interface DiffChunkProps {
   chunk: DiffChunkType;
   chunkIndex: number;
   comments: Comment[];
-  onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (
+    line: LineNumber,
+    body: string,
+    codeContent?: string,
+    side?: 'old' | 'new'
+  ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -109,11 +114,50 @@ export function DiffChunk({
   const handleSubmitComment = useCallback(
     async (body: string) => {
       if (commentingLine !== null) {
-        await onAddComment(commentingLine, body);
+        // Determine side based on the lines being commented
+        let side: 'old' | 'new' | undefined = undefined;
+
+        if (Array.isArray(commentingLine)) {
+          // For multi-line comments, check the lines in the range
+          const startLine = commentingLine[0];
+          const endLine = commentingLine[1];
+          const linesInRange = chunk.lines.filter((line) => {
+            const lineNum = line.newLineNumber || line.oldLineNumber;
+            return lineNum && lineNum >= startLine && lineNum <= endLine;
+          });
+
+          // Determine side based on line types in range
+          const hasOldLines = linesInRange.some(
+            (l) => l.type === 'delete' || (l.type === 'normal' && l.oldLineNumber)
+          );
+          const hasNewLines = linesInRange.some(
+            (l) => l.type === 'add' || (l.type === 'normal' && l.newLineNumber)
+          );
+
+          if (hasOldLines && !hasNewLines) {
+            side = 'old';
+          } else if (hasNewLines) {
+            side = 'new';
+          }
+        } else {
+          // For single line comments
+          const line = chunk.lines.find(
+            (l) => l.newLineNumber === commentingLine || l.oldLineNumber === commentingLine
+          );
+          if (line) {
+            if (line.type === 'delete') {
+              side = 'old';
+            } else if (line.type === 'add' || line.type === 'normal') {
+              side = 'new';
+            }
+          }
+        }
+
+        await onAddComment(commentingLine, body, undefined, side);
         setCommentingLine(null);
       }
     },
-    [commentingLine, onAddComment]
+    [commentingLine, onAddComment, chunk.lines]
   );
 
   const getCommentsForLine = (lineNumber: number) => {
