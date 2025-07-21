@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { NAVIGATION_SELECTORS } from '../../constants/navigation';
 import type { Comment } from '../../types/diff';
+import { NAVIGATION_SELECTORS } from '../constants/navigation';
 
 import {
   type CursorPosition,
@@ -298,11 +298,21 @@ export function useKeyboardNavigation({
       switch (event.key) {
         // Line navigation
         case 'j':
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToLine('next');
+          }
+          break;
         case 'ArrowDown':
           event.preventDefault();
           navigateToLine('next');
           break;
         case 'k':
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToLine('prev');
+          }
+          break;
         case 'ArrowUp':
           event.preventDefault();
           navigateToLine('prev');
@@ -310,23 +320,27 @@ export function useKeyboardNavigation({
 
         // Chunk navigation
         case 'n':
-          event.preventDefault();
-          navigateToChunk('next');
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToChunk('next');
+          }
           break;
         case 'p':
-          event.preventDefault();
-          navigateToChunk('prev');
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToChunk('prev');
+          }
           break;
 
         // Comment navigation
         case 'N':
-          if (event.shiftKey) {
+          if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault();
             navigateToComment('next');
           }
           break;
         case 'P':
-          if (event.shiftKey) {
+          if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault();
             navigateToComment('prev');
           }
@@ -334,16 +348,25 @@ export function useKeyboardNavigation({
 
         // File navigation
         case ']':
-          event.preventDefault();
-          navigateToFile('next');
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToFile('next');
+          }
           break;
         case '[':
-          event.preventDefault();
-          navigateToFile('prev');
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            navigateToFile('prev');
+          }
           break;
 
         // Side switching (side-by-side mode only)
         case 'h':
+          if (viewMode === 'side-by-side' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            switchSide('left');
+          }
+          break;
         case 'ArrowLeft':
           if (viewMode === 'side-by-side') {
             event.preventDefault();
@@ -351,6 +374,11 @@ export function useKeyboardNavigation({
           }
           break;
         case 'l':
+          if (viewMode === 'side-by-side' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            switchSide('right');
+          }
+          break;
         case 'ArrowRight':
           if (viewMode === 'side-by-side') {
             event.preventDefault();
@@ -360,39 +388,47 @@ export function useKeyboardNavigation({
 
         // File review toggle
         case 'r':
-          event.preventDefault();
-          if (cursor) {
-            const file = files[cursor.fileIndex];
-            if (file) {
-              onToggleReviewed(file.path);
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            if (cursor) {
+              const file = files[cursor.fileIndex];
+              if (file) {
+                onToggleReviewed(file.path);
+              }
             }
           }
           break;
 
         // Comment creation
         case 'c':
-          event.preventDefault();
-          if (cursor && onCreateComment) {
-            // Get the current line
-            const line =
-              files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
-            // Only create comment if not on a deleted line
-            if (line && line.type !== 'delete') {
-              onCreateComment();
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            if (cursor && onCreateComment) {
+              // Get the current line
+              const line =
+                files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+              // Only create comment if not on a deleted line
+              if (line && line.type !== 'delete') {
+                onCreateComment();
+              }
             }
           }
           break;
 
         // Help toggle
         case '?':
-          event.preventDefault();
-          setIsHelpOpen(!isHelpOpen);
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            setIsHelpOpen(!isHelpOpen);
+          }
           break;
 
         // Move to center of viewport
         case '.':
-          event.preventDefault();
-          moveToCenterOfViewport();
+          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            moveToCenterOfViewport();
+          }
           break;
       }
     },

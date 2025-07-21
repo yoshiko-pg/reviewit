@@ -7,6 +7,7 @@ import {
   type LineNumber,
   type LineSelection,
 } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 
 import { CommentButton } from './CommentButton';
 import { CommentForm } from './CommentForm';
@@ -23,8 +24,7 @@ interface SideBySideDiffChunkProps {
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
-  currentLineId?: string | null;
-  currentSide?: 'left' | 'right';
+  cursor?: CursorPosition | null;
   fileIndex?: number;
   onLineClick?: (
     fileIndex: number,
@@ -54,8 +54,7 @@ export function SideBySideDiffChunk({
   onRemoveComment,
   onUpdateComment,
   syntaxTheme,
-  currentLineId = null,
-  currentSide = 'right',
+  cursor = null,
   fileIndex = 0,
   onLineClick,
   commentTrigger,
@@ -290,17 +289,19 @@ export function SideBySideDiffChunk({
             const oldLineOriginalIndex = sideLine.oldLineOriginalIndex ?? -1;
             const newLineOriginalIndex = sideLine.newLineOriginalIndex ?? -1;
 
-            // Check if the current side's line matches the current line ID
+            // Check if the current side's line matches the cursor position
             const isHighlighted = (() => {
-              if (!currentLineId) return false;
+              if (!cursor) return false;
 
               // Only highlight the line on the current side
-              if (currentSide === 'left' && oldLineOriginalIndex >= 0) {
-                const oldLineId = `file-${fileIndex}-chunk-${chunkIndex}-line-${oldLineOriginalIndex}`;
-                return oldLineId === currentLineId;
-              } else if (currentSide === 'right' && newLineOriginalIndex >= 0) {
-                const newLineId = `file-${fileIndex}-chunk-${chunkIndex}-line-${newLineOriginalIndex}`;
-                return newLineId === currentLineId;
+              if (cursor.side === 'left' && oldLineOriginalIndex >= 0) {
+                return (
+                  cursor.chunkIndex === chunkIndex && cursor.lineIndex === oldLineOriginalIndex
+                );
+              } else if (cursor.side === 'right' && newLineOriginalIndex >= 0) {
+                return (
+                  cursor.chunkIndex === chunkIndex && cursor.lineIndex === newLineOriginalIndex
+                );
               }
 
               return false;
@@ -317,8 +318,8 @@ export function SideBySideDiffChunk({
               : undefined;
 
             // Determine which cell to highlight
-            const highlightOldCell = isHighlighted && currentSide === 'left';
-            const highlightNewCell = isHighlighted && currentSide === 'right';
+            const highlightOldCell = isHighlighted && cursor?.side === 'left';
+            const highlightNewCell = isHighlighted && cursor?.side === 'right';
 
             const cellHighlightClass =
               'outline outline-2 outline-blue-500 outline-offset-[-2px] bg-blue-100/50 dark:bg-blue-900/30';

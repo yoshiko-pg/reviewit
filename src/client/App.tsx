@@ -1,7 +1,6 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { NAVIGATION_TIMING } from '../constants/navigation';
 import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
@@ -13,6 +12,7 @@ import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
+import { NAVIGATION_TIMING } from './constants/navigation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
@@ -81,12 +81,6 @@ function App() {
       }
     },
   });
-
-  // Derive values from cursor for backward compatibility
-  const currentHunkIndex = cursor?.chunkIndex ?? -1;
-  const currentLineId =
-    cursor ? `file-${cursor.fileIndex}-chunk-${cursor.chunkIndex}-line-${cursor.lineIndex}` : null;
-  const currentSide = cursor?.side ?? 'right';
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -482,10 +476,7 @@ function App() {
                   syntaxTheme={settings.syntaxTheme}
                   baseCommitish={diffData.baseCommitish}
                   targetCommitish={diffData.targetCommitish}
-                  isCurrentFile={cursor?.fileIndex === fileIndex}
-                  currentHunkIndex={cursor?.fileIndex === fileIndex ? currentHunkIndex : -1}
-                  currentLineId={currentLineId}
-                  currentSide={currentSide}
+                  cursor={cursor?.fileIndex === fileIndex ? cursor : null}
                   fileIndex={fileIndex}
                   onLineClick={(fileIdx, chunkIdx, lineIdx, side) => {
                     setCursorPosition({

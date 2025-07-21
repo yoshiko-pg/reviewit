@@ -1,4 +1,4 @@
-import { NAVIGATION_SELECTORS } from '../../../constants/navigation';
+import { NAVIGATION_SELECTORS } from '../../constants/navigation';
 
 import { SCROLL_CONSTANTS } from './types';
 

@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 
 import { type DiffFile, type Comment, type LineNumber } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
@@ -37,10 +38,7 @@ interface DiffViewerProps {
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
   baseCommitish?: string;
   targetCommitish?: string;
-  isCurrentFile?: boolean;
-  currentHunkIndex?: number;
-  currentLineId?: string | null;
-  currentSide?: 'left' | 'right';
+  cursor?: CursorPosition | null;
   fileIndex?: number;
   onLineClick?: (
     fileIndex: number,
@@ -65,10 +63,7 @@ export function DiffViewer({
   syntaxTheme,
   baseCommitish,
   targetCommitish,
-  isCurrentFile = false,
-  currentHunkIndex = -1,
-  currentLineId = null,
-  currentSide = 'right',
+  cursor = null,
   fileIndex = 0,
   onLineClick,
   commentTrigger,
@@ -185,7 +180,7 @@ export function DiffViewer({
               targetCommitish={targetCommitish}
             />
           : file.chunks.map((chunk, index) => {
-              const isFocused = isCurrentFile && index === currentHunkIndex;
+              const isFocused = cursor && index === cursor.chunkIndex;
               return (
                 <div
                   key={index}
@@ -209,8 +204,7 @@ export function DiffViewer({
                     onUpdateComment={onUpdateComment}
                     mode={diffMode}
                     syntaxTheme={syntaxTheme}
-                    currentLineId={currentLineId}
-                    currentSide={currentSide}
+                    cursor={cursor}
                     fileIndex={fileIndex}
                     onLineClick={onLineClick}
                     commentTrigger={commentTrigger?.chunkIndex === index ? commentTrigger : null}

@@ -6,6 +6,7 @@ import {
   type Comment,
   type LineNumber,
 } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 
 import { CommentForm } from './CommentForm';
 import { DiffLineRow } from './DiffLineRow';
@@ -23,8 +24,7 @@ interface DiffChunkProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
-  currentLineId?: string | null;
-  currentSide?: 'left' | 'right';
+  cursor?: CursorPosition | null;
   fileIndex?: number;
   onLineClick?: (
     fileIndex: number,
@@ -46,8 +46,7 @@ export function DiffChunk({
   onUpdateComment,
   mode = 'inline',
   syntaxTheme,
-  currentLineId = null,
-  currentSide = 'right',
+  cursor = null,
   fileIndex = 0,
   onLineClick,
   commentTrigger,
@@ -185,8 +184,7 @@ export function DiffChunk({
         onRemoveComment={onRemoveComment}
         onUpdateComment={onUpdateComment}
         syntaxTheme={syntaxTheme}
-        currentLineId={currentLineId}
-        currentSide={currentSide}
+        cursor={cursor}
         fileIndex={fileIndex}
         onLineClick={onLineClick}
         commentTrigger={commentTrigger}
@@ -203,7 +201,8 @@ export function DiffChunk({
             const lineComments = getCommentsForLine(line.newLineNumber || line.oldLineNumber || 0);
             // Generate ID for all lines to match the format used in useKeyboardNavigation
             const lineId = `file-${fileIndex}-chunk-${chunkIndex}-line-${index}`;
-            const isCurrentLine = lineId === currentLineId;
+            const isCurrentLine =
+              cursor && cursor.chunkIndex === chunkIndex && cursor.lineIndex === index;
 
             return (
               <React.Fragment key={index}>
@@ -211,7 +210,7 @@ export function DiffChunk({
                   line={line}
                   index={index}
                   lineId={lineId}
-                  isCurrentLine={isCurrentLine}
+                  isCurrentLine={isCurrentLine || false}
                   hoveredLine={hoveredLine}
                   selectedLineStyle={getSelectedLineStyle(line.newLineNumber || line.oldLineNumber)}
                   onMouseEnter={() => {
