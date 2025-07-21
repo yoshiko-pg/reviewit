@@ -32,6 +32,7 @@ export interface UseKeyboardNavigationProps {
   viewMode?: 'side-by-side' | 'inline';
   onToggleReviewed: (filePath: string) => void;
   onCreateComment?: () => void;
+  onCopyAllComments?: () => void;
 }
 
 /**

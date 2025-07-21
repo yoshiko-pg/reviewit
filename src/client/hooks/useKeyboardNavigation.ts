@@ -29,6 +29,7 @@ export function useKeyboardNavigation({
   viewMode = 'inline',
   onToggleReviewed,
   onCreateComment,
+  onCopyAllComments,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -415,6 +416,14 @@ export function useKeyboardNavigation({
           event.preventDefault();
           moveToCenterOfViewport();
           break;
+
+        // Copy all comments prompt
+        case 'C':
+          if (event.shiftKey && onCopyAllComments) {
+            event.preventDefault();
+            onCopyAllComments();
+          }
+          break;
       }
     },
     [
@@ -428,6 +437,7 @@ export function useKeyboardNavigation({
       files,
       onToggleReviewed,
       onCreateComment,
+      onCopyAllComments,
       isHelpOpen,
       moveToCenterOfViewport,
     ]

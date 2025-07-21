@@ -79,6 +79,11 @@ function App() {
         });
       }
     },
+    onCopyAllComments: () => {
+      if (comments.length > 0) {
+        void handleCopyAllComments();
+      }
+    },
   });
 
   const handleMouseDown = (e: React.MouseEvent) => {
