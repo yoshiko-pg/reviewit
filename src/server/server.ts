@@ -10,6 +10,7 @@ const __dirname = dirname(__filename);
 import { type DiffMode } from '../types/watch.js';
 import { getFileExtension } from '../utils/fileUtils.js';
 
+import { FileWatcherService } from './file-watcher.js';
 import { GitDiffParser } from './git-diff.js';
 
 import { type Comment, type DiffResponse } from '@/types/diff.js';
@@ -32,6 +33,7 @@ export async function startServer(
 ): Promise<{ port: number; url: string; isEmpty?: boolean; server?: Server }> {
   const app = express();
   const parser = new GitDiffParser();
+  const fileWatcher = new FileWatcherService();
 
   let diffData: DiffResponse;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
@@ -172,6 +174,22 @@ export async function startServer(
     }
   }
 
+  // SSE endpoint for file watching
+  app.get('/api/watch', (req, res) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    });
+
+    fileWatcher.addClient(res);
+
+    req.on('close', () => {
+      fileWatcher.removeClient(res);
+    });
+  });
+
   // SSE endpoint to detect when tab is closed
   app.get('/api/heartbeat', (req, res) => {
     res.writeHead(200, {
@@ -190,9 +208,13 @@ export async function startServer(
     }, 5000);
 
     // When client disconnects (tab closed, navigation, etc.)
-    req.on('close', () => {
+    req.on('close', async () => {
       clearInterval(heartbeatInterval);
       console.log('Client disconnected, shutting down server...');
+
+      // Stop file watcher
+      await fileWatcher.stop();
+
       outputFinalComments();
       process.exit(0);
     });
@@ -241,6 +263,16 @@ export async function startServer(
     console.warn('\n⚠️  WARNING: Server is accessible from external network!');
     console.warn(`   Binding to: ${options.host}:${port}`);
     console.warn('   Make sure this is intended and your network is secure.\n');
+  }
+
+  // Start file watcher if enabled
+  if (options.watch && options.diffMode) {
+    try {
+      await fileWatcher.start(options.diffMode, process.cwd());
+    } catch (error) {
+      console.warn('⚠️  File watcher failed to start:', error);
+      console.warn('   Continuing without file watching...');
+    }
   }
 
   // Check if diff is empty and skip browser opening
