@@ -2,7 +2,11 @@
   <img src="public/logo.png" alt="difit" width="260">
 </h1>
 
-**difit** is a zero-config CLI that launches a GitHub-style diff viewer right on your machine. Review commits in a clean “Files changed” layout, add inline comments, and copy those comments as ready-to-paste AI prompts. Perfect for code review workflows without leaving the terminal! 🚀
+**difit** is a zero-config CLI that launches a GitHub-style diff viewer right on your machine. Review commits in a clean "Files changed" layout, add inline comments, and copy those comments as ready-to-paste AI prompts. Perfect for code review workflows without leaving the terminal! 🚀
+
+<p align="center">
+  <a href="./README.md">English</a> | <a href="./README.ja.md">日本語</a>
+</p>
 
 ## ✨ Features
 
