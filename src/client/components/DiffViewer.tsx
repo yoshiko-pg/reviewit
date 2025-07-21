@@ -180,14 +180,11 @@ export function DiffViewer({
               targetCommitish={targetCommitish}
             />
           : file.chunks.map((chunk, index) => {
-              const isFocused = cursor && index === cursor.chunkIndex;
               return (
                 <div
                   key={index}
                   id={`chunk-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${index}`}
-                  className={`border-b border-github-border ${
-                    isFocused ? 'ring-2 ring-github-accent ring-inset' : ''
-                  }`}
+                  className="border-b border-github-border"
                 >
                   <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
                     <code className="text-github-text-secondary text-xs font-mono">

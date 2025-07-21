@@ -295,10 +295,13 @@ export function useKeyboardNavigation({
         return;
       }
 
+      // Check modifier keys for single-key shortcuts
+      const hasModifier = event.ctrlKey || event.metaKey || event.altKey;
+
       switch (event.key) {
         // Line navigation
         case 'j':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToLine('next');
           }
@@ -308,7 +311,7 @@ export function useKeyboardNavigation({
           navigateToLine('next');
           break;
         case 'k':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToLine('prev');
           }
@@ -320,13 +323,13 @@ export function useKeyboardNavigation({
 
         // Chunk navigation
         case 'n':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToChunk('next');
           }
           break;
         case 'p':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToChunk('prev');
           }
@@ -334,13 +337,13 @@ export function useKeyboardNavigation({
 
         // Comment navigation
         case 'N':
-          if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (event.shiftKey && !hasModifier) {
             event.preventDefault();
             navigateToComment('next');
           }
           break;
         case 'P':
-          if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (event.shiftKey && !hasModifier) {
             event.preventDefault();
             navigateToComment('prev');
           }
@@ -348,13 +351,13 @@ export function useKeyboardNavigation({
 
         // File navigation
         case ']':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToFile('next');
           }
           break;
         case '[':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             navigateToFile('prev');
           }
@@ -362,7 +365,7 @@ export function useKeyboardNavigation({
 
         // Side switching (side-by-side mode only)
         case 'h':
-          if (viewMode === 'side-by-side' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (viewMode === 'side-by-side' && !hasModifier) {
             event.preventDefault();
             switchSide('left');
           }
@@ -374,7 +377,7 @@ export function useKeyboardNavigation({
           }
           break;
         case 'l':
-          if (viewMode === 'side-by-side' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (viewMode === 'side-by-side' && !hasModifier) {
             event.preventDefault();
             switchSide('right');
           }
@@ -388,7 +391,7 @@ export function useKeyboardNavigation({
 
         // File review toggle
         case 'r':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             if (cursor) {
               const file = files[cursor.fileIndex];
@@ -401,7 +404,7 @@ export function useKeyboardNavigation({
 
         // Comment creation
         case 'c':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             if (cursor && onCreateComment) {
               // Get the current line
@@ -417,7 +420,7 @@ export function useKeyboardNavigation({
 
         // Help toggle
         case '?':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             setIsHelpOpen(!isHelpOpen);
           }
@@ -425,7 +428,7 @@ export function useKeyboardNavigation({
 
         // Move to center of viewport
         case '.':
-          if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!hasModifier) {
             event.preventDefault();
             moveToCenterOfViewport();
           }

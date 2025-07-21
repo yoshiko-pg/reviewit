@@ -12,7 +12,6 @@ import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
-import { NAVIGATION_TIMING } from './constants/navigation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
@@ -176,7 +175,7 @@ function App() {
         // Hide sparkles after animation completes
         setTimeout(() => {
           setShowSparkles(false);
-        }, NAVIGATION_TIMING.SPARKLE_ANIMATION_DURATION);
+        }, 1000);
       }
     }
   }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
@@ -234,7 +233,7 @@ function App() {
       const prompt = generateAllCommentsPrompt();
       await navigator.clipboard.writeText(prompt);
       setIsCopiedAll(true);
-      setTimeout(() => setIsCopiedAll(false), NAVIGATION_TIMING.COPY_FEEDBACK_DURATION);
+      setTimeout(() => setIsCopiedAll(false), 2000);
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
     }
