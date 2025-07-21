@@ -9,6 +9,9 @@ import { useKeyboardNavigation } from './useKeyboardNavigation';
 Element.prototype.scrollIntoView = vi.fn();
 const mockGetElementById = vi.spyOn(document, 'getElementById');
 
+// Mock querySelector for the scrollable container
+const mockQuerySelector = vi.spyOn(document, 'querySelector');
+
 // Mock window properties
 Object.defineProperty(window, 'innerHeight', {
   writable: true,
@@ -36,6 +39,21 @@ const createMockElement = () => ({
     height: 100,
   })),
   offsetTop: 150,
+});
+
+// Helper to create mock scrollable container
+const createMockScrollContainer = () => ({
+  getBoundingClientRect: vi.fn(() => ({
+    top: 0,
+    bottom: 768,
+    left: 0,
+    right: 1024,
+    width: 1024,
+    height: 768,
+  })),
+  clientHeight: 768,
+  scrollTop: 0,
+  offsetTop: 0,
 });
 
 describe('useKeyboardNavigation', () => {
@@ -105,6 +123,14 @@ describe('useKeyboardNavigation', () => {
       if (id) {
         const element = createMockElement();
         return element as any;
+      }
+      return null;
+    });
+    // Mock querySelector to return a mock scrollable container
+    mockQuerySelector.mockImplementation((selector) => {
+      if (selector === 'main.overflow-y-auto') {
+        const container = createMockScrollContainer();
+        return container as any;
       }
       return null;
     });

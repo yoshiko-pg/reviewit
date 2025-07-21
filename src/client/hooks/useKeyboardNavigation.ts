@@ -106,36 +106,64 @@ export function useKeyboardNavigation({
     const element = document.getElementById(elementId);
     if (!element) return;
 
-    const rect = element.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    // Find the main scrollable container
+    // In this app, the main element with class "flex-1 overflow-y-auto" is always the scroll container
+    const scrollContainer = document.querySelector('main.overflow-y-auto') as HTMLElement | null;
+    if (!scrollContainer) {
+      throw new Error('Scrollable container (main.overflow-y-auto) not found');
+    }
 
-    // Check if element is visible
-    const isVisible = rect.top >= 0 && rect.bottom <= viewportHeight;
+    const rect = element.getBoundingClientRect();
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const viewportHeight = scrollContainer.clientHeight;
+    const scrollTop = scrollContainer.scrollTop;
+
+    // Check if element is visible within the scroll container
+    // The visible area is the intersection of container and viewport
+    const visibleTop = Math.max(containerRect.top, 0);
+    const visibleBottom = Math.min(containerRect.bottom, window.innerHeight);
+    // Element is visible if it's within the visible portion of the container
+    const isVisible = rect.top >= visibleTop && rect.bottom <= visibleBottom;
 
     // If not visible, always scroll
     if (!isVisible) {
-      // Position element at 1/3 from top with 100px header margin
-      const targetScrollTop = element.offsetTop - viewportHeight / 3 - 100;
-      window.scrollTo({
-        top: Math.max(0, targetScrollTop),
-        behavior: 'instant',
-      });
+      // Calculate target position relative to container
+      // We need the element's absolute position within the scrollable content
+      let currentElement: HTMLElement | null = element;
+      let offsetTopInContainer = 0;
+
+      // Walk up the DOM tree until we reach the container, accumulating offsets
+      while (currentElement && currentElement !== scrollContainer && currentElement.offsetParent) {
+        offsetTopInContainer += currentElement.offsetTop;
+        currentElement = currentElement.offsetParent as HTMLElement;
+      }
+
+      // Add the final offset if we haven't reached the container
+      if (currentElement && currentElement !== scrollContainer) {
+        offsetTopInContainer += currentElement.offsetTop;
+      }
+
+      const targetScrollTop = offsetTopInContainer - viewportHeight / 3;
+      const finalScrollTop = Math.max(0, targetScrollTop);
+
+      scrollContainer.scrollTop = finalScrollTop;
+
       return;
     }
 
     // Element is visible - only scroll if:
     // 1. Bottom edge is not visible AND
     // 2. Scroll would move down (not up)
-    const isBottomHidden = rect.bottom > viewportHeight;
-    const targetScrollTop = element.offsetTop - viewportHeight / 3 - 100;
+    const isBottomHidden = rect.bottom > Math.min(containerRect.bottom, window.innerHeight);
+
+    // For container scroll, calculate based on element's position in container
+    const elementPosInContainer = element.offsetTop - scrollContainer.offsetTop;
+    const targetScrollTop = elementPosInContainer - viewportHeight / 3;
     const wouldScrollDown = targetScrollTop > scrollTop;
 
     if (isBottomHidden && wouldScrollDown) {
-      window.scrollTo({
-        top: Math.max(0, targetScrollTop),
-        behavior: 'instant',
-      });
+      const finalScrollTop = Math.max(0, targetScrollTop);
+      scrollContainer.scrollTop = finalScrollTop;
     }
   }, []);
 
