@@ -287,14 +287,6 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* File Watch Reload Button */}
-      <ReloadButton
-        shouldReload={shouldReload}
-        isReloading={watchState.isReloading}
-        onReload={reload}
-        changeType={watchState.lastChangeType}
-      />
-
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
           className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
@@ -369,6 +361,13 @@ function App() {
               onChange={setIgnoreWhitespace}
               label="Ignore Whitespace"
               title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
+            />
+            {/* File Watch Reload Button */}
+            <ReloadButton
+              shouldReload={shouldReload}
+              isReloading={watchState.isReloading}
+              onReload={reload}
+              changeType={watchState.lastChangeType}
             />
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
