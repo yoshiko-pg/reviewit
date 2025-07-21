@@ -6,6 +6,7 @@ import { simpleGit, type SimpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
+import { DiffMode } from '../types/watch.js';
 
 import {
   findUntrackedFiles,
@@ -21,6 +22,43 @@ function isSpecialArg(arg: string): arg is SpecialArg {
   return arg === 'working' || arg === 'staged' || arg === '.';
 }
 
+function determineDiffMode(
+  targetCommitish: string,
+  baseCommitish: string,
+  compareWith?: string
+): DiffMode {
+  // PR mode is treated as specific commit comparison
+  if (
+    targetCommitish !== 'HEAD' &&
+    targetCommitish !== 'working' &&
+    targetCommitish !== 'staged' &&
+    targetCommitish !== '.' &&
+    compareWith
+  ) {
+    return DiffMode.SPECIFIC;
+  }
+
+  if (targetCommitish === 'working') {
+    return DiffMode.WORKING;
+  }
+
+  if (targetCommitish === 'staged') {
+    return DiffMode.STAGED;
+  }
+
+  if (targetCommitish === '.') {
+    return DiffMode.DOT;
+  }
+
+  // If comparing two different commits/branches
+  if (compareWith && baseCommitish !== targetCommitish + '^') {
+    return DiffMode.SPECIFIC;
+  }
+
+  // Default mode: HEAD^ vs HEAD or similar single commit diff
+  return DiffMode.DEFAULT;
+}
+
 interface CliOptions {
   port?: number;
   host?: string;
@@ -29,6 +67,7 @@ interface CliOptions {
   tui?: boolean;
   pr?: string;
   clean?: boolean;
+  watch?: boolean;
 }
 
 const program = new Command();
@@ -53,6 +92,7 @@ program
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .option('--clean', 'start with a clean slate by clearing all existing comments')
+  .option('--watch', 'enable file watching for reload notifications')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Determine target and base commitish
@@ -125,6 +165,8 @@ program
         }
       }
 
+      const diffMode = determineDiffMode(targetCommitish, baseCommitish, compareWith);
+
       const { url, port, isEmpty } = await startServer({
         targetCommitish,
         baseCommitish,
@@ -133,6 +175,8 @@ program
         openBrowser: options.open,
         mode: options.mode,
         clearComments: options.clean,
+        watch: options.watch || false,
+        diffMode,
       });
 
       console.log(`\n🚀 difit server started on ${url}`);

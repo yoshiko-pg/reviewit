@@ -7,6 +7,7 @@ import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import { type DiffMode } from '../types/watch.js';
 import { getFileExtension } from '../utils/fileUtils.js';
 
 import { GitDiffParser } from './git-diff.js';
@@ -22,6 +23,8 @@ interface ServerOptions {
   mode?: string;
   ignoreWhitespace?: boolean;
   clearComments?: boolean;
+  watch?: boolean;
+  diffMode?: DiffMode;
 }
 
 export async function startServer(
