@@ -42,6 +42,8 @@ npx difit feature  # Latest commit on feature branch
 
 ```bash
 npx difit HEAD main      # Compare HEAD with main branch
+npx difit @ main         # Compare HEAD with main branch (@ is alias for HEAD)
+npx difit @^ @~3         # Compare previous commit with 3 commits ago
 npx difit feature main   # Compare branches
 npx difit . origin/main  # Compare working directory with remote main
 ```

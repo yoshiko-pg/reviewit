@@ -33,6 +33,16 @@ describe('CLI Utils', () => {
       expect(validateCommitish('HEAD~2^1')).toBe(true);
     });
 
+    it('should validate @ references (Git alias for HEAD)', () => {
+      expect(validateCommitish('@')).toBe(true);
+      expect(validateCommitish('@~1')).toBe(true);
+      expect(validateCommitish('@~10')).toBe(true);
+      expect(validateCommitish('@^')).toBe(true);
+      expect(validateCommitish('@^1')).toBe(true);
+      expect(validateCommitish('@^2')).toBe(true);
+      expect(validateCommitish('@~2^1')).toBe(true);
+    });
+
     it('should validate branch names', () => {
       // Valid branch names according to git rules
       expect(validateCommitish('main')).toBe(true);
@@ -65,7 +75,7 @@ describe('CLI Utils', () => {
       // Invalid branch names according to git rules
       expect(validateCommitish('-feature')).toBe(false); // cannot start with dash
       expect(validateCommitish('feature.')).toBe(false); // cannot end with dot
-      expect(validateCommitish('@')).toBe(false); // cannot be just @
+      expect(validateCommitish('@')).toBe(true); // @ is a valid Git alias for HEAD
       expect(validateCommitish('feature..test')).toBe(false); // no consecutive dots
       expect(validateCommitish('feature@{upstream}')).toBe(false); // no @{ sequence
       expect(validateCommitish('feature//test')).toBe(false); // no consecutive slashes
