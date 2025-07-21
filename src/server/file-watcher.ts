@@ -32,8 +32,15 @@ const MODE_WATCH_CONFIGS: Record<DiffMode, ModeWatchConfig> = {
     ignore: ['.git/objects/**', '.git/refs/**'],
   },
   [DiffMode.DOT]: {
-    watchPaths: ['.'],
-    ignore: ['.git/**', 'node_modules/**'],
+    watchPaths: ['.', '.git'],
+    ignore: [
+      '.git/objects/**',
+      '.git/refs/**',
+      '.git/FETCH_HEAD',
+      '.git/ORIG_HEAD',
+      '.git/logs/**',
+      'node_modules/**',
+    ],
   },
   [DiffMode.SPECIFIC]: {
     watchPaths: [], // No watching for specific commits
