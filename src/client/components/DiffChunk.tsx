@@ -60,7 +60,7 @@ export function DiffChunk({
 
   // Handle comment trigger from keyboard navigation
   useEffect(() => {
-    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+    if (commentTrigger?.lineIndex !== undefined) {
       const line = chunk.lines[commentTrigger.lineIndex];
       if (line) {
         const lineNumber = line.newLineNumber || line.oldLineNumber;
