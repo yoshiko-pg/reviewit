@@ -64,7 +64,7 @@ function App() {
     });
   };
 
-  const { cursor, isHelpOpen, setIsHelpOpen } = useKeyboardNavigation({
+  const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
     comments,
     viewMode: diffMode,
@@ -484,6 +484,14 @@ function App() {
                   currentLineId={currentLineId}
                   currentSide={currentSide}
                   fileIndex={fileIndex}
+                  onLineClick={(fileIdx, chunkIdx, lineIdx, side) => {
+                    setCursorPosition({
+                      fileIndex: fileIdx,
+                      chunkIndex: chunkIdx,
+                      lineIndex: lineIdx,
+                      side,
+                    });
+                  }}
                 />
               </div>
             );

@@ -849,6 +849,66 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
+  describe('Set Cursor Position', () => {
+    it('should set cursor position when setCursorPosition is called', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      expect(result.current.cursor).toBe(null);
+
+      const newPosition = {
+        fileIndex: 0,
+        chunkIndex: 1,
+        lineIndex: 0,
+        side: 'right' as const,
+      };
+
+      act(() => {
+        result.current.setCursorPosition(newPosition);
+      });
+
+      expect(result.current.cursor).toEqual(newPosition);
+      // The scrollToElement function will call getElementById internally
+      // Since we're using the real scrollToElement implementation which expects
+      // a specific DOM structure, let's just verify the cursor was set correctly
+      // The actual scrolling behavior would be tested in integration tests
+    });
+
+    it('should fix side when setting cursor position in side-by-side mode', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          viewMode: 'side-by-side',
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Try to set cursor on a delete line with right side
+      const newPosition = {
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0, // delete line
+        side: 'right' as const,
+      };
+
+      act(() => {
+        result.current.setCursorPosition(newPosition);
+      });
+
+      // Should fix to left side since delete lines only have content on left
+      expect(result.current.cursor).toEqual({
+        ...newPosition,
+        side: 'left',
+      });
+    });
+  });
+
   describe('Input Field Handling', () => {
     it('should not handle shortcuts when typing in input fields', () => {
       const { result } = renderHook(() =>

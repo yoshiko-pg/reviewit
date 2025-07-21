@@ -26,6 +26,12 @@ interface SideBySideDiffChunkProps {
   currentLineId?: string | null;
   currentSide?: 'left' | 'right';
   fileIndex?: number;
+  onLineClick?: (
+    fileIndex: number,
+    chunkIndex: number,
+    lineIndex: number,
+    side: 'left' | 'right'
+  ) => void;
 }
 
 interface SideBySideLine {
@@ -49,6 +55,7 @@ export function SideBySideDiffChunk({
   currentLineId = null,
   currentSide = 'right',
   fileIndex = 0,
+  onLineClick,
 }: SideBySideDiffChunkProps) {
   const [startLine, setStartLine] = useState<LineSelection | null>(null);
   const [endLine, setEndLine] = useState<LineSelection | null>(null);
@@ -301,7 +308,22 @@ export function SideBySideDiffChunk({
             return (
               <React.Fragment key={index}>
                 <tr
-                  className="group"
+                  className="group cursor-pointer"
+                  onClick={(e) => {
+                    if (onLineClick && !isDragging) {
+                      const target = e.target as HTMLElement;
+                      const isInOldSide =
+                        target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                      const isInNewSide =
+                        target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                      if (isInOldSide && oldLineOriginalIndex >= 0) {
+                        onLineClick(fileIndex, chunkIndex, oldLineOriginalIndex, 'left');
+                      } else if (isInNewSide && newLineOriginalIndex >= 0) {
+                        onLineClick(fileIndex, chunkIndex, newLineOriginalIndex, 'right');
+                      }
+                    }
+                  }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
                     const isInOldSide =

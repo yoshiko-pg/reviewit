@@ -392,6 +392,17 @@ export function useKeyboardNavigation({
     }
   }, [files, viewMode, setCursor]);
 
+  // Set cursor position from external source (e.g., mouse click)
+  const setCursorPosition = useCallback(
+    (position: CursorPosition) => {
+      // Fix the side if necessary
+      const fixedPosition = fixSide(position, files);
+      setCursor(fixedPosition);
+      scrollToElement(getElementId(fixedPosition, viewMode));
+    },
+    [files, viewMode, scrollToElement]
+  );
+
   // Handle keyboard events
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -518,5 +529,6 @@ export function useKeyboardNavigation({
     cursor,
     isHelpOpen,
     setIsHelpOpen,
+    setCursorPosition,
   };
 }
