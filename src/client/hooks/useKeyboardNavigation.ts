@@ -335,6 +335,63 @@ export function useKeyboardNavigation({
     [cursor, viewMode, scrollToElement, files]
   );
 
+  // Move cursor to center of viewport
+  const moveToCenterOfViewport = useCallback(() => {
+    // Get the scrollable container
+    const scrollContainer = document.querySelector('main.overflow-y-auto') as HTMLElement | null;
+    if (!scrollContainer) return;
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const centerY = containerRect.top + containerRect.height / 2;
+
+    // Find all diff line elements
+    let closestDistance = Infinity;
+    let closestPosition: CursorPosition | null = null;
+
+    // Iterate through all files and lines to find the one closest to center
+    files.forEach((file, fileIndex) => {
+      file.chunks.forEach((chunk, chunkIndex) => {
+        chunk.lines.forEach((_, lineIndex) => {
+          // Check both sides in side-by-side mode
+          const sides =
+            viewMode === 'side-by-side' ? (['left', 'right'] as const) : (['right'] as const);
+
+          for (const side of sides) {
+            const position: CursorPosition = { fileIndex, chunkIndex, lineIndex, side };
+
+            // Skip positions without content in side-by-side mode
+            if (viewMode === 'side-by-side' && !hasContentOnSide(position, files)) {
+              continue;
+            }
+
+            const elementId = getElementId(position, viewMode);
+            const element = document.getElementById(elementId);
+
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              const elementCenterY = rect.top + rect.height / 2;
+              const distance = Math.abs(elementCenterY - centerY);
+
+              // Check if element is visible
+              if (rect.top < containerRect.bottom && rect.bottom > containerRect.top) {
+                if (distance < closestDistance) {
+                  closestDistance = distance;
+                  closestPosition = position;
+                }
+              }
+            }
+          }
+        });
+      });
+    });
+
+    // Set cursor to the closest position
+    if (closestPosition) {
+      setCursor(closestPosition);
+      // Don't scroll since we're moving to already visible content
+    }
+  }, [files, viewMode, setCursor]);
+
   // Handle keyboard events
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -428,6 +485,12 @@ export function useKeyboardNavigation({
           event.preventDefault();
           setIsHelpOpen(!isHelpOpen);
           break;
+
+        // Move to center of viewport
+        case '.':
+          event.preventDefault();
+          moveToCenterOfViewport();
+          break;
       }
     },
     [
@@ -441,6 +504,7 @@ export function useKeyboardNavigation({
       files,
       onToggleReviewed,
       isHelpOpen,
+      moveToCenterOfViewport,
     ]
   );
 

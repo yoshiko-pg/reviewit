@@ -163,6 +163,14 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                  .
+                </kbd>
+                <span className="text-github-text-secondary">
+                  Move cursor to center of viewport
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   ?
                 </kbd>
                 <span className="text-github-text-secondary">Show/hide this help</span>

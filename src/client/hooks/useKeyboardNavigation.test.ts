@@ -749,6 +749,78 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
+  describe('Move to Center (.)', () => {
+    it('should move cursor to the center of viewport with . key', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Mock multiple elements with different positions
+      const mockElements = new Map([
+        ['file-0-chunk-0-line-0', { top: 100, bottom: 150, height: 50 }],
+        ['file-0-chunk-0-line-1', { top: 350, bottom: 400, height: 50 }], // Closest to center
+        ['file-0-chunk-0-line-2', { top: 600, bottom: 650, height: 50 }],
+      ]);
+
+      // Mock scrollable container
+      const mockContainer = {
+        getBoundingClientRect: vi.fn(() => ({
+          top: 0,
+          bottom: 768,
+          height: 768,
+          left: 0,
+          right: 1024,
+          width: 1024,
+        })),
+        clientHeight: 768,
+        scrollTop: 0,
+        offsetTop: 0,
+      };
+
+      // Mock querySelector for container
+      vi.spyOn(document, 'querySelector').mockImplementation((selector) => {
+        if (selector === 'main.overflow-y-auto') {
+          return mockContainer as any;
+        }
+        return null;
+      });
+
+      // Mock getElementById for line elements
+      vi.spyOn(document, 'getElementById').mockImplementation((id) => {
+        const bounds = mockElements.get(id);
+        if (bounds) {
+          return {
+            getBoundingClientRect: vi.fn(() => ({
+              ...bounds,
+              left: 0,
+              right: 100,
+              width: 100,
+            })),
+          } as any;
+        }
+        return null;
+      });
+
+      // Press . key
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: '.' });
+        window.dispatchEvent(event);
+      });
+
+      // Should move to the line closest to center (line 1)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+    });
+  });
+
   describe('Help Modal (?)', () => {
     it('should toggle help modal with ? key', () => {
       const { result } = renderHook(() =>
