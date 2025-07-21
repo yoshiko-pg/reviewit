@@ -18,20 +18,20 @@ interface ModeWatchConfig {
 
 const MODE_WATCH_CONFIGS: Record<DiffMode, ModeWatchConfig> = {
   [DiffMode.DEFAULT]: {
-    watchPaths: ['.git/HEAD'],
+    watchPaths: ['.git'],
     ignore: ['.git/objects/**', '.git/refs/**', 'node_modules/**'],
   },
   [DiffMode.WORKING]: {
-    watchPaths: ['.', '.git/index'],
-    ignore: ['.git/**', 'node_modules/**', '!.git/index'],
+    watchPaths: ['.', '.git'],
+    ignore: ['.git/objects/**', '.git/refs/**', 'node_modules/**'],
   },
   [DiffMode.STAGED]: {
-    watchPaths: ['.git/index'],
+    watchPaths: ['.git'],
     ignore: ['.git/objects/**', '.git/refs/**'],
   },
   [DiffMode.DOT]: {
-    watchPaths: ['.', '.git/HEAD'],
-    ignore: ['.git/**', 'node_modules/**', '!.git/HEAD'],
+    watchPaths: ['.', '.git'],
+    ignore: ['.git/objects/**', '.git/refs/**', 'node_modules/**'],
   },
   [DiffMode.SPECIFIC]: {
     watchPaths: [], // No watching for specific commits
@@ -84,9 +84,20 @@ export class FileWatcherService {
               return;
             }
 
-            // Filter out ignored files
+            // Filter out ignored files and check for relevant changes
             const relevantEvents = events.filter((event) => {
-              return !this.shouldIgnoreEvent(event.path, modeConfig.ignore);
+              if (this.shouldIgnoreEvent(event.path, modeConfig.ignore)) {
+                return false;
+              }
+
+              // For git directory watching, only care about specific files
+              if (watchPath === '.git') {
+                const fileName = event.path.replace(/.*[/\\]/, '');
+                const isRelevantGitFile = this.isRelevantGitFile(fileName, this.config?.diffMode);
+                return isRelevantGitFile;
+              }
+
+              return true;
             });
 
             if (relevantEvents.length > 0) {
@@ -123,6 +134,21 @@ export class FileWatcherService {
     // Simple glob pattern matching
     const regex = pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     return new RegExp(regex).test(filePath);
+  }
+
+  private isRelevantGitFile(fileName: string, diffMode?: DiffMode): boolean {
+    if (!diffMode) return false;
+
+    switch (diffMode) {
+      case DiffMode.DEFAULT:
+      case DiffMode.DOT:
+        return fileName === 'HEAD';
+      case DiffMode.WORKING:
+      case DiffMode.STAGED:
+        return fileName === 'index' || fileName === 'HEAD';
+      default:
+        return false;
+    }
   }
 
   private debouncedBroadcast(): void {
