@@ -39,6 +39,7 @@ export function createNavigationFilters(
 
     /**
      * Comment navigation - navigates to lines that have comments
+     * Comments can only exist on add and normal lines (right side)
      */
     comment: (pos: CursorPosition): boolean => {
       const file = files[pos.fileIndex];
@@ -47,7 +48,10 @@ export function createNavigationFilters(
       const line = file.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
       if (!line) return false;
 
-      const lineNum = line.oldLineNumber || line.newLineNumber;
+      // Comments can only exist on add and normal lines
+      if (line.type === 'delete') return false;
+
+      const lineNum = line.newLineNumber;
       if (!lineNum) return false;
 
       const key = getCommentKey(file.path, lineNum);

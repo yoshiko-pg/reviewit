@@ -459,20 +459,8 @@ describe('useKeyboardNavigation', () => {
         window.dispatchEvent(event);
       });
 
-      // The comment navigation should find the delete line (index 0) since it has oldLineNumber: 1
-      expect(result.current.cursor).toEqual({
-        fileIndex: 0,
-        chunkIndex: 0,
-        lineIndex: 0,
-        side: 'left',
-      });
-
-      // Next N will find the add line with newLineNumber: 1 in the same file
-      act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
-        window.dispatchEvent(event);
-      });
-
+      // The comment navigation should find the add line (index 1) since it has newLineNumber: 1
+      // Comments can only exist on add/normal lines (right side)
       expect(result.current.cursor).toEqual({
         fileIndex: 0,
         chunkIndex: 0,
@@ -480,7 +468,7 @@ describe('useKeyboardNavigation', () => {
         side: 'right',
       });
 
-      // Third N will find the comment on line 20 in file2.ts
+      // Next N will find the comment on line 20 in file2.ts
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
         window.dispatchEvent(event);
@@ -503,11 +491,7 @@ describe('useKeyboardNavigation', () => {
         })
       );
 
-      // Navigate to third comment position (file2) first
-      act(() => {
-        const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
-        window.dispatchEvent(event);
-      });
+      // Navigate to second comment position (file2) first
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'N', shiftKey: true });
         window.dispatchEvent(event);
@@ -530,17 +514,18 @@ describe('useKeyboardNavigation', () => {
         side: 'right',
       });
 
-      // Navigate back again - should go to the delete line in file1
+      // Navigate back again - should wrap around since there's no previous comment
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'P', shiftKey: true });
         window.dispatchEvent(event);
       });
 
+      // Should wrap around to the last comment (file2)
       expect(result.current.cursor).toEqual({
-        fileIndex: 0,
+        fileIndex: 1,
         chunkIndex: 0,
         lineIndex: 0,
-        side: 'left',
+        side: 'right',
       });
     });
   });
