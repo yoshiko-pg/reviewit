@@ -9,6 +9,8 @@ import type { AppearanceSettings } from './SettingsModal';
 interface DiffLineRowProps {
   line: DiffLine;
   index: number;
+  lineId?: string;
+  isCurrentLine?: boolean;
   hoveredLine: number | null;
   selectedLineStyle: string;
   onMouseEnter: () => void;
@@ -17,6 +19,7 @@ interface DiffLineRowProps {
   onCommentButtonMouseDown: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onCommentButtonMouseUp: (e: React.MouseEvent<HTMLButtonElement>) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  onClick?: () => void;
 }
 
 const getLineClass = (line: DiffLine) => {
@@ -44,6 +47,8 @@ const getLinePrefix = (line: DiffLine) => {
 export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
   ({
     line,
+    lineId,
+    isCurrentLine = false,
     hoveredLine,
     selectedLineStyle,
     onMouseEnter,
@@ -52,16 +57,21 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
     onCommentButtonMouseDown,
     onCommentButtonMouseUp,
     syntaxTheme,
+    onClick,
   }) => {
     const lineNumber = line.newLineNumber || line.oldLineNumber;
     const showCommentButton = hoveredLine === lineNumber && lineNumber;
 
+    const highlightClass = isCurrentLine ? 'keyboard-cursor' : '';
+
     return (
       <tr
-        className={`group ${getLineClass(line)} relative ${selectedLineStyle}`}
+        id={lineId}
+        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${highlightClass} cursor-pointer`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
+        onClick={onClick}
       >
         <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative">
           {line.oldLineNumber || ''}

@@ -6,6 +6,7 @@ import {
   type Comment,
   type LineNumber,
 } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 
 import { CommentForm } from './CommentForm';
 import { DiffLineRow } from './DiffLineRow';
@@ -15,6 +16,7 @@ import { SideBySideDiffChunk } from './SideBySideDiffChunk';
 
 interface DiffChunkProps {
   chunk: DiffChunkType;
+  chunkIndex: number;
   comments: Comment[];
   onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
@@ -22,10 +24,21 @@ interface DiffChunkProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
   mode?: 'side-by-side' | 'inline';
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  cursor?: CursorPosition | null;
+  fileIndex?: number;
+  onLineClick?: (
+    fileIndex: number,
+    chunkIndex: number,
+    lineIndex: number,
+    side: 'left' | 'right'
+  ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 export function DiffChunk({
   chunk,
+  chunkIndex,
   comments,
   onAddComment,
   onGeneratePrompt,
@@ -33,12 +46,31 @@ export function DiffChunk({
   onUpdateComment,
   mode = 'inline',
   syntaxTheme,
+  cursor = null,
+  fileIndex = 0,
+  onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
   const [endLine, setEndLine] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [commentingLine, setCommentingLine] = useState<LineNumber | null>(null);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
+
+  // Handle comment trigger from keyboard navigation
+  useEffect(() => {
+    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+      const line = chunk.lines[commentTrigger.lineIndex];
+      if (line) {
+        const lineNumber = line.newLineNumber || line.oldLineNumber;
+        if (lineNumber) {
+          setCommentingLine(lineNumber);
+          onCommentTriggerHandled?.();
+        }
+      }
+    }
+  }, [commentTrigger, chunk.lines, onCommentTriggerHandled]);
 
   // Global mouse up handler for drag selection
   useEffect(() => {
@@ -145,12 +177,18 @@ export function DiffChunk({
     return (
       <SideBySideDiffChunk
         chunk={chunk}
+        chunkIndex={chunkIndex}
         comments={comments}
         onAddComment={onAddComment}
         onGeneratePrompt={onGeneratePrompt}
         onRemoveComment={onRemoveComment}
         onUpdateComment={onUpdateComment}
         syntaxTheme={syntaxTheme}
+        cursor={cursor}
+        fileIndex={fileIndex}
+        onLineClick={onLineClick}
+        commentTrigger={commentTrigger}
+        onCommentTriggerHandled={onCommentTriggerHandled}
       />
     );
   }
@@ -161,12 +199,18 @@ export function DiffChunk({
         <tbody>
           {chunk.lines.map((line, index) => {
             const lineComments = getCommentsForLine(line.newLineNumber || line.oldLineNumber || 0);
+            // Generate ID for all lines to match the format used in useKeyboardNavigation
+            const lineId = `file-${fileIndex}-chunk-${chunkIndex}-line-${index}`;
+            const isCurrentLine =
+              cursor && cursor.chunkIndex === chunkIndex && cursor.lineIndex === index;
 
             return (
               <React.Fragment key={index}>
                 <DiffLineRow
                   line={line}
                   index={index}
+                  lineId={lineId}
+                  isCurrentLine={isCurrentLine || false}
                   hoveredLine={hoveredLine}
                   selectedLineStyle={getSelectedLineStyle(line.newLineNumber || line.oldLineNumber)}
                   onMouseEnter={() => {
@@ -217,6 +261,13 @@ export function DiffChunk({
                     setEndLine(null);
                   }}
                   syntaxTheme={syntaxTheme}
+                  onClick={() => {
+                    if (onLineClick) {
+                      // Determine the side based on line type for inline mode
+                      const side = line.type === 'delete' ? 'left' : 'right';
+                      onLineClick(fileIndex, chunkIndex, index, side);
+                    }
+                  }}
                 />
 
                 {lineComments.map((comment) => {

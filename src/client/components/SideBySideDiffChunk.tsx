@@ -7,6 +7,7 @@ import {
   type LineNumber,
   type LineSelection,
 } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 
 import { CommentButton } from './CommentButton';
 import { CommentForm } from './CommentForm';
@@ -16,12 +17,23 @@ import type { AppearanceSettings } from './SettingsModal';
 
 interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
+  chunkIndex: number;
   comments: Comment[];
   onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  cursor?: CursorPosition | null;
+  fileIndex?: number;
+  onLineClick?: (
+    fileIndex: number,
+    chunkIndex: number,
+    lineIndex: number,
+    side: 'left' | 'right'
+  ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 interface SideBySideLine {
@@ -29,16 +41,24 @@ interface SideBySideLine {
   newLine?: DiffLine;
   oldLineNumber?: number;
   newLineNumber?: number;
+  oldLineOriginalIndex?: number;
+  newLineOriginalIndex?: number;
 }
 
 export function SideBySideDiffChunk({
   chunk,
+  chunkIndex,
   comments,
   onAddComment,
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
   syntaxTheme,
+  cursor = null,
+  fileIndex = 0,
+  onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: SideBySideDiffChunkProps) {
   const [startLine, setStartLine] = useState<LineSelection | null>(null);
   const [endLine, setEndLine] = useState<LineSelection | null>(null);
@@ -48,6 +68,20 @@ export function SideBySideDiffChunk({
     lineNumber: LineNumber;
   } | null>(null);
   const [hoveredLine, setHoveredLine] = useState<LineSelection | null>(null);
+
+  // Handle comment trigger from keyboard navigation
+  useEffect(() => {
+    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+      const line = chunk.lines[commentTrigger.lineIndex];
+      if (line && line.type !== 'delete') {
+        const lineNumber = line.newLineNumber;
+        if (lineNumber) {
+          setCommentingLine({ side: 'new', lineNumber });
+          onCommentTriggerHandled?.();
+        }
+      }
+    }
+  }, [commentTrigger, chunk.lines, onCommentTriggerHandled]);
 
   // Global mouse up handler for drag selection
   useEffect(() => {
@@ -174,8 +208,10 @@ export function SideBySideDiffChunk({
         result.push({
           oldLine: line,
           newLine: { ...line },
-          oldLineNumber: oldLineNum,
-          newLineNumber: newLineNum,
+          oldLineNumber: line.oldLineNumber ?? oldLineNum,
+          newLineNumber: line.newLineNumber ?? newLineNum,
+          oldLineOriginalIndex: i,
+          newLineOriginalIndex: i,
         });
         oldLineNum++;
         newLineNum++;
@@ -188,7 +224,9 @@ export function SideBySideDiffChunk({
         }
 
         const deleteLines = lines.slice(i, j);
+        const deleteStartIndex = i;
         const addLines: DiffLine[] = [];
+        const addStartIndex = j;
 
         // Collect corresponding add lines
         while (j < lines.length && lines[j]?.type === 'add') {
@@ -208,8 +246,10 @@ export function SideBySideDiffChunk({
           result.push({
             oldLine: deleteLine,
             newLine: addLine,
-            oldLineNumber: deleteLine ? oldLineNum + k : undefined,
-            newLineNumber: addLine ? newLineNum + k : undefined,
+            oldLineNumber: deleteLine ? (deleteLine.oldLineNumber ?? oldLineNum + k) : undefined,
+            newLineNumber: addLine ? (addLine.newLineNumber ?? newLineNum + k) : undefined,
+            oldLineOriginalIndex: deleteLine ? deleteStartIndex + k : undefined,
+            newLineOriginalIndex: addLine ? addStartIndex + k : undefined,
           });
         }
 
@@ -219,7 +259,8 @@ export function SideBySideDiffChunk({
       } else if (line.type === 'add') {
         result.push({
           newLine: line,
-          newLineNumber: newLineNum,
+          newLineNumber: line.newLineNumber ?? newLineNum,
+          newLineOriginalIndex: i,
         });
         newLineNum++;
         i++;
@@ -244,10 +285,63 @@ export function SideBySideDiffChunk({
               : sideLine.oldLineNumber ? getCommentsForLine(sideLine.oldLineNumber)
               : [];
 
+            // Use the stored original indices
+            const oldLineOriginalIndex = sideLine.oldLineOriginalIndex ?? -1;
+            const newLineOriginalIndex = sideLine.newLineOriginalIndex ?? -1;
+
+            // Check if the current side's line matches the cursor position
+            const isHighlighted = (() => {
+              if (!cursor) return false;
+
+              // Only highlight the line on the current side
+              if (cursor.side === 'left' && oldLineOriginalIndex >= 0) {
+                return (
+                  cursor.chunkIndex === chunkIndex && cursor.lineIndex === oldLineOriginalIndex
+                );
+              } else if (cursor.side === 'right' && newLineOriginalIndex >= 0) {
+                return (
+                  cursor.chunkIndex === chunkIndex && cursor.lineIndex === newLineOriginalIndex
+                );
+              }
+
+              return false;
+            })();
+
+            // Generate IDs for navigation with side suffix
+            const oldLineNavId =
+              oldLineOriginalIndex >= 0 ?
+                `file-${fileIndex}-chunk-${chunkIndex}-line-${oldLineOriginalIndex}-left`
+              : undefined;
+            const newLineNavId =
+              newLineOriginalIndex >= 0 ?
+                `file-${fileIndex}-chunk-${chunkIndex}-line-${newLineOriginalIndex}-right`
+              : undefined;
+
+            // Determine which cell to highlight
+            const highlightOldCell = isHighlighted && cursor?.side === 'left';
+            const highlightNewCell = isHighlighted && cursor?.side === 'right';
+
+            const cellHighlightClass = 'keyboard-cursor';
+
             return (
               <React.Fragment key={index}>
                 <tr
-                  className="group"
+                  className="group cursor-pointer"
+                  onClick={(e) => {
+                    if (onLineClick && !isDragging) {
+                      const target = e.target as HTMLElement;
+                      const isInOldSide =
+                        target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
+                      const isInNewSide =
+                        target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
+
+                      if (isInOldSide && oldLineOriginalIndex >= 0) {
+                        onLineClick(fileIndex, chunkIndex, oldLineOriginalIndex, 'left');
+                      } else if (isInNewSide && newLineOriginalIndex >= 0) {
+                        onLineClick(fileIndex, chunkIndex, newLineOriginalIndex, 'right');
+                      }
+                    }
+                  }}
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
                     const isInOldSide =
@@ -255,17 +349,9 @@ export function SideBySideDiffChunk({
                     const isInNewSide =
                       target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
 
-                    if (
-                      isInOldSide &&
-                      sideLine.oldLineNumber &&
-                      sideLine.oldLine?.type === 'delete'
-                    ) {
+                    if (isInOldSide && sideLine.oldLineNumber) {
                       setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
-                    } else if (
-                      isInNewSide &&
-                      sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
-                    ) {
+                    } else if (isInNewSide && sideLine.newLineNumber) {
                       setHoveredLine({ side: 'new', lineNumber: sideLine.newLineNumber });
                     }
                   }}
@@ -277,22 +363,14 @@ export function SideBySideDiffChunk({
                       target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
 
                     // Update hover state based on mouse position
-                    if (
-                      isInOldSide &&
-                      sideLine.oldLineNumber &&
-                      sideLine.oldLine?.type === 'delete'
-                    ) {
+                    if (isInOldSide && sideLine.oldLineNumber) {
                       if (
                         hoveredLine?.side !== 'old' ||
                         hoveredLine?.lineNumber !== sideLine.oldLineNumber
                       ) {
                         setHoveredLine({ side: 'old', lineNumber: sideLine.oldLineNumber });
                       }
-                    } else if (
-                      isInNewSide &&
-                      sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')
-                    ) {
+                    } else if (isInNewSide && sideLine.newLineNumber) {
                       if (
                         hoveredLine?.side !== 'new' ||
                         hoveredLine?.lineNumber !== sideLine.newLineNumber
@@ -313,11 +391,13 @@ export function SideBySideDiffChunk({
                   onMouseLeave={() => setHoveredLine(null)}
                 >
                   {/* Old side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                  <td
+                    id={oldLineNavId}
+                    className={`w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible ${highlightOldCell ? cellHighlightClass : ''}`}
+                  >
                     <span className="pr-5">{sideLine.oldLineNumber || ''}</span>
                     {hoveredLine?.side === 'old' &&
-                      hoveredLine?.lineNumber === sideLine.oldLineNumber &&
-                      sideLine.oldLine?.type === 'delete' && (
+                      hoveredLine?.lineNumber === sideLine.oldLineNumber && (
                         <CommentButton
                           onMouseDown={(e) => {
                             e.stopPropagation();
@@ -363,7 +443,7 @@ export function SideBySideDiffChunk({
                       sideLine.oldLine?.type === 'delete' ? 'bg-diff-deletion-bg'
                       : sideLine.oldLine?.type === 'normal' ? 'bg-transparent'
                       : 'bg-github-bg-secondary'
-                    } ${getSelectedLineStyle('old', sideLine)}`}
+                    } ${getSelectedLineStyle('old', sideLine)} ${highlightOldCell ? cellHighlightClass : ''}`}
                   >
                     {sideLine.oldLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
@@ -377,11 +457,13 @@ export function SideBySideDiffChunk({
                   </td>
 
                   {/* New side */}
-                  <td className="w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible">
+                  <td
+                    id={newLineNavId}
+                    className={`w-[60px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative overflow-visible ${highlightNewCell ? cellHighlightClass : ''}`}
+                  >
                     <span className="pr-5">{sideLine.newLineNumber || ''}</span>
                     {hoveredLine?.side === 'new' &&
-                      hoveredLine?.lineNumber === sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal') && (
+                      hoveredLine?.lineNumber === sideLine.newLineNumber && (
                         <CommentButton
                           onMouseDown={(e) => {
                             e.stopPropagation();
@@ -427,7 +509,7 @@ export function SideBySideDiffChunk({
                       sideLine.newLine?.type === 'add' ? 'bg-diff-addition-bg'
                       : sideLine.newLine?.type === 'normal' ? 'bg-transparent'
                       : 'bg-github-bg-secondary'
-                    } ${getSelectedLineStyle('new', sideLine)}`}
+                    } ${getSelectedLineStyle('new', sideLine)} ${highlightNewCell ? cellHighlightClass : ''}`}
                   >
                     {sideLine.newLine && (
                       <div className="flex items-center relative min-h-[20px] px-3">
@@ -474,11 +556,9 @@ export function SideBySideDiffChunk({
                 {/* Comment form row */}
                 {commentingLine &&
                   ((commentingLine.side === 'old' &&
-                    commentingLine.lineNumber === sideLine.oldLineNumber &&
-                    sideLine.oldLine?.type === 'delete') ||
+                    commentingLine.lineNumber === sideLine.oldLineNumber) ||
                     (commentingLine.side === 'new' &&
-                      commentingLine.lineNumber === sideLine.newLineNumber &&
-                      (sideLine.newLine?.type === 'add' || sideLine.newLine?.type === 'normal')) ||
+                      commentingLine.lineNumber === sideLine.newLineNumber) ||
                     (Array.isArray(commentingLine.lineNumber) &&
                       ((commentingLine.side === 'new' &&
                         commentingLine.lineNumber[1] === sideLine.newLineNumber) ||

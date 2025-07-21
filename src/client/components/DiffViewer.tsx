@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 
 import { type DiffFile, type Comment, type LineNumber } from '../../types/diff';
+import { type CursorPosition } from '../hooks/keyboardNavigation';
 import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
@@ -37,6 +38,16 @@ interface DiffViewerProps {
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
   baseCommitish?: string;
   targetCommitish?: string;
+  cursor?: CursorPosition | null;
+  fileIndex?: number;
+  onLineClick?: (
+    fileIndex: number,
+    chunkIndex: number,
+    lineIndex: number,
+    side: 'left' | 'right'
+  ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 export function DiffViewer({
@@ -52,6 +63,11 @@ export function DiffViewer({
   syntaxTheme,
   baseCommitish,
   targetCommitish,
+  cursor = null,
+  fileIndex = 0,
+  onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
@@ -163,25 +179,37 @@ export function DiffViewer({
               baseCommitish={baseCommitish}
               targetCommitish={targetCommitish}
             />
-          : file.chunks.map((chunk, index) => (
-              <div key={index} className="border-b border-github-border">
-                <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
-                  <code className="text-github-text-secondary text-xs font-mono">
-                    {chunk.header}
-                  </code>
+          : file.chunks.map((chunk, index) => {
+              return (
+                <div
+                  key={index}
+                  id={`chunk-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}-${index}`}
+                  className="border-b border-github-border"
+                >
+                  <div className="bg-github-bg-tertiary px-3 py-2 border-b border-github-border">
+                    <code className="text-github-text-secondary text-xs font-mono">
+                      {chunk.header}
+                    </code>
+                  </div>
+                  <DiffChunk
+                    chunk={chunk}
+                    chunkIndex={index}
+                    comments={comments}
+                    onAddComment={handleAddComment}
+                    onGeneratePrompt={onGeneratePrompt}
+                    onRemoveComment={onRemoveComment}
+                    onUpdateComment={onUpdateComment}
+                    mode={diffMode}
+                    syntaxTheme={syntaxTheme}
+                    cursor={cursor}
+                    fileIndex={fileIndex}
+                    onLineClick={onLineClick}
+                    commentTrigger={commentTrigger?.chunkIndex === index ? commentTrigger : null}
+                    onCommentTriggerHandled={onCommentTriggerHandled}
+                  />
                 </div>
-                <DiffChunk
-                  chunk={chunk}
-                  comments={comments}
-                  onAddComment={handleAddComment}
-                  onGeneratePrompt={onGeneratePrompt}
-                  onRemoveComment={onRemoveComment}
-                  onUpdateComment={onUpdateComment}
-                  mode={diffMode}
-                  syntaxTheme={syntaxTheme}
-                />
-              </div>
-            ))
+              );
+            })
           }
         </div>
       )}

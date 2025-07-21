@@ -8,11 +8,14 @@ import { CommentsDropdown } from './components/CommentsDropdown';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
+import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
+import { getFileElementId } from './utils/domUtils';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -40,6 +43,56 @@ function App() {
     generatePrompt,
     generateAllCommentsPrompt,
   } = useLocalComments(diffData?.commit);
+
+  const toggleFileReviewed = (filePath: string) => {
+    setReviewedFiles((prev) => {
+      const newSet = new Set(prev);
+      const wasReviewed = newSet.has(filePath);
+
+      if (wasReviewed) {
+        newSet.delete(filePath);
+      } else {
+        newSet.add(filePath);
+        // When marking as reviewed (closing file), scroll to the file header
+        setTimeout(() => {
+          const element = document.getElementById(getFileElementId(filePath));
+          if (element) {
+            element.scrollIntoView({ behavior: 'instant', block: 'start' });
+          }
+        }, 100);
+      }
+      return newSet;
+    });
+  };
+
+  // State to trigger comment creation from keyboard
+  const [commentTrigger, setCommentTrigger] = useState<{
+    fileIndex: number;
+    chunkIndex: number;
+    lineIndex: number;
+  } | null>(null);
+
+  const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
+    files: diffData?.files || [],
+    comments,
+    viewMode: diffMode,
+    reviewedFiles,
+    onToggleReviewed: toggleFileReviewed,
+    onCreateComment: () => {
+      if (cursor) {
+        setCommentTrigger({
+          fileIndex: cursor.fileIndex,
+          chunkIndex: cursor.chunkIndex,
+          lineIndex: cursor.lineIndex,
+        });
+      }
+    },
+    onCopyAllComments: () => {
+      if (comments.length > 0) {
+        void handleCopyAllComments();
+      }
+    },
+  });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -135,7 +188,7 @@ function App() {
         // Hide sparkles after animation completes
         setTimeout(() => {
           setShowSparkles(false);
-        }, 1000); // Reduced from 2000ms to 1000ms for faster animation
+        }, 1000);
       }
     }
   }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
@@ -197,27 +250,6 @@ function App() {
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
     }
-  };
-
-  const toggleFileReviewed = (filePath: string) => {
-    setReviewedFiles((prev) => {
-      const newSet = new Set(prev);
-      const wasReviewed = newSet.has(filePath);
-
-      if (wasReviewed) {
-        newSet.delete(filePath);
-      } else {
-        newSet.add(filePath);
-        // When marking as reviewed (closing file), scroll to the file header
-        setTimeout(() => {
-          const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'instant', block: 'start' });
-          }
-        }, 100);
-      }
-      return newSet;
-    });
   };
 
   if (loading) {
@@ -405,9 +437,7 @@ function App() {
               <FileList
                 files={diffData.files}
                 onScrollToFile={(filePath) => {
-                  const element = document.getElementById(
-                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-                  );
+                  const element = document.getElementById(getFileElementId(filePath));
                   if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -442,28 +472,38 @@ function App() {
         />
 
         <main className="flex-1 overflow-y-auto">
-          {diffData.files.map((file) => (
-            <div
-              key={file.path}
-              id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
-              className="mb-6"
-            >
-              <DiffViewer
-                file={file}
-                comments={comments.filter((c) => c.file === file.path)}
-                diffMode={diffMode}
-                reviewedFiles={reviewedFiles}
-                onToggleReviewed={toggleFileReviewed}
-                onAddComment={handleAddComment}
-                onGeneratePrompt={generatePrompt}
-                onRemoveComment={removeComment}
-                onUpdateComment={updateComment}
-                syntaxTheme={settings.syntaxTheme}
-                baseCommitish={diffData.baseCommitish}
-                targetCommitish={diffData.targetCommitish}
-              />
-            </div>
-          ))}
+          {diffData.files.map((file, fileIndex) => {
+            return (
+              <div key={file.path} id={getFileElementId(file.path)} className="mb-6">
+                <DiffViewer
+                  file={file}
+                  comments={comments.filter((c) => c.file === file.path)}
+                  diffMode={diffMode}
+                  reviewedFiles={reviewedFiles}
+                  onToggleReviewed={toggleFileReviewed}
+                  onAddComment={handleAddComment}
+                  onGeneratePrompt={generatePrompt}
+                  onRemoveComment={removeComment}
+                  onUpdateComment={updateComment}
+                  syntaxTheme={settings.syntaxTheme}
+                  baseCommitish={diffData.baseCommitish}
+                  targetCommitish={diffData.targetCommitish}
+                  cursor={cursor?.fileIndex === fileIndex ? cursor : null}
+                  fileIndex={fileIndex}
+                  onLineClick={(fileIdx, chunkIdx, lineIdx, side) => {
+                    setCursorPosition({
+                      fileIndex: fileIdx,
+                      chunkIndex: chunkIdx,
+                      lineIndex: lineIdx,
+                      side,
+                    });
+                  }}
+                  commentTrigger={commentTrigger?.fileIndex === fileIndex ? commentTrigger : null}
+                  onCommentTriggerHandled={() => setCommentTrigger(null)}
+                />
+              </div>
+            );
+          })}
         </main>
       </div>
 
@@ -473,6 +513,8 @@ function App() {
         settings={settings}
         onSettingsChange={updateSettings}
       />
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }
