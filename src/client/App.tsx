@@ -83,7 +83,6 @@ function App() {
   });
 
   // Derive values from cursor for backward compatibility
-  const currentFileIndex = cursor?.fileIndex ?? -1;
   const currentHunkIndex = cursor?.chunkIndex ?? -1;
   const currentLineId =
     cursor ? `file-${cursor.fileIndex}-chunk-${cursor.chunkIndex}-line-${cursor.lineIndex}` : null;
@@ -440,7 +439,6 @@ function App() {
                 comments={comments}
                 reviewedFiles={reviewedFiles}
                 onToggleReviewed={toggleFileReviewed}
-                currentFileIndex={currentFileIndex}
               />
             </div>
             <div className="p-4 border-t border-github-border flex justify-end">
@@ -484,8 +482,8 @@ function App() {
                   syntaxTheme={settings.syntaxTheme}
                   baseCommitish={diffData.baseCommitish}
                   targetCommitish={diffData.targetCommitish}
-                  isCurrentFile={fileIndex === currentFileIndex}
-                  currentHunkIndex={fileIndex === currentFileIndex ? currentHunkIndex : -1}
+                  isCurrentFile={cursor?.fileIndex === fileIndex}
+                  currentHunkIndex={cursor?.fileIndex === fileIndex ? currentHunkIndex : -1}
                   currentLineId={currentLineId}
                   currentSide={currentSide}
                   fileIndex={fileIndex}
