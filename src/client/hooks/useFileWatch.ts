@@ -21,7 +21,7 @@ interface WatchEvent {
 export function useFileWatch(onReload?: () => Promise<void>): FileWatchHook {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectDelay = 3000; // 3 seconds
 
@@ -52,7 +52,7 @@ export function useFileWatch(onReload?: () => Promise<void>): FileWatchHook {
           ...prev,
           connectionStatus: 'connected',
         }));
-        setReconnectAttempts(0);
+        reconnectAttemptsRef.current = 0;
         setError(null);
       };
 
@@ -105,17 +105,17 @@ export function useFileWatch(onReload?: () => Promise<void>): FileWatchHook {
         }
 
         // Attempt to reconnect
-        if (reconnectAttempts < maxReconnectAttempts) {
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           setWatchState((prev) => ({
             ...prev,
             connectionStatus: 'reconnecting',
           }));
 
-          setReconnectAttempts((prev) => prev + 1);
+          reconnectAttemptsRef.current += 1;
 
           reconnectTimeoutRef.current = setTimeout(() => {
             console.log(
-              `Attempting to reconnect to file watch service (${reconnectAttempts + 1}/${maxReconnectAttempts})...`
+              `Attempting to reconnect to file watch service (${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`
             );
             connectToWatch();
           }, reconnectDelay);
@@ -128,9 +128,9 @@ export function useFileWatch(onReload?: () => Promise<void>): FileWatchHook {
       console.error('Failed to connect to file watch service:', connectionError);
       setError('Failed to connect to file watch service');
     }
-  }, [reconnectAttempts, maxReconnectAttempts, reconnectDelay]);
+  }, [maxReconnectAttempts, reconnectDelay]);
 
-  const handleReload = async () => {
+  const handleReload = useCallback(async () => {
     if (watchState.isReloading) {
       return; // Already reloading
     }
@@ -162,7 +162,7 @@ export function useFileWatch(onReload?: () => Promise<void>): FileWatchHook {
         isReloading: false,
       }));
     }
-  };
+  }, [onReload, watchState.isReloading]);
 
   const cleanup = () => {
     if (eventSourceRef.current) {

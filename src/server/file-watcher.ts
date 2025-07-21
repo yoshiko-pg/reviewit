@@ -9,6 +9,7 @@ interface FileWatcherConfig {
   watchPath: string;
   diffMode: DiffMode;
   debounceMs: number;
+  onCacheInvalidate?: () => void;
 }
 
 interface ModeWatchConfig {
@@ -47,8 +48,13 @@ export class FileWatcherService {
 
   constructor() {}
 
-  async start(diffMode: DiffMode, watchPath: string, debounceMs = 300): Promise<void> {
-    this.config = { watchPath, diffMode, debounceMs };
+  async start(
+    diffMode: DiffMode,
+    watchPath: string,
+    debounceMs = 300,
+    onCacheInvalidate?: () => void
+  ): Promise<void> {
+    this.config = { watchPath, diffMode, debounceMs, onCacheInvalidate };
 
     // Stop existing watchers
     await this.stop();
@@ -158,6 +164,10 @@ export class FileWatcherService {
 
     const debounceMs = this.config?.debounceMs || 300;
     this.debounceTimer = setTimeout(() => {
+      // Invalidate cache before broadcasting change
+      if (this.config?.onCacheInvalidate) {
+        this.config.onCacheInvalidate();
+      }
       this.broadcastChange();
     }, debounceMs);
   }

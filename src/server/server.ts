@@ -35,8 +35,9 @@ export async function startServer(
   const parser = new GitDiffParser();
   const fileWatcher = new FileWatcherService();
 
-  let diffData: DiffResponse;
+  let diffDataCache: DiffResponse | null = null;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
+  let isCacheValid = false;
   const diffMode = options.mode || 'side-by-side';
 
   app.use(express.json());
@@ -49,31 +50,43 @@ export async function startServer(
     next();
   });
 
+  // Validate commits at startup
   const isValidCommit = await parser.validateCommit(options.targetCommitish);
   if (!isValidCommit) {
     throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
   }
 
-  diffData = await parser.parseDiff(
+  // Generate initial diff data for isEmpty check
+  diffDataCache = await parser.parseDiff(
     options.targetCommitish,
     options.baseCommitish,
     currentIgnoreWhitespace
   );
+  isCacheValid = true;
+
+  // Function to invalidate cache when file changes are detected
+  const invalidateCache = () => {
+    console.log('🔄 Cache invalidated due to file changes');
+    isCacheValid = false;
+  };
 
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
-    if (ignoreWhitespace !== currentIgnoreWhitespace) {
+    // Regenerate diff data if cache is invalid or whitespace setting changed
+    if (!isCacheValid || ignoreWhitespace !== currentIgnoreWhitespace) {
+      console.log('🔄 Regenerating diff data...');
       currentIgnoreWhitespace = ignoreWhitespace;
-      diffData = await parser.parseDiff(
+      diffDataCache = await parser.parseDiff(
         options.targetCommitish,
         options.baseCommitish,
         ignoreWhitespace
       );
+      isCacheValid = true;
     }
 
     res.json({
-      ...diffData,
+      ...diffDataCache,
       ignoreWhitespace,
       mode: diffMode,
       baseCommitish: options.baseCommitish,
@@ -268,7 +281,7 @@ export async function startServer(
   // Start file watcher if enabled
   if (options.watch && options.diffMode) {
     try {
-      await fileWatcher.start(options.diffMode, process.cwd());
+      await fileWatcher.start(options.diffMode, process.cwd(), 300, invalidateCache);
     } catch (error) {
       console.warn('⚠️  File watcher failed to start:', error);
       console.warn('   Continuing without file watching...');
@@ -276,7 +289,7 @@ export async function startServer(
   }
 
   // Check if diff is empty and skip browser opening
-  if (diffData.isEmpty) {
+  if (diffDataCache?.isEmpty) {
     // Don't open browser if no differences found
   } else if (options.openBrowser) {
     try {
@@ -286,7 +299,7 @@ export async function startServer(
     }
   }
 
-  return { port, url, isEmpty: diffData.isEmpty, server };
+  return { port, url, isEmpty: diffDataCache?.isEmpty || false, server };
 }
 
 async function startServerWithFallback(
