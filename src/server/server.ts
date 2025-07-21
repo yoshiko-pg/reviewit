@@ -66,7 +66,6 @@ export async function startServer(
 
   // Function to invalidate cache when file changes are detected
   const invalidateCache = () => {
-    console.log('🔄 Cache invalidated due to file changes');
     isCacheValid = false;
   };
 
@@ -75,7 +74,6 @@ export async function startServer(
 
     // Regenerate diff data if cache is invalid or whitespace setting changed
     if (!isCacheValid || ignoreWhitespace !== currentIgnoreWhitespace) {
-      console.log('🔄 Regenerating diff data...');
       currentIgnoreWhitespace = ignoreWhitespace;
       diffDataCache = await parser.parseDiff(
         options.targetCommitish,

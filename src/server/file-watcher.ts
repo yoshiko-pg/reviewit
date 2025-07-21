@@ -66,11 +66,9 @@ export class FileWatcherService {
     }
 
     const modeConfig = MODE_WATCH_CONFIGS[diffMode];
-    console.log(`🔍 Starting file watcher for ${diffMode} mode...`);
 
     try {
       await this.setupWatchers(modeConfig, watchPath);
-      console.log(`✅ File watching enabled for ${diffMode} mode`);
     } catch (error) {
       console.error('❌ Failed to start file watcher:', error);
       throw error;
@@ -107,7 +105,6 @@ export class FileWatcherService {
             });
 
             if (relevantEvents.length > 0) {
-              console.log(`📝 File changes detected in ${watchPath}:`, relevantEvents.length);
               this.debouncedBroadcast();
             }
           },
@@ -117,7 +114,6 @@ export class FileWatcherService {
         )) as { unsubscribe: () => Promise<void> };
 
         this.subscriptions.push(subscription);
-        console.log(`👀 Watching: ${fullPath}`);
       } catch (error) {
         console.warn(`⚠️  Could not watch ${fullPath}:`, error);
         // Continue with other watchers even if one fails
@@ -193,12 +189,10 @@ export class FileWatcherService {
 
     // Clear clients
     this.clients = [];
-    console.log('🔍 File watching stopped');
   }
 
   addClient(res: Response): void {
     this.clients.push(res);
-    console.log(`📡 Client connected to file watcher (${this.clients.length} total)`);
 
     // Send initial connection event
     this.sendToClient(res, {
@@ -214,7 +208,6 @@ export class FileWatcherService {
     const index = this.clients.indexOf(res);
     if (index > -1) {
       this.clients.splice(index, 1);
-      console.log(`📡 Client disconnected from file watcher (${this.clients.length} remaining)`);
     }
   }
 
@@ -231,8 +224,6 @@ export class FileWatcherService {
       timestamp: new Date().toISOString(),
       message: `Changes detected in ${this.config.diffMode} mode`,
     };
-
-    console.log(`📢 Broadcasting reload event to ${this.clients.length} clients:`, changeType);
 
     this.clients.forEach((client) => {
       this.sendToClient(client, event);
