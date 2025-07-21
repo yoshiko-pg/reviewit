@@ -78,17 +78,17 @@ For Enterprise Server PRs, you must set a token generated on YOUR Enterprise Ser
 
 ## ⚙️ CLI Options
 
-| Flag             | Default      | Description                                                              |
-| ---------------- | ------------ | ------------------------------------------------------------------------ |
-| `<target>`       | HEAD         | Commit hash, tag, HEAD~n, branch, or special arguments                   |
-| `[compare-with]` | -            | Optional second commit to compare with (shows diff between the two)      |
-| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)   |
-| `--port`         | 3000         | Preferred port; falls back to +1 if occupied                             |
-| `--host`         | 127.0.0.1    | Host address to bind server to (use 0.0.0.0 for external access)         |
-| `--no-open`      | false        | Don't automatically open browser                                          |
-| `--mode`         | side-by-side | Display mode: `inline` or `side-by-side`                                 |
-| `--tui`          | false        | Use terminal UI mode instead of WebUI                                    |
-| `--clean`        | false        | Clear all existing comments on startup                                    |
+| Flag             | Default      | Description                                                            |
+| ---------------- | ------------ | ---------------------------------------------------------------------- |
+| `<target>`       | HEAD         | Commit hash, tag, HEAD~n, branch, or special arguments                 |
+| `[compare-with]` | -            | Optional second commit to compare with (shows diff between the two)    |
+| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123) |
+| `--port`         | 3000         | Preferred port; falls back to +1 if occupied                           |
+| `--host`         | 127.0.0.1    | Host address to bind server to (use 0.0.0.0 for external access)       |
+| `--no-open`      | false        | Don't automatically open browser                                       |
+| `--mode`         | side-by-side | Display mode: `inline` or `side-by-side`                               |
+| `--tui`          | false        | Use terminal UI mode instead of WebUI                                  |
+| `--clean`        | false        | Clear all existing comments on startup                                 |
 
 ## 💬 Comment System
 
