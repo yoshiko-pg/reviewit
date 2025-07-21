@@ -40,8 +40,8 @@ export function ReloadButton({
         flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-200 ${className}
         ${
           isReloading ?
-            'bg-orange-100 text-orange-400 border-orange-200 cursor-not-allowed'
-          : 'bg-orange-500 text-white border-orange-600 hover:bg-orange-600 hover:border-orange-700'
+            'bg-orange-700 text-white border-orange-800 cursor-not-allowed'
+          : 'bg-orange-700 text-white border-orange-800 hover:bg-orange-800 hover:border-orange-900'
         }
       `}
       title={isReloading ? 'Reloading...' : `${getChangeMessage()} - Click to reload`}
