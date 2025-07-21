@@ -30,6 +30,7 @@ export interface UseKeyboardNavigationProps {
   files: DiffFile[];
   comments: Comment[];
   viewMode?: 'side-by-side' | 'inline';
+  reviewedFiles: Set<string>;
   onToggleReviewed: (filePath: string) => void;
   onCreateComment?: () => void;
   onCopyAllComments?: () => void;

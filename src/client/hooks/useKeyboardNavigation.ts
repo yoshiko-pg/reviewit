@@ -27,6 +27,7 @@ export function useKeyboardNavigation({
   files,
   comments,
   viewMode = 'inline',
+  reviewedFiles,
   onToggleReviewed,
   onCreateComment,
   onCopyAllComments,
@@ -53,8 +54,8 @@ export function useKeyboardNavigation({
 
   // Create navigation filters
   const filters = useMemo(
-    () => createNavigationFilters(files, commentIndex, viewMode),
-    [files, commentIndex, viewMode]
+    () => createNavigationFilters(files, commentIndex, viewMode, reviewedFiles),
+    [files, commentIndex, viewMode, reviewedFiles]
   );
 
   // Core navigation function - finds next/prev position matching filter

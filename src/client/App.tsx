@@ -53,6 +53,13 @@ function App() {
         newSet.delete(filePath);
       } else {
         newSet.add(filePath);
+        // When marking as reviewed (closing file), scroll to the file header
+        setTimeout(() => {
+          const element = document.getElementById(getFileElementId(filePath));
+          if (element) {
+            element.scrollIntoView({ behavior: 'instant', block: 'start' });
+          }
+        }, 100);
       }
       return newSet;
     });
@@ -69,6 +76,7 @@ function App() {
     files: diffData?.files || [],
     comments,
     viewMode: diffMode,
+    reviewedFiles,
     onToggleReviewed: toggleFileReviewed,
     onCreateComment: () => {
       if (cursor) {

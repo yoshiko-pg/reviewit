@@ -9,41 +9,60 @@ import type { CursorPosition, ViewMode } from './types';
 export function createNavigationFilters(
   files: DiffFile[],
   commentIndex: Map<string, Comment[]>,
-  viewMode: ViewMode
+  viewMode: ViewMode,
+  reviewedFiles?: Set<string>
 ) {
   return {
     /**
      * Line navigation - navigates to lines with content on the current side
      * In inline mode, all lines are navigable
      * In side-by-side mode, only lines with content on the current side
+     * Skip lines in reviewed/collapsed files
      */
     line: (pos: CursorPosition): boolean => {
+      const file = files[pos.fileIndex];
+      if (!file) return false;
+
+      // Skip if file is reviewed/collapsed
+      if (reviewedFiles?.has(file.path)) return false;
+
       return viewMode === 'inline' || hasContentOnSide(pos, files);
     },
 
     /**
      * Chunk navigation - navigates to the first line of each change chunk
      * Skips normal (unchanged) lines and finds boundaries between chunks
+     * Skip chunks in reviewed/collapsed files
      */
     chunk: (pos: CursorPosition): boolean => {
-      const line = files[pos.fileIndex]?.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
+      const file = files[pos.fileIndex];
+      if (!file) return false;
+
+      // Skip if file is reviewed/collapsed
+      if (reviewedFiles?.has(file.path)) return false;
+
+      const line = file.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
       if (!line || line.type === 'normal') return false;
 
       // First line of a chunk is always a chunk boundary
       if (pos.lineIndex === 0) return true;
 
       // Check if previous line is normal (indicating start of a change chunk)
-      const prevLine = files[pos.fileIndex]?.chunks[pos.chunkIndex]?.lines[pos.lineIndex - 1];
+      const prevLine = file.chunks[pos.chunkIndex]?.lines[pos.lineIndex - 1];
       return !prevLine || prevLine.type === 'normal';
     },
 
     /**
      * Comment navigation - navigates to lines that have comments
      * Comments can only exist on add and normal lines (right side)
+     * Skip comments in reviewed/collapsed files
      */
     comment: (pos: CursorPosition): boolean => {
       const file = files[pos.fileIndex];
       if (!file) return false;
+
+      // Skip if file is reviewed/collapsed
+      if (reviewedFiles?.has(file.path)) return false;
 
       const line = file.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
       if (!line) return false;

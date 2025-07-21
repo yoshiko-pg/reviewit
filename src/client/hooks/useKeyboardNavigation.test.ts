@@ -143,6 +143,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -169,6 +170,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -214,6 +216,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -241,6 +244,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -274,6 +278,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -312,6 +317,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -377,6 +383,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -450,6 +457,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -488,6 +496,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -537,6 +546,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -563,6 +573,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -583,6 +594,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
           onCreateComment: mockCreateComment,
         })
       );
@@ -621,6 +633,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
           onCreateComment: mockCreateComment,
         })
       );
@@ -654,6 +667,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -676,6 +690,7 @@ describe('useKeyboardNavigation', () => {
           comments: mockComments,
           viewMode: 'side-by-side',
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -759,6 +774,7 @@ describe('useKeyboardNavigation', () => {
           comments: mockComments,
           viewMode: 'side-by-side',
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -813,6 +829,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -885,6 +902,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -911,6 +929,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -938,6 +957,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -968,6 +988,7 @@ describe('useKeyboardNavigation', () => {
           comments: mockComments,
           viewMode: 'side-by-side',
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -998,6 +1019,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -1021,6 +1043,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
@@ -1048,6 +1071,7 @@ describe('useKeyboardNavigation', () => {
           files: mockFiles,
           comments: mockComments,
           onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
         })
       );
 
