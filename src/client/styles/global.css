@@ -93,9 +93,28 @@ body,
 }
 
 /* Keyboard navigation cursor styles */
-.keyboard-cursor {
+tr.keyboard-cursor {
   position: relative;
   outline: 2px solid var(--color-accent) !important;
   outline-offset: -2px;
   z-index: 1;
+}
+
+/* Alternative approach using box-shadow for better browser support on table rows */
+tr.keyboard-cursor td {
+  position: relative;
+}
+
+tr.keyboard-cursor td:first-child {
+  box-shadow: inset 2px 0 0 0 var(--color-accent);
+}
+
+tr.keyboard-cursor td:last-child {
+  box-shadow: inset -2px 0 0 0 var(--color-accent);
+}
+
+tr.keyboard-cursor td {
+  box-shadow:
+    inset 0 2px 0 0 var(--color-accent),
+    inset 0 -2px 0 0 var(--color-accent);
 }
