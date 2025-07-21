@@ -847,6 +847,31 @@ describe('useKeyboardNavigation', () => {
 
       expect(result.current.isHelpOpen).toBe(false);
     });
+
+    it('should allow closing help modal with setIsHelpOpen', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Open help modal
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: '?' });
+        window.dispatchEvent(event);
+      });
+
+      expect(result.current.isHelpOpen).toBe(true);
+
+      // Close it using setIsHelpOpen (simulating Escape key handling in HelpModal)
+      act(() => {
+        result.current.setIsHelpOpen(false);
+      });
+
+      expect(result.current.isHelpOpen).toBe(false);
+    });
   });
 
   describe('Set Cursor Position', () => {
