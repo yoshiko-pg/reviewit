@@ -10,9 +10,11 @@ import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
 import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
+import { ReloadButton } from './components/ReloadButton';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useFileWatch } from './hooks/useFileWatch';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
 import { getFileElementId } from './utils/domUtils';
@@ -71,6 +73,11 @@ function App() {
     chunkIndex: number;
     lineIndex: number;
   } | null>(null);
+
+  // File watch for reload functionality - initialize with callback
+  const { shouldReload, reload, watchState } = useFileWatch(async () => {
+    await fetchDiffData();
+  });
 
   const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
@@ -280,6 +287,14 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* File Watch Reload Button */}
+      <ReloadButton
+        shouldReload={shouldReload}
+        isReloading={watchState.isReloading}
+        onReload={reload}
+        changeType={watchState.lastChangeType}
+      />
+
       <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
         <div
           className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
