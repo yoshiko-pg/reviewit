@@ -295,26 +295,24 @@ export function useKeyboardNavigation({
         return;
       }
 
-      // Check modifier keys for single-key shortcuts
-      const hasModifier = event.ctrlKey || event.metaKey || event.altKey;
+      // Ignore keyboard shortcuts when modifier keys are pressed (except for Shift)
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
 
       switch (event.key) {
         // Line navigation
         case 'j':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToLine('next');
-          }
+          event.preventDefault();
+          navigateToLine('next');
           break;
         case 'ArrowDown':
           event.preventDefault();
           navigateToLine('next');
           break;
         case 'k':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToLine('prev');
-          }
+          event.preventDefault();
+          navigateToLine('prev');
           break;
         case 'ArrowUp':
           event.preventDefault();
@@ -323,27 +321,23 @@ export function useKeyboardNavigation({
 
         // Chunk navigation
         case 'n':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToChunk('next');
-          }
+          event.preventDefault();
+          navigateToChunk('next');
           break;
         case 'p':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToChunk('prev');
-          }
+          event.preventDefault();
+          navigateToChunk('prev');
           break;
 
         // Comment navigation
         case 'N':
-          if (event.shiftKey && !hasModifier) {
+          if (event.shiftKey) {
             event.preventDefault();
             navigateToComment('next');
           }
           break;
         case 'P':
-          if (event.shiftKey && !hasModifier) {
+          if (event.shiftKey) {
             event.preventDefault();
             navigateToComment('prev');
           }
@@ -351,21 +345,17 @@ export function useKeyboardNavigation({
 
         // File navigation
         case ']':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToFile('next');
-          }
+          event.preventDefault();
+          navigateToFile('next');
           break;
         case '[':
-          if (!hasModifier) {
-            event.preventDefault();
-            navigateToFile('prev');
-          }
+          event.preventDefault();
+          navigateToFile('prev');
           break;
 
         // Side switching (side-by-side mode only)
         case 'h':
-          if (viewMode === 'side-by-side' && !hasModifier) {
+          if (viewMode === 'side-by-side') {
             event.preventDefault();
             switchSide('left');
           }
@@ -377,7 +367,7 @@ export function useKeyboardNavigation({
           }
           break;
         case 'l':
-          if (viewMode === 'side-by-side' && !hasModifier) {
+          if (viewMode === 'side-by-side') {
             event.preventDefault();
             switchSide('right');
           }
@@ -391,47 +381,39 @@ export function useKeyboardNavigation({
 
         // File review toggle
         case 'r':
-          if (!hasModifier) {
-            event.preventDefault();
-            if (cursor) {
-              const file = files[cursor.fileIndex];
-              if (file) {
-                onToggleReviewed(file.path);
-              }
+          event.preventDefault();
+          if (cursor) {
+            const file = files[cursor.fileIndex];
+            if (file) {
+              onToggleReviewed(file.path);
             }
           }
           break;
 
         // Comment creation
         case 'c':
-          if (!hasModifier) {
-            event.preventDefault();
-            if (cursor && onCreateComment) {
-              // Get the current line
-              const line =
-                files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
-              // Only create comment if not on a deleted line
-              if (line && line.type !== 'delete') {
-                onCreateComment();
-              }
+          event.preventDefault();
+          if (cursor && onCreateComment) {
+            // Get the current line
+            const line =
+              files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+            // Only create comment if not on a deleted line
+            if (line && line.type !== 'delete') {
+              onCreateComment();
             }
           }
           break;
 
         // Help toggle
         case '?':
-          if (!hasModifier) {
-            event.preventDefault();
-            setIsHelpOpen(!isHelpOpen);
-          }
+          event.preventDefault();
+          setIsHelpOpen(!isHelpOpen);
           break;
 
         // Move to center of viewport
         case '.':
-          if (!hasModifier) {
-            event.preventDefault();
-            moveToCenterOfViewport();
-          }
+          event.preventDefault();
+          moveToCenterOfViewport();
           break;
       }
     },
