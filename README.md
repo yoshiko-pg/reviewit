@@ -2,22 +2,22 @@
   <img src="public/logo.png" alt="difit" width="260">
 </h1>
 
-**difit** is a zero-config CLI that launches a GitHub-style diff viewer right on your machine. Review commits in a clean "Files changed" layout, add inline comments, and copy those comments as ready-to-paste AI prompts. Perfect for code review workflows without leaving the terminal! 🚀
-
 <p align="center">
-  <a href="./README.md">English</a> | <a href="./README.ja.md">日本語</a>
+  English | <a href="./README.ja.md">日本語</a>
 </p>
+
+**difit** is a CLI tool that lets you view and review local git diffs with a GitHub-style viewer. In addition to clean visuals, comments can be copied as prompts for AI. The local code review tool for the AI era!
 
 ## ✨ Features
 
-- ⚡ **Zero Config**: Just run `npx difit <commit>` and it works
-- 🌙 **Review for AI**: Add comments and copy prompts for AI coding agent
-- 🖥️ **Terminal UI**: View diffs directly in terminal with `--tui`
+- ⚡ **Zero Config**: Just run `npx difit` and it works
+- 💬 **Local Review**: Add comments to diffs and copy them with file paths and line numbers for AI
+- 🖥️ **WebUI/TerminalUI**: Web UI in browser, or stay in terminal with `--tui`
 
 ## ⚡ Quick Start
 
 ```bash
-npx difit    # View HEAD commit changes in a beautiful diff viewer
+npx difit    # View the latest commit diff in WebUI
 ```
 
 ## 🚀 Usage
@@ -25,17 +25,17 @@ npx difit    # View HEAD commit changes in a beautiful diff viewer
 ### Basic Usage
 
 ```bash
-npx difit <commit-ish>                # View single commit diff
-npx difit <commit-ish> [compare-with] # Compare two commits/branches
+npx difit <target>                    # View single commit diff
+npx difit <target> [compare-with]     # Compare two commits/branches
 npx difit --pr <github-pr-url>        # Review GitHub pull request
 ```
 
 ### Single commit review
 
 ```bash
+npx difit          # HEAD (latest) commit
 npx difit 6f4a9b7  # Specific commit
-npx difit HEAD^    # Previous commit
-npx difit feature  # Latest commit on branch
+npx difit feature  # Latest commit on feature branch
 ```
 
 ### Compare two commits
@@ -51,17 +51,10 @@ npx difit . origin/main  # Compare working directory with remote main
 difit supports special keywords for common diff scenarios:
 
 ```bash
-npx difit          # HEAD commit changes
-npx difit .        # All uncommitted changes (staged + unstaged)
-npx difit staged   # Staged changes ready for commit
-npx difit working  # Unstaged changes only (cannot use compare-with)
+npx difit .        # All uncommitted changes (staging area + unstaged)
+npx difit staged   # Staging area changes
+npx difit working  # Unstaged changes only
 ```
-
-| Keyword   | Description                                            | Compare-with Support |
-| --------- | ------------------------------------------------------ | -------------------- |
-| `.`       | Shows all uncommitted changes (both staged & unstaged) | ✅ Yes               |
-| `staged`  | Shows staged changes ready to be committed             | ✅ Yes               |
-| `working` | Shows unstaged changes in your working directory       | ❌ No                |
 
 ### GitHub PR
 
@@ -77,71 +70,59 @@ difit automatically handles GitHub authentication using:
 
 #### GitHub Enterprise Server
 
-difit supports GitHub Enterprise Server:
-
-```bash
-npx difit --pr https://github.enterprise.com/owner/repo/pull/456
-```
-
-**Important**: For GitHub Enterprise Server, you must use a token generated on YOUR Enterprise Server instance:
+For Enterprise Server PRs, you must set a token generated on YOUR Enterprise Server instance:
 
 1. Go to `https://YOUR-ENTERPRISE-SERVER/settings/tokens`
 2. Generate a personal access token with appropriate scopes
 3. Set it as `GITHUB_TOKEN` environment variable
 
-⚠️ **Note**: Tokens from github.com will NOT work on Enterprise servers. Each GitHub instance requires its own tokens.
-
 ## ⚙️ CLI Options
 
-| Flag             | Default      | Description                                                            |
-| ---------------- | ------------ | ---------------------------------------------------------------------- |
-| `<commit-ish>`   | HEAD         | Any Git reference: hash, tag, HEAD~n, branch, or Special Arguments     |
-| `[compare-with]` | (optional)   | Optional second commit to compare with (shows diff between the two)    |
-| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123) |
-| `--port`         | auto         | Preferred port; falls back if occupied                                 |
-| `--host`         | 127.0.0.1    | Host address to bind server to (use 0.0.0.0 for external access)       |
-| `--no-open`      | false        | Don't automatically open browser                                       |
-| `--mode`         | side-by-side | Diff mode: `inline` or `side-by-side`                                  |
-| `--tui`          | false        | Use terminal UI mode instead of web interface                          |
-| `--clean`        | false        | Clear all existing comments on startup                                 |
+| Flag             | Default      | Description                                                              |
+| ---------------- | ------------ | ------------------------------------------------------------------------ |
+| `<target>`       | HEAD         | Commit hash, tag, HEAD~n, branch, or special arguments                   |
+| `[compare-with]` | -            | Optional second commit to compare with (shows diff between the two)      |
+| `--pr <url>`     | -            | GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)   |
+| `--port`         | 3000         | Preferred port; falls back to +1 if occupied                             |
+| `--host`         | 127.0.0.1    | Host address to bind server to (use 0.0.0.0 for external access)         |
+| `--no-open`      | false        | Don't automatically open browser                                          |
+| `--mode`         | side-by-side | Display mode: `inline` or `side-by-side`                                 |
+| `--tui`          | false        | Use terminal UI mode instead of WebUI                                    |
+| `--clean`        | false        | Clear all existing comments on startup                                    |
 
 ## 💬 Comment System
 
-difit includes an inline commenting system that integrates with AI coding agent:
+difit includes a review comment system that makes it easy to provide feedback to AI coding agents:
 
-1. **Add Comments**: Click on any diff line to add a comment
+1. **Add Comments**: Click the comment button on any diff line or drag to select a range
 2. **Edit Comments**: Edit existing comments with the edit button
-3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for AI coding agent
+3. **Generate Prompts**: Comments include a "Copy Prompt" button that formats the context for AI coding agents
 4. **Copy All**: Use "Copy All Prompt" to copy all comments in a structured format
 5. **Persistent Storage**: Comments are saved in browser localStorage per commit
 
 ### Comment Prompt Format
 
 ```sh
-src/components/Button.tsx:42 # Automatically added this line
-This name should probably be more specific.
+src/components/Button.tsx:L42   # This line is automatically added
+Make this variable name more descriptive
 ```
 
-## 🎨 Syntax Highlighting
+For range selections:
 
-difit supports syntax highlighting for multiple programming languages with dynamic loading:
+```sh
+src/components/Button.tsx:L42-L48   # This line is automatically added
+This section is unnecessary
+```
 
-### Supported Languages
+## 🎨 Syntax Highlighting Languages
 
 - **JavaScript/TypeScript**: `.js`, `.jsx`, `.ts`, `.tsx`
 - **Web Technologies**: HTML, CSS, JSON, XML, Markdown
-- **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish` files
+- **Shell Scripts**: `.sh`, `.bash`, `.zsh`, `.fish`
 - **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, C#, Rust, Go
 - **Mobile Languages**: Swift, Kotlin, Dart
 - **Others**: Python, YAML, Solidity, Vim script
-
-### Dynamic Language Loading
-
-- Languages are loaded on-demand for better performance
-- Automatic language detection from file extensions
-- Fallback to plain text for unsupported languages
-- Safe dependency resolution (e.g., PHP requires markup-templating)
 
 ## 🛠️ Development
 
@@ -154,7 +135,7 @@ pnpm install
 pnpm run dev
 
 # Build and start production server
-pnpm run start <commit-ish>
+pnpm run start <target>
 
 # Build for production
 pnpm run build
@@ -171,7 +152,7 @@ pnpm run typecheck
 ### Development Workflow
 
 - **`pnpm run dev`**: Starts both Vite dev server (with hot reload) and CLI server simultaneously
-- **`pnpm run start <commit-ish>`**: Builds everything and starts production server (for testing final build)
+- **`pnpm run start <target>`**: Builds everything and starts production server (for testing final build)
 - **Development mode**: Uses Vite's dev server for hot reload and fast development
 - **Production mode**: Serves built static files (used by npx and production builds)
 
@@ -193,4 +174,4 @@ pnpm run typecheck
 
 ## 📄 License
 
-MIT 📝
+MIT
