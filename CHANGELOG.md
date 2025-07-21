@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.11] - 2025-07-21
+
+### Added
+
+- Gerrit-style keyboard navigation with comprehensive shortcuts (#54)
+  - j/k for line navigation, ]/[ for file navigation
+  - n/p for chunk navigation, N/P for comment navigation
+  - h/l or arrow keys for side switching in side-by-side view
+  - r for toggling review state, c for creating comments
+  - ? for help modal, . for center navigation
+  - Shift+C to copy all comments prompt
+  - Mouse click to focus on lines
+  - Visual cursor indicators and smart scrolling
+  - Skip collapsed files during navigation
+- Multi-language README support with Japanese, Chinese, and Korean translations (#56)
+- --clean option documentation to README
+
+### Fixed
+
+- GitHub Enterprise Server authentication error messages now explain that tokens must be generated on the specific Enterprise instance
+
+### Removed
+
+- Unused dependency (#53)
+
+### Thanks
+
+- [@haya14busa](https://github.com/haya14busa) for implementing Gerrit-style keyboard navigation #54
+- [@noritaka1166](https://github.com/noritaka1166) for removing unused dependency #53
+
 ## [2.0.10] - 2025-07-20
 
 ### Added
@@ -409,7 +439,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...HEAD
+[2.0.11]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...v2.0.11
 [2.0.10]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...v2.0.10
 [2.0.9]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...v2.0.9
 [2.0.8]: https://github.com/yoshiko-pg/difit/compare/v2.0.7...v2.0.8
