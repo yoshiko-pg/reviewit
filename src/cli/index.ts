@@ -22,19 +22,9 @@ function isSpecialArg(arg: string): arg is SpecialArg {
   return arg === 'working' || arg === 'staged' || arg === '.';
 }
 
-function determineDiffMode(
-  targetCommitish: string,
-  baseCommitish: string,
-  compareWith?: string
-): DiffMode {
-  // PR mode is treated as specific commit comparison
-  if (
-    targetCommitish !== 'HEAD' &&
-    targetCommitish !== 'working' &&
-    targetCommitish !== 'staged' &&
-    targetCommitish !== '.' &&
-    compareWith
-  ) {
+function determineDiffMode(targetCommitish: string, compareWith?: string): DiffMode {
+  // If comparing specific commits/branches (not involving HEAD), no watching needed
+  if (compareWith && targetCommitish !== 'HEAD') {
     return DiffMode.SPECIFIC;
   }
 
@@ -49,13 +39,7 @@ function determineDiffMode(
   if (targetCommitish === '.') {
     return DiffMode.DOT;
   }
-
-  // If comparing two different commits/branches
-  if (compareWith && baseCommitish !== targetCommitish + '^') {
-    return DiffMode.SPECIFIC;
-  }
-
-  // Default mode: HEAD^ vs HEAD or similar single commit diff
+  // Default mode: HEAD^ vs HEAD or HEAD vs other commits (watch for HEAD changes)
   return DiffMode.DEFAULT;
 }
 
@@ -165,7 +149,7 @@ program
         }
       }
 
-      const diffMode = determineDiffMode(targetCommitish, baseCommitish, compareWith);
+      const diffMode = determineDiffMode(targetCommitish, compareWith);
 
       const { url, port, isEmpty } = await startServer({
         targetCommitish,
