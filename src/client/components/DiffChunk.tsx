@@ -32,6 +32,8 @@ interface DiffChunkProps {
     lineIndex: number,
     side: 'left' | 'right'
   ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 export function DiffChunk({
@@ -48,12 +50,28 @@ export function DiffChunk({
   currentSide = 'right',
   fileIndex = 0,
   onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
   const [endLine, setEndLine] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [commentingLine, setCommentingLine] = useState<LineNumber | null>(null);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
+
+  // Handle comment trigger from keyboard navigation
+  useEffect(() => {
+    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+      const line = chunk.lines[commentTrigger.lineIndex];
+      if (line) {
+        const lineNumber = line.newLineNumber || line.oldLineNumber;
+        if (lineNumber) {
+          setCommentingLine(lineNumber);
+          onCommentTriggerHandled?.();
+        }
+      }
+    }
+  }, [commentTrigger, chunk.lines, onCommentTriggerHandled]);
 
   // Global mouse up handler for drag selection
   useEffect(() => {
@@ -171,6 +189,8 @@ export function DiffChunk({
         currentSide={currentSide}
         fileIndex={fileIndex}
         onLineClick={onLineClick}
+        commentTrigger={commentTrigger}
+        onCommentTriggerHandled={onCommentTriggerHandled}
       />
     );
   }

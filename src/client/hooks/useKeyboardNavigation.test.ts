@@ -576,7 +576,79 @@ describe('useKeyboardNavigation', () => {
   });
 
   describe('Add Comment (c)', () => {
-    it('should prevent default for c key (comment functionality to be added)', () => {
+    it('should trigger comment creation on add/normal lines with c key', () => {
+      const mockCreateComment = vi.fn();
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+          onCreateComment: mockCreateComment,
+        })
+      );
+
+      // Navigate to an add line
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Cursor should be on the add line (index 1)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+
+      // Press c to create comment
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'c' });
+        window.dispatchEvent(event);
+      });
+
+      expect(mockCreateComment).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger comment creation on deleted lines', () => {
+      const mockCreateComment = vi.fn();
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          onToggleReviewed: mockToggleReviewed,
+          onCreateComment: mockCreateComment,
+        })
+      );
+
+      // Navigate to a delete line
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Cursor should be on the delete line (index 0)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'left',
+      });
+
+      // Press c to try to create comment
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'c' });
+        window.dispatchEvent(event);
+      });
+
+      expect(mockCreateComment).not.toHaveBeenCalled();
+    });
+
+    it('should prevent default for c key', () => {
       renderHook(() =>
         useKeyboardNavigation({
           files: mockFiles,

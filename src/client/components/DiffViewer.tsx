@@ -48,6 +48,8 @@ interface DiffViewerProps {
     lineIndex: number,
     side: 'left' | 'right'
   ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 export function DiffViewer({
@@ -69,6 +71,8 @@ export function DiffViewer({
   currentSide = 'right',
   fileIndex = 0,
   onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
@@ -209,6 +213,8 @@ export function DiffViewer({
                     currentSide={currentSide}
                     fileIndex={fileIndex}
                     onLineClick={onLineClick}
+                    commentTrigger={commentTrigger?.chunkIndex === index ? commentTrigger : null}
+                    onCommentTriggerHandled={onCommentTriggerHandled}
                   />
                 </div>
               );

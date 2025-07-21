@@ -64,11 +64,27 @@ function App() {
     });
   };
 
+  // State to trigger comment creation from keyboard
+  const [commentTrigger, setCommentTrigger] = useState<{
+    fileIndex: number;
+    chunkIndex: number;
+    lineIndex: number;
+  } | null>(null);
+
   const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
     comments,
     viewMode: diffMode,
     onToggleReviewed: toggleFileReviewed,
+    onCreateComment: () => {
+      if (cursor) {
+        setCommentTrigger({
+          fileIndex: cursor.fileIndex,
+          chunkIndex: cursor.chunkIndex,
+          lineIndex: cursor.lineIndex,
+        });
+      }
+    },
   });
 
   // Derive values from cursor for backward compatibility
@@ -492,6 +508,8 @@ function App() {
                       side,
                     });
                   }}
+                  commentTrigger={commentTrigger?.fileIndex === fileIndex ? commentTrigger : null}
+                  onCommentTriggerHandled={() => setCommentTrigger(null)}
                 />
               </div>
             );

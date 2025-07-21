@@ -26,6 +26,7 @@ export function useKeyboardNavigation({
   comments,
   viewMode = 'inline',
   onToggleReviewed,
+  onCreateComment,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -459,10 +460,18 @@ export function useKeyboardNavigation({
           }
           break;
 
-        // Comment creation (placeholder)
+        // Comment creation
         case 'c':
           event.preventDefault();
-          // Comment creation is handled by the parent component
+          if (cursor && onCreateComment) {
+            // Get the current line
+            const line =
+              files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+            // Only create comment if not on a deleted line
+            if (line && line.type !== 'delete') {
+              onCreateComment();
+            }
+          }
           break;
 
         // Help toggle
@@ -488,6 +497,7 @@ export function useKeyboardNavigation({
       cursor,
       files,
       onToggleReviewed,
+      onCreateComment,
       isHelpOpen,
       moveToCenterOfViewport,
     ]

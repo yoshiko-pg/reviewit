@@ -32,6 +32,8 @@ interface SideBySideDiffChunkProps {
     lineIndex: number,
     side: 'left' | 'right'
   ) => void;
+  commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
+  onCommentTriggerHandled?: () => void;
 }
 
 interface SideBySideLine {
@@ -56,6 +58,8 @@ export function SideBySideDiffChunk({
   currentSide = 'right',
   fileIndex = 0,
   onLineClick,
+  commentTrigger,
+  onCommentTriggerHandled,
 }: SideBySideDiffChunkProps) {
   const [startLine, setStartLine] = useState<LineSelection | null>(null);
   const [endLine, setEndLine] = useState<LineSelection | null>(null);
@@ -65,6 +69,20 @@ export function SideBySideDiffChunk({
     lineNumber: LineNumber;
   } | null>(null);
   const [hoveredLine, setHoveredLine] = useState<LineSelection | null>(null);
+
+  // Handle comment trigger from keyboard navigation
+  useEffect(() => {
+    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+      const line = chunk.lines[commentTrigger.lineIndex];
+      if (line && line.type !== 'delete') {
+        const lineNumber = line.newLineNumber;
+        if (lineNumber) {
+          setCommentingLine({ side: 'new', lineNumber });
+          onCommentTriggerHandled?.();
+        }
+      }
+    }
+  }, [commentTrigger, chunk.lines, onCommentTriggerHandled]);
 
   // Global mouse up handler for drag selection
   useEffect(() => {
