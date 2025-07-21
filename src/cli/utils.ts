@@ -157,8 +157,22 @@ export async function fetchPrDetails(prInfo: PullRequestInfo): Promise<PullReque
     };
   } catch (error) {
     if (error instanceof Error) {
-      const authHint =
-        token ? '' : ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
+      let authHint = '';
+
+      // Provide more specific error messages for authentication issues
+      if (error.message.includes('Bad credentials')) {
+        if (prInfo.hostname !== 'github.com') {
+          authHint = `\n\nFor GitHub Enterprise Server (${prInfo.hostname}):
+1. Generate a token on YOUR Enterprise Server: https://${prInfo.hostname}/settings/tokens
+2. Set it as GITHUB_TOKEN environment variable
+3. Tokens from github.com will NOT work on Enterprise servers`;
+        } else {
+          authHint = '\n\nTry: gh auth login or set GITHUB_TOKEN environment variable';
+        }
+      } else if (!token) {
+        authHint = ' (Try: gh auth login or set GITHUB_TOKEN environment variable)';
+      }
+
       throw new Error(`Failed to fetch PR details: ${error.message}${authHint}`);
     }
     throw new Error('Failed to fetch PR details: Unknown error');

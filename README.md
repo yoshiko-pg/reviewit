@@ -71,6 +71,22 @@ difit automatically handles GitHub authentication using:
 2. **Environment Variable**: Set `GITHUB_TOKEN` environment variable
 3. **No Authentication**: Public repositories work without authentication (rate-limited)
 
+#### GitHub Enterprise Server
+
+difit supports GitHub Enterprise Server:
+
+```bash
+npx difit --pr https://github.enterprise.com/owner/repo/pull/456
+```
+
+**Important**: For GitHub Enterprise Server, you must use a token generated on YOUR Enterprise Server instance:
+
+1. Go to `https://YOUR-ENTERPRISE-SERVER/settings/tokens`
+2. Generate a personal access token with appropriate scopes
+3. Set it as `GITHUB_TOKEN` environment variable
+
+⚠️ **Note**: Tokens from github.com will NOT work on Enterprise servers. Each GitHub instance requires its own tokens.
+
 ## ⚙️ CLI Options
 
 | Flag             | Default      | Description                                                            |
