@@ -321,8 +321,7 @@ export function SideBySideDiffChunk({
             const highlightOldCell = isHighlighted && cursor?.side === 'left';
             const highlightNewCell = isHighlighted && cursor?.side === 'right';
 
-            const cellHighlightClass =
-              'outline outline-2 outline-blue-500 outline-offset-[-2px] bg-blue-100/50 dark:bg-blue-900/30';
+            const cellHighlightClass = 'keyboard-cursor';
 
             return (
               <React.Fragment key={index}>
