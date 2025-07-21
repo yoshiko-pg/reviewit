@@ -611,6 +611,144 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
+  describe('Side Switching (h/l)', () => {
+    it('should find nearest line with content when switching sides', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          viewMode: 'side-by-side',
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Navigate to first line - in side-by-side mode, it skips to first line with content on right side
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should skip delete line (no content on right) and go to add line
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+
+      // Try to switch to left side with 'h' - should go to paired delete line
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'h' });
+        window.dispatchEvent(event);
+      });
+
+      // Should move to the paired delete line (index 0)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'left',
+      });
+
+      // We're already on the delete line, so no need to navigate back
+
+      // Switch to right side with 'l' - should go to paired add line
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'l' });
+        window.dispatchEvent(event);
+      });
+
+      // Should move to the paired add line (index 1)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+
+      // Navigate to normal line
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should be on normal line
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 2,
+        side: 'right',
+      });
+
+      // Switch to left side with 'h' - should stay on same line since normal lines have content on both sides
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'h' });
+        window.dispatchEvent(event);
+      });
+
+      // Should stay on same line but switch side
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 2,
+        side: 'left',
+      });
+    });
+
+    it('should handle delete/add pairs correctly when switching sides', () => {
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: mockFiles,
+          comments: mockComments,
+          viewMode: 'side-by-side',
+          onToggleReviewed: mockToggleReviewed,
+        })
+      );
+
+      // Navigate to the add line (which pairs with the delete line above it)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should be on add line (index 1)
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+
+      // Switch to left side - should go to the paired delete line (index 0)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'h' });
+        window.dispatchEvent(event);
+      });
+
+      // Should be on the delete line that pairs with the add line
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'left',
+      });
+
+      // Switch back to right side - should go to the paired add line (index 1)
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'l' });
+        window.dispatchEvent(event);
+      });
+
+      // Should be back on the add line
+      expect(result.current.cursor).toEqual({
+        fileIndex: 0,
+        chunkIndex: 0,
+        lineIndex: 1,
+        side: 'right',
+      });
+    });
+  });
+
   describe('Help Modal (?)', () => {
     it('should toggle help modal with ? key', () => {
       const { result } = renderHook(() =>

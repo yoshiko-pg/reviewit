@@ -13,6 +13,7 @@ import {
   getElementId,
   fixSide,
   getCommentKey,
+  hasContentOnSide,
   createNavigationFilters,
   createScrollToElement,
 } from './keyboardNavigation';
@@ -229,11 +230,109 @@ export function useKeyboardNavigation({
     (side: 'left' | 'right') => {
       if (!cursor || viewMode !== 'side-by-side') return;
 
-      const newCursor = { ...cursor, side };
+      // Create new cursor with the requested side
+      let newCursor = { ...cursor, side };
+
+      // Special handling for delete/add pairs in side-by-side view
+      // These appear on the same visual line but are different line indices
+      const currentLine =
+        files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+      if (currentLine) {
+        // If switching from right (add) to left (delete), check if previous line is a delete
+        if (side === 'left' && currentLine.type === 'add' && cursor.lineIndex > 0) {
+          const prevLine =
+            files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex - 1];
+          if (prevLine?.type === 'delete') {
+            // Move to the delete line that pairs with this add line
+            newCursor = { ...newCursor, lineIndex: cursor.lineIndex - 1 };
+            setCursor(newCursor);
+            scrollToElement(getElementId(newCursor, viewMode));
+            return;
+          }
+        }
+        // If switching from left (delete) to right (add), check if next line is an add
+        else if (side === 'right' && currentLine.type === 'delete') {
+          const nextLine =
+            files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex + 1];
+          if (nextLine?.type === 'add') {
+            // Move to the add line that pairs with this delete line
+            newCursor = { ...newCursor, lineIndex: cursor.lineIndex + 1 };
+            setCursor(newCursor);
+            scrollToElement(getElementId(newCursor, viewMode));
+            return;
+          }
+        }
+      }
+
+      // Check if the new position has content
+      if (!hasContentOnSide(newCursor, files)) {
+        // Find the nearest line with content on the target side
+        const file = files[cursor.fileIndex];
+        if (!file) return;
+
+        // First, try to find a line in the current chunk
+        const currentChunk = file.chunks[cursor.chunkIndex];
+        if (currentChunk) {
+          // Search forward from current position
+          for (let i = cursor.lineIndex + 1; i < currentChunk.lines.length; i++) {
+            const testPos = { ...newCursor, lineIndex: i };
+            if (hasContentOnSide(testPos, files)) {
+              newCursor = testPos;
+              break;
+            }
+          }
+
+          // If not found forward, search backward
+          if (!hasContentOnSide(newCursor, files)) {
+            for (let i = cursor.lineIndex - 1; i >= 0; i--) {
+              const testPos = { ...newCursor, lineIndex: i };
+              if (hasContentOnSide(testPos, files)) {
+                newCursor = testPos;
+                break;
+              }
+            }
+          }
+        }
+
+        // If still no content found in current chunk, search other chunks
+        if (!hasContentOnSide(newCursor, files)) {
+          // Search forward chunks
+          for (let chunkIdx = cursor.chunkIndex + 1; chunkIdx < file.chunks.length; chunkIdx++) {
+            const chunk = file.chunks[chunkIdx];
+            if (!chunk) continue;
+            for (let lineIdx = 0; lineIdx < chunk.lines.length; lineIdx++) {
+              const testPos = { ...newCursor, chunkIndex: chunkIdx, lineIndex: lineIdx };
+              if (hasContentOnSide(testPos, files)) {
+                newCursor = testPos;
+                break;
+              }
+            }
+            if (hasContentOnSide(newCursor, files)) break;
+          }
+
+          // If still not found, search backward chunks
+          if (!hasContentOnSide(newCursor, files)) {
+            for (let chunkIdx = cursor.chunkIndex - 1; chunkIdx >= 0; chunkIdx--) {
+              const chunk = file.chunks[chunkIdx];
+              if (!chunk) continue;
+              for (let lineIdx = chunk.lines.length - 1; lineIdx >= 0; lineIdx--) {
+                const testPos = { ...newCursor, chunkIndex: chunkIdx, lineIndex: lineIdx };
+                if (hasContentOnSide(testPos, files)) {
+                  newCursor = testPos;
+                  break;
+                }
+              }
+              if (hasContentOnSide(newCursor, files)) break;
+            }
+          }
+        }
+      }
+
+      // Update cursor and scroll
       setCursor(newCursor);
       scrollToElement(getElementId(newCursor, viewMode));
     },
-    [cursor, viewMode, scrollToElement]
+    [cursor, viewMode, scrollToElement, files]
   );
 
   // Handle keyboard events
