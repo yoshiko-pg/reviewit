@@ -9,7 +9,6 @@ import {
   type NavigationResult,
   type UseKeyboardNavigationProps,
   type UseKeyboardNavigationReturn,
-  SCROLL_CONSTANTS,
   getElementId,
   fixSide,
   getCommentKey,
@@ -194,35 +193,10 @@ export function useKeyboardNavigation({
     [createNavigationCommand, filters.file]
   );
 
-  // Special handling for comment navigation - also scrolls to the comment
-  const navigateToComment = useCallback(
-    (direction: NavigationDirection) => {
-      const result = navigate(direction, filters.comment);
-      if (result.position) {
-        setCursor(result.position);
-        if (result.scrollTarget) {
-          scrollToElement(result.scrollTarget);
-
-          // Also scroll to the comment element after a delay
-          const file = files[result.position.fileIndex];
-          const line = file?.chunks[result.position.chunkIndex]?.lines[result.position.lineIndex];
-          if (file && line) {
-            const lineNum = line.oldLineNumber || line.newLineNumber;
-            if (lineNum) {
-              const key = getCommentKey(file.path, lineNum);
-              const comment = commentIndex.get(key)?.[0];
-              if (comment) {
-                setTimeout(
-                  () => scrollToElement(`comment-${comment.id}`),
-                  SCROLL_CONSTANTS.COMMENT_SCROLL_DELAY
-                );
-              }
-            }
-          }
-        }
-      }
-    },
-    [navigate, filters.comment, scrollToElement, files, commentIndex]
+  // Navigation to comments
+  const navigateToComment = useMemo(
+    () => createNavigationCommand(filters.comment),
+    [createNavigationCommand, filters.comment]
   );
 
   // Switch between left and right sides in side-by-side mode

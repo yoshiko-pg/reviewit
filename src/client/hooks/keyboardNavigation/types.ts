@@ -59,6 +59,4 @@ export type NavigationDirection = 'next' | 'prev';
 export const SCROLL_CONSTANTS = {
   /** Position element at 1/3 from top of viewport */
   VIEWPORT_OFFSET_RATIO: 1 / 3,
-  /** Delay before scrolling to comment (ms) */
-  COMMENT_SCROLL_DELAY: 100,
 } as const;
