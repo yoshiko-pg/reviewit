@@ -95,6 +95,7 @@ body,
 /* Keyboard navigation cursor styles */
 .keyboard-cursor {
   position: relative;
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-accent) !important;
   outline-offset: -2px;
+  z-index: 1;
 }
