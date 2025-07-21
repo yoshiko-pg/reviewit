@@ -37,7 +37,6 @@ export async function startServer(
 
   let diffDataCache: DiffResponse | null = null;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
-  let isCacheValid = false;
   const diffMode = options.mode || 'side-by-side';
 
   app.use(express.json());
@@ -62,25 +61,23 @@ export async function startServer(
     options.baseCommitish,
     currentIgnoreWhitespace
   );
-  isCacheValid = true;
 
   // Function to invalidate cache when file changes are detected
   const invalidateCache = () => {
-    isCacheValid = false;
+    diffDataCache = null;
   };
 
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
     // Regenerate diff data if cache is invalid or whitespace setting changed
-    if (!isCacheValid || ignoreWhitespace !== currentIgnoreWhitespace) {
+    if (!diffDataCache || ignoreWhitespace !== currentIgnoreWhitespace) {
       currentIgnoreWhitespace = ignoreWhitespace;
       diffDataCache = await parser.parseDiff(
         options.targetCommitish,
         options.baseCommitish,
         ignoreWhitespace
       );
-      isCacheValid = true;
     }
 
     res.json({
