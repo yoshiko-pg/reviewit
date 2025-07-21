@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import { NAVIGATION_SELECTORS } from '../../constants/navigation';
 import type { Comment } from '../../types/diff';
 
 import {
@@ -16,6 +17,7 @@ import {
   createNavigationFilters,
   createScrollToElement,
 } from './keyboardNavigation';
+import { getStartPosition, findNextMatchingPosition } from './keyboardNavigation/navigationCore';
 
 /**
  * Keyboard navigation hook for diff viewer
@@ -61,103 +63,8 @@ export function useKeyboardNavigation({
         return { position: null, scrollTarget: null };
       }
 
-      // Start from current position or beginning
-      let position = cursor || { fileIndex: 0, chunkIndex: 0, lineIndex: -1, side: 'right' };
-
-      // Helper to advance position
-      const advance = (pos: CursorPosition): CursorPosition | null => {
-        let { fileIndex, chunkIndex, lineIndex } = pos;
-
-        if (direction === 'next') {
-          lineIndex++;
-
-          // Move to next chunk if needed
-          if (!files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
-            chunkIndex++;
-            lineIndex = 0;
-
-            // Move to next file if needed
-            if (!files[fileIndex]?.chunks[chunkIndex]) {
-              fileIndex++;
-              chunkIndex = 0;
-
-              // Wrap around to beginning
-              if (!files[fileIndex]) {
-                fileIndex = 0;
-              }
-            }
-          }
-        } else {
-          lineIndex--;
-
-          // Move to previous chunk if needed
-          if (lineIndex < 0) {
-            chunkIndex--;
-
-            // Move to previous file if needed
-            if (chunkIndex < 0) {
-              fileIndex--;
-
-              // Wrap around to end
-              if (fileIndex < 0) {
-                fileIndex = files.length - 1;
-              }
-
-              const file = files[fileIndex];
-              if (file) {
-                chunkIndex = file.chunks.length - 1;
-              }
-            }
-
-            const chunk = files[fileIndex]?.chunks[chunkIndex];
-            if (chunk) {
-              lineIndex = chunk.lines.length - 1;
-            }
-          }
-        }
-
-        // Validate position
-        if (!files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
-          return null;
-        }
-
-        return { ...pos, fileIndex, chunkIndex, lineIndex };
-      };
-
-      // Search for matching position
-      let current: CursorPosition | null = position;
-      let started = false;
-
-      while (true) {
-        if (!current) break;
-
-        const nextPos = advance(current);
-        if (!nextPos) break;
-
-        current = nextPos;
-
-        // Check if we've wrapped around to start
-        if (
-          started &&
-          current.fileIndex === position.fileIndex &&
-          current.chunkIndex === position.chunkIndex &&
-          current.lineIndex === position.lineIndex
-        ) {
-          break;
-        }
-        started = true;
-
-        // Check if position matches filter
-        if (filter(current, files)) {
-          const fixed = fixSide(current, files);
-          return {
-            position: fixed,
-            scrollTarget: getElementId(fixed, viewMode),
-          };
-        }
-      }
-
-      return { position: null, scrollTarget: null };
+      const startPosition = getStartPosition(cursor);
+      return findNextMatchingPosition(startPosition, direction, filter, files, viewMode);
     },
     [cursor, files, viewMode]
   );
@@ -313,7 +220,9 @@ export function useKeyboardNavigation({
   // Move cursor to center of viewport
   const moveToCenterOfViewport = useCallback(() => {
     // Get the scrollable container
-    const scrollContainer = document.querySelector('main.overflow-y-auto') as HTMLElement | null;
+    const scrollContainer = document.querySelector(
+      NAVIGATION_SELECTORS.SCROLL_CONTAINER
+    ) as HTMLElement | null;
     if (!scrollContainer) return;
 
     const containerRect = scrollContainer.getBoundingClientRect();

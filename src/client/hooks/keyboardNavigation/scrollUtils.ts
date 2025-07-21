@@ -1,3 +1,5 @@
+import { NAVIGATION_SELECTORS } from '../../../constants/navigation';
+
 import { SCROLL_CONSTANTS } from './types';
 
 /**
@@ -10,9 +12,11 @@ export function createScrollToElement() {
     if (!element) return;
 
     // The main scrollable container is always the same in this app
-    const scrollContainer = document.querySelector('main.overflow-y-auto') as HTMLElement | null;
+    const scrollContainer = document.querySelector(
+      NAVIGATION_SELECTORS.SCROLL_CONTAINER
+    ) as HTMLElement | null;
     if (!scrollContainer) {
-      throw new Error('Scrollable container (main.overflow-y-auto) not found');
+      throw new Error(`Scrollable container (${NAVIGATION_SELECTORS.SCROLL_CONTAINER}) not found`);
     }
 
     const rect = element.getBoundingClientRect();

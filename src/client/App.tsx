@@ -1,6 +1,7 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { NAVIGATION_TIMING } from '../constants/navigation';
 import { type DiffResponse, type LineNumber } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
@@ -15,6 +16,7 @@ import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
+import { getFileElementId } from './utils/domUtils';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -54,11 +56,11 @@ function App() {
         newSet.add(filePath);
         // When marking as reviewed (closing file), scroll to the file header
         setTimeout(() => {
-          const element = document.getElementById(`file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`);
+          const element = document.getElementById(getFileElementId(filePath));
           if (element) {
             element.scrollIntoView({ behavior: 'instant', block: 'start' });
           }
-        }, 100);
+        }, NAVIGATION_TIMING.FILE_REVIEWED_SCROLL_DELAY);
       }
       return newSet;
     });
@@ -188,7 +190,7 @@ function App() {
         // Hide sparkles after animation completes
         setTimeout(() => {
           setShowSparkles(false);
-        }, 1000); // Reduced from 2000ms to 1000ms for faster animation
+        }, NAVIGATION_TIMING.SPARKLE_ANIMATION_DURATION);
       }
     }
   }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
@@ -246,7 +248,7 @@ function App() {
       const prompt = generateAllCommentsPrompt();
       await navigator.clipboard.writeText(prompt);
       setIsCopiedAll(true);
-      setTimeout(() => setIsCopiedAll(false), 2000);
+      setTimeout(() => setIsCopiedAll(false), NAVIGATION_TIMING.COPY_FEEDBACK_DURATION);
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
     }
@@ -437,9 +439,7 @@ function App() {
               <FileList
                 files={diffData.files}
                 onScrollToFile={(filePath) => {
-                  const element = document.getElementById(
-                    `file-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`
-                  );
+                  const element = document.getElementById(getFileElementId(filePath));
                   if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -477,11 +477,7 @@ function App() {
         <main className="flex-1 overflow-y-auto">
           {diffData.files.map((file, fileIndex) => {
             return (
-              <div
-                key={file.path}
-                id={`file-${file.path.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                className="mb-6"
-              >
+              <div key={file.path} id={getFileElementId(file.path)} className="mb-6">
                 <DiffViewer
                   file={file}
                   comments={comments.filter((c) => c.file === file.path)}

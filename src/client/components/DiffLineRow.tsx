@@ -62,10 +62,7 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
     const lineNumber = line.newLineNumber || line.oldLineNumber;
     const showCommentButton = hoveredLine === lineNumber && lineNumber;
 
-    const highlightClass =
-      isCurrentLine ?
-        'outline outline-2 outline-blue-500 outline-offset-[-2px] bg-blue-100/50 dark:bg-blue-900/30'
-      : '';
+    const highlightClass = isCurrentLine ? 'keyboard-cursor' : '';
 
     return (
       <tr
