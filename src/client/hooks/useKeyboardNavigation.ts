@@ -1,80 +1,26 @@
-// Gerrit-inspired keyboard navigation implementation
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { DiffFile, Comment } from '../../types/diff';
+import type { Comment } from '../../types/diff';
 
-// Cursor position representing current location in the diff
-interface CursorPosition {
-  fileIndex: number;
-  chunkIndex: number;
-  lineIndex: number;
-  side: 'left' | 'right';
-}
+import {
+  type CursorPosition,
+  type NavigationDirection,
+  type NavigationFilter,
+  type NavigationResult,
+  type UseKeyboardNavigationProps,
+  type UseKeyboardNavigationReturn,
+  SCROLL_CONSTANTS,
+  getElementId,
+  fixSide,
+  getCommentKey,
+  createNavigationFilters,
+  createScrollToElement,
+} from './keyboardNavigation';
 
-// Navigation target types (reserved for future use)
-// type NavigationTarget = 'line' | 'chunk' | 'file' | 'comment';
-
-// Filter function for navigation
-type NavigationFilter = (position: CursorPosition, files: DiffFile[]) => boolean;
-
-// Result of navigation attempt
-interface NavigationResult {
-  position: CursorPosition | null;
-  scrollTarget: string | null;
-}
-
-interface UseKeyboardNavigationProps {
-  files: DiffFile[];
-  comments: Comment[];
-  viewMode?: 'side-by-side' | 'inline';
-  onToggleReviewed: (filePath: string) => void;
-}
-
-interface UseKeyboardNavigationReturn {
-  cursor: CursorPosition | null;
-  isHelpOpen: boolean;
-  setIsHelpOpen: (open: boolean) => void;
-}
-
-// Helper to create element ID from position
-function getElementId(position: CursorPosition, viewMode: 'side-by-side' | 'inline'): string {
-  const baseId = `file-${position.fileIndex}-chunk-${position.chunkIndex}-line-${position.lineIndex}`;
-  return viewMode === 'side-by-side' ? `${baseId}-${position.side}` : baseId;
-}
-
-// Helper to get line type at position
-function getLineType(
-  position: CursorPosition,
-  files: DiffFile[]
-): 'add' | 'delete' | 'normal' | null {
-  const line = files[position.fileIndex]?.chunks[position.chunkIndex]?.lines[position.lineIndex];
-  if (!line) return null;
-  // Filter out non-standard line types
-  if (line.type === 'add' || line.type === 'delete' || line.type === 'normal') {
-    return line.type;
-  }
-  return null;
-}
-
-// Helper to check if position has content on the current side
-function hasContentOnSide(position: CursorPosition, files: DiffFile[]): boolean {
-  const lineType = getLineType(position, files);
-  if (!lineType) return false;
-
-  if (lineType === 'normal') return true;
-  if (lineType === 'delete') return position.side === 'left';
-  if (lineType === 'add') return position.side === 'right';
-  return false;
-}
-
-// Fix side if current position has no content (like Gerrit's fixSide)
-function fixSide(position: CursorPosition, files: DiffFile[]): CursorPosition {
-  if (!hasContentOnSide(position, files)) {
-    return { ...position, side: position.side === 'left' ? 'right' : 'left' };
-  }
-  return position;
-}
-
+/**
+ * Keyboard navigation hook for diff viewer
+ * Provides Gerrit-style keyboard shortcuts for navigating through diffs
+ */
 export function useKeyboardNavigation({
   files,
   comments,
@@ -84,92 +30,32 @@ export function useKeyboardNavigation({
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
+  // Create scroll function
+  const scrollToElement = useMemo(() => createScrollToElement(), []);
+
   // Build comment index for efficient lookup
   const commentIndex = useMemo(() => {
     const index = new Map<string, Comment[]>();
     comments.forEach((comment) => {
       const lineNum = Array.isArray(comment.line) ? comment.line[0] : comment.line;
-      const key = `${comment.file}:${lineNum}`;
+      const key = getCommentKey(comment.file, lineNum);
       if (!index.has(key)) {
         index.set(key, []);
       }
-      const commentList = index.get(key);
-      if (commentList) {
-        commentList.push(comment);
-      }
+      index.get(key)?.push(comment);
     });
     return index;
   }, [comments]);
 
-  // Smart scroll to element with Gerrit-style behavior
-  const scrollToElement = useCallback((elementId: string) => {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    // Find the main scrollable container
-    // In this app, the main element with class "flex-1 overflow-y-auto" is always the scroll container
-    const scrollContainer = document.querySelector('main.overflow-y-auto') as HTMLElement | null;
-    if (!scrollContainer) {
-      throw new Error('Scrollable container (main.overflow-y-auto) not found');
-    }
-
-    const rect = element.getBoundingClientRect();
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const viewportHeight = scrollContainer.clientHeight;
-    const scrollTop = scrollContainer.scrollTop;
-
-    // Check if element is visible within the scroll container
-    // The visible area is the intersection of container and viewport
-    const visibleTop = Math.max(containerRect.top, 0);
-    const visibleBottom = Math.min(containerRect.bottom, window.innerHeight);
-    // Element is visible if it's within the visible portion of the container
-    const isVisible = rect.top >= visibleTop && rect.bottom <= visibleBottom;
-
-    // If not visible, always scroll
-    if (!isVisible) {
-      // Calculate target position relative to container
-      // We need the element's absolute position within the scrollable content
-      let currentElement: HTMLElement | null = element;
-      let offsetTopInContainer = 0;
-
-      // Walk up the DOM tree until we reach the container, accumulating offsets
-      while (currentElement && currentElement !== scrollContainer && currentElement.offsetParent) {
-        offsetTopInContainer += currentElement.offsetTop;
-        currentElement = currentElement.offsetParent as HTMLElement;
-      }
-
-      // Add the final offset if we haven't reached the container
-      if (currentElement && currentElement !== scrollContainer) {
-        offsetTopInContainer += currentElement.offsetTop;
-      }
-
-      const targetScrollTop = offsetTopInContainer - viewportHeight / 3;
-      const finalScrollTop = Math.max(0, targetScrollTop);
-
-      scrollContainer.scrollTop = finalScrollTop;
-
-      return;
-    }
-
-    // Element is visible - only scroll if:
-    // 1. Bottom edge is not visible AND
-    // 2. Scroll would move down (not up)
-    const isBottomHidden = rect.bottom > Math.min(containerRect.bottom, window.innerHeight);
-
-    // For container scroll, calculate based on element's position in container
-    const elementPosInContainer = element.offsetTop - scrollContainer.offsetTop;
-    const targetScrollTop = elementPosInContainer - viewportHeight / 3;
-    const wouldScrollDown = targetScrollTop > scrollTop;
-
-    if (isBottomHidden && wouldScrollDown) {
-      const finalScrollTop = Math.max(0, targetScrollTop);
-      scrollContainer.scrollTop = finalScrollTop;
-    }
-  }, []);
+  // Create navigation filters
+  const filters = useMemo(
+    () => createNavigationFilters(files, commentIndex, viewMode),
+    [files, commentIndex, viewMode]
+  );
 
   // Core navigation function - finds next/prev position matching filter
   const navigate = useCallback(
-    (direction: 'next' | 'prev', filter: NavigationFilter): NavigationResult => {
+    (direction: NavigationDirection, filter: NavigationFilter): NavigationResult => {
       if (files.length === 0) {
         return { position: null, scrollTarget: null };
       }
@@ -177,24 +63,24 @@ export function useKeyboardNavigation({
       // Start from current position or beginning
       let position = cursor || { fileIndex: 0, chunkIndex: 0, lineIndex: -1, side: 'right' };
 
-      // Helper to move to next/prev position
+      // Helper to advance position
       const advance = (pos: CursorPosition): CursorPosition | null => {
         let { fileIndex, chunkIndex, lineIndex } = pos;
 
         if (direction === 'next') {
           lineIndex++;
 
-          // Check if we need to move to next chunk
+          // Move to next chunk if needed
           if (!files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
             chunkIndex++;
             lineIndex = 0;
 
-            // Check if we need to move to next file
+            // Move to next file if needed
             if (!files[fileIndex]?.chunks[chunkIndex]) {
               fileIndex++;
               chunkIndex = 0;
 
-              // Wrap around
+              // Wrap around to beginning
               if (!files[fileIndex]) {
                 fileIndex = 0;
               }
@@ -203,15 +89,15 @@ export function useKeyboardNavigation({
         } else {
           lineIndex--;
 
-          // Check if we need to move to prev chunk
+          // Move to previous chunk if needed
           if (lineIndex < 0) {
             chunkIndex--;
 
-            // Check if we need to move to prev file
+            // Move to previous file if needed
             if (chunkIndex < 0) {
               fileIndex--;
 
-              // Wrap around
+              // Wrap around to end
               if (fileIndex < 0) {
                 fileIndex = files.length - 1;
               }
@@ -243,8 +129,10 @@ export function useKeyboardNavigation({
 
       while (true) {
         if (!current) break;
-        const nextPos: CursorPosition | null = advance(current);
+
+        const nextPos = advance(current);
         if (!nextPos) break;
+
         current = nextPos;
 
         // Check if we've wrapped around to start
@@ -260,7 +148,6 @@ export function useKeyboardNavigation({
 
         // Check if position matches filter
         if (filter(current, files)) {
-          // Fix side if needed
           const fixed = fixSide(current, files);
           return {
             position: fixed,
@@ -274,91 +161,61 @@ export function useKeyboardNavigation({
     [cursor, files, viewMode]
   );
 
-  // Navigation filters
-  const filters = {
-    // Line navigation - only lines with content on current side
-    line: (pos: CursorPosition): boolean => {
-      return viewMode === 'inline' || hasContentOnSide(pos, files);
+  // Create navigation commands
+  const createNavigationCommand = useCallback(
+    (filter: NavigationFilter) => {
+      return (direction: NavigationDirection) => {
+        const result = navigate(direction, filter);
+        if (result.position) {
+          setCursor(result.position);
+          if (result.scrollTarget) {
+            scrollToElement(result.scrollTarget);
+          }
+        }
+      };
     },
-
-    // Chunk navigation - first line of change chunks
-    chunk: (pos: CursorPosition): boolean => {
-      const line = files[pos.fileIndex]?.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
-      if (!line || line.type === 'normal') return false;
-
-      // Check if first line of chunk
-      if (pos.lineIndex === 0) return true;
-
-      const prevLine = files[pos.fileIndex]?.chunks[pos.chunkIndex]?.lines[pos.lineIndex - 1];
-      return !prevLine || prevLine.type === 'normal';
-    },
-
-    // Comment navigation
-    comment: (pos: CursorPosition): boolean => {
-      const file = files[pos.fileIndex];
-      if (!file) return false;
-
-      const line = file.chunks[pos.chunkIndex]?.lines[pos.lineIndex];
-      if (!line) return false;
-
-      const lineNum = line.oldLineNumber || line.newLineNumber;
-      if (!lineNum) return false;
-
-      const key = `${file.path}:${lineNum}`;
-      return commentIndex.has(key);
-    },
-
-    // File navigation - first line of each file
-    file: (pos: CursorPosition): boolean => {
-      // Only match the first line of the first chunk in each file
-      return pos.chunkIndex === 0 && pos.lineIndex === 0;
-    },
-  };
+    [navigate, scrollToElement]
+  );
 
   // Navigation commands
-  const navigateToLine = useCallback(
-    (direction: 'next' | 'prev') => {
-      const result = navigate(direction, filters.line);
-      if (result.position) {
-        setCursor(result.position);
-        if (result.scrollTarget) {
-          scrollToElement(result.scrollTarget);
-        }
-      }
-    },
-    [navigate, filters.line, scrollToElement]
+  const navigateToLine = useMemo(
+    () => createNavigationCommand(filters.line),
+    [createNavigationCommand, filters.line]
   );
 
-  const navigateToChunk = useCallback(
-    (direction: 'next' | 'prev') => {
-      const result = navigate(direction, filters.chunk);
-      if (result.position) {
-        setCursor(result.position);
-        if (result.scrollTarget) {
-          scrollToElement(result.scrollTarget);
-        }
-      }
-    },
-    [navigate, filters.chunk, scrollToElement]
+  const navigateToChunk = useMemo(
+    () => createNavigationCommand(filters.chunk),
+    [createNavigationCommand, filters.chunk]
   );
 
+  const navigateToFile = useMemo(
+    () => createNavigationCommand(filters.file),
+    [createNavigationCommand, filters.file]
+  );
+
+  // Special handling for comment navigation - also scrolls to the comment
   const navigateToComment = useCallback(
-    (direction: 'next' | 'prev') => {
+    (direction: NavigationDirection) => {
       const result = navigate(direction, filters.comment);
       if (result.position) {
         setCursor(result.position);
         if (result.scrollTarget) {
           scrollToElement(result.scrollTarget);
 
-          // Also scroll to comment after a delay
+          // Also scroll to the comment element after a delay
           const file = files[result.position.fileIndex];
           const line = file?.chunks[result.position.chunkIndex]?.lines[result.position.lineIndex];
           if (file && line) {
             const lineNum = line.oldLineNumber || line.newLineNumber;
-            const key = `${file.path}:${lineNum}`;
-            const comment = commentIndex.get(key)?.[0];
-            if (comment) {
-              setTimeout(() => scrollToElement(`comment-${comment.id}`), 100);
+            if (lineNum) {
+              const key = getCommentKey(file.path, lineNum);
+              const comment = commentIndex.get(key)?.[0];
+              if (comment) {
+                setTimeout(
+                  () => scrollToElement(`comment-${comment.id}`),
+                  SCROLL_CONSTANTS.COMMENT_SCROLL_DELAY
+                );
+              }
             }
           }
         }
@@ -367,21 +224,7 @@ export function useKeyboardNavigation({
     [navigate, filters.comment, scrollToElement, files, commentIndex]
   );
 
-  const navigateToFile = useCallback(
-    (direction: 'next' | 'prev') => {
-      const result = navigate(direction, filters.file);
-      if (result.position) {
-        setCursor(result.position);
-
-        // Scroll to the first line of the file
-        if (result.scrollTarget) {
-          scrollToElement(result.scrollTarget);
-        }
-      }
-    },
-    [navigate, filters.file, scrollToElement]
-  );
-
+  // Switch between left and right sides in side-by-side mode
   const switchSide = useCallback(
     (side: 'left' | 'right') => {
       if (!cursor || viewMode !== 'side-by-side') return;
@@ -393,7 +236,7 @@ export function useKeyboardNavigation({
     [cursor, viewMode, scrollToElement]
   );
 
-  // Keyboard event handler
+  // Handle keyboard events
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -402,6 +245,7 @@ export function useKeyboardNavigation({
       }
 
       switch (event.key) {
+        // Line navigation
         case 'j':
         case 'ArrowDown':
           event.preventDefault();
@@ -412,6 +256,8 @@ export function useKeyboardNavigation({
           event.preventDefault();
           navigateToLine('prev');
           break;
+
+        // Chunk navigation
         case 'n':
           event.preventDefault();
           navigateToChunk('next');
@@ -420,6 +266,8 @@ export function useKeyboardNavigation({
           event.preventDefault();
           navigateToChunk('prev');
           break;
+
+        // Comment navigation
         case 'N':
           if (event.shiftKey) {
             event.preventDefault();
@@ -432,6 +280,8 @@ export function useKeyboardNavigation({
             navigateToComment('prev');
           }
           break;
+
+        // File navigation
         case ']':
           event.preventDefault();
           navigateToFile('next');
@@ -440,6 +290,8 @@ export function useKeyboardNavigation({
           event.preventDefault();
           navigateToFile('prev');
           break;
+
+        // Side switching (side-by-side mode only)
         case 'h':
         case 'ArrowLeft':
           if (viewMode === 'side-by-side') {
@@ -454,6 +306,8 @@ export function useKeyboardNavigation({
             switchSide('right');
           }
           break;
+
+        // File review toggle
         case 'r':
           event.preventDefault();
           if (cursor) {
@@ -463,10 +317,14 @@ export function useKeyboardNavigation({
             }
           }
           break;
+
+        // Comment creation (placeholder)
         case 'c':
           event.preventDefault();
-          // TODO: Implement comment creation
+          // Comment creation is handled by the parent component
           break;
+
+        // Help toggle
         case '?':
           event.preventDefault();
           setIsHelpOpen(!isHelpOpen);
