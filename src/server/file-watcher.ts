@@ -2,6 +2,7 @@ import { join } from 'path';
 
 import { subscribe } from '@parcel/watcher';
 import { type Response } from 'express';
+import { simpleGit, type SimpleGit } from 'simple-git';
 
 import { DiffMode } from '../types/watch.js';
 
@@ -31,8 +32,8 @@ const MODE_WATCH_CONFIGS: Record<DiffMode, ModeWatchConfig> = {
     ignore: ['.git/objects/**', '.git/refs/**'],
   },
   [DiffMode.DOT]: {
-    watchPaths: ['.', '.git'],
-    ignore: ['.git/objects/**', '.git/refs/**', 'node_modules/**'],
+    watchPaths: ['.'],
+    ignore: ['.git/**', 'node_modules/**'],
   },
   [DiffMode.SPECIFIC]: {
     watchPaths: [], // No watching for specific commits
@@ -45,6 +46,7 @@ export class FileWatcherService {
   private clients: Response[] = [];
   private debounceTimer: NodeJS.Timeout | null = null;
   private config: FileWatcherConfig | null = null;
+  private git: SimpleGit | null = null;
 
   constructor() {}
 
@@ -67,6 +69,9 @@ export class FileWatcherService {
 
     const modeConfig = MODE_WATCH_CONFIGS[diffMode];
 
+    // Initialize git instance for .gitignore checking
+    this.git = simpleGit(watchPath);
+
     try {
       await this.setupWatchers(modeConfig, watchPath);
     } catch (error) {
@@ -82,27 +87,35 @@ export class FileWatcherService {
       try {
         const subscription = (await subscribe(
           fullPath,
-          (err, events) => {
+          async (err, events) => {
             if (err) {
               console.error(`Watch error for ${watchPath}:`, err);
               return;
             }
 
             // Filter out ignored files and check for relevant changes
-            const relevantEvents = events.filter((event) => {
+            const relevantEvents = [];
+            for (const event of events) {
               if (this.shouldIgnoreEvent(event.path, modeConfig.ignore)) {
-                return false;
+                continue;
+              }
+
+              // For working directory watching, also apply .gitignore patterns
+              if (watchPath === '.' && (await this.isGitignored(event.path, basePath))) {
+                continue;
               }
 
               // For git directory watching, only care about specific files
               if (watchPath === '.git') {
                 const fileName = event.path.replace(/.*[/\\]/, '');
                 const isRelevantGitFile = this.isRelevantGitFile(fileName, this.config?.diffMode);
-                return isRelevantGitFile;
+                if (!isRelevantGitFile) {
+                  continue;
+                }
               }
 
-              return true;
-            });
+              relevantEvents.push(event);
+            }
 
             if (relevantEvents.length > 0) {
               this.debouncedBroadcast();
@@ -252,6 +265,21 @@ export class FileWatcherService {
         return 'file'; // Both file and staging changes, default to file
       default:
         return 'file';
+    }
+  }
+
+  private async isGitignored(filePath: string, basePath: string): Promise<boolean> {
+    if (!this.git) return false;
+
+    // Get relative path from base directory
+    const relativePath = filePath.replace(basePath + '/', '');
+
+    try {
+      const result = await this.git.checkIgnore([relativePath]);
+      return result.length > 0;
+    } catch {
+      // checkIgnore throws an error when no files are ignored
+      return false;
     }
   }
 }
