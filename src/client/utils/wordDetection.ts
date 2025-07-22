@@ -1,0 +1,68 @@
+export interface WordMatch {
+  word: string;
+  start: number;
+  end: number;
+}
+
+const WORD_REGEX = /[\w]+/g;
+const MIN_WORD_LENGTH = 2;
+const MAX_WORD_LENGTH = 100;
+
+const COMMON_KEYWORDS = new Set([
+  'if',
+  'for',
+  'var',
+  'let',
+  'const',
+  'function',
+  'return',
+  'class',
+  'new',
+  'this',
+  'true',
+  'false',
+  'null',
+  'undefined',
+  'import',
+  'export',
+  'from',
+  'as',
+  'async',
+  'await',
+]);
+
+export function detectWords(text: string): WordMatch[] {
+  const words: WordMatch[] = [];
+  let match: RegExpExecArray | null;
+
+  WORD_REGEX.lastIndex = 0;
+
+  while ((match = WORD_REGEX.exec(text)) !== null) {
+    const word = match[0];
+    if (isValidWord(word)) {
+      words.push({
+        word,
+        start: match.index,
+        end: match.index + word.length,
+      });
+    }
+  }
+
+  return words;
+}
+
+export function isValidWord(word: string): boolean {
+  if (word.length < MIN_WORD_LENGTH || word.length > MAX_WORD_LENGTH) {
+    return false;
+  }
+
+  if (COMMON_KEYWORDS.has(word.toLowerCase())) {
+    return false;
+  }
+
+  return true;
+}
+
+export function normalizeWord(word: string): string {
+  return word.toLowerCase();
+}
