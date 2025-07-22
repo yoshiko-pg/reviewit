@@ -1080,4 +1080,212 @@ describe('useKeyboardNavigation', () => {
       expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
     });
   });
+
+  describe('Empty Files Handling', () => {
+    it('should skip completely empty files when navigating', () => {
+      const emptyFiles: DiffFile[] = [
+        {
+          path: 'empty-file.ts',
+          status: 'deleted',
+          chunks: [], // Completely empty file
+          additions: 0,
+          deletions: 0,
+        },
+        {
+          path: 'normal-file.ts',
+          status: 'modified',
+          chunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              header: '@@ -1,1 +1,1 @@',
+              lines: [{ type: 'add', content: '+new line', newLineNumber: 1 }],
+            },
+          ],
+          additions: 1,
+          deletions: 0,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: emptyFiles,
+          comments: [],
+          onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
+        })
+      );
+
+      // Navigate with j key
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should skip empty file and go to normal file
+      expect(result.current.cursor).toEqual({
+        fileIndex: 1,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'right',
+      });
+    });
+
+    it('should handle file navigation with empty files using ] key', () => {
+      const emptyFiles: DiffFile[] = [
+        {
+          path: 'empty-file1.ts',
+          status: 'deleted',
+          chunks: [], // Empty file
+          additions: 0,
+          deletions: 0,
+        },
+        {
+          path: 'empty-file2.ts',
+          status: 'added',
+          chunks: [], // Empty file
+          additions: 0,
+          deletions: 0,
+        },
+        {
+          path: 'normal-file.ts',
+          status: 'modified',
+          chunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              header: '@@ -1,1 +1,1 @@',
+              lines: [{ type: 'add', content: '+new line', newLineNumber: 1 }],
+            },
+          ],
+          additions: 1,
+          deletions: 0,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: emptyFiles,
+          comments: [],
+          onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
+        })
+      );
+
+      // Navigate to next file with ] key
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: ']' });
+        window.dispatchEvent(event);
+      });
+
+      // Should skip empty files and go to first normal file
+      expect(result.current.cursor).toEqual({
+        fileIndex: 2,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'right',
+      });
+    });
+
+    it('should handle files with empty chunks', () => {
+      const emptyChunkFiles: DiffFile[] = [
+        {
+          path: 'file-with-empty-chunk.ts',
+          status: 'modified',
+          chunks: [
+            {
+              oldStart: 1,
+              oldLines: 0,
+              newStart: 1,
+              newLines: 0,
+              header: '@@ -1,0 +1,0 @@',
+              lines: [], // Empty lines array
+            },
+          ],
+          additions: 0,
+          deletions: 0,
+        },
+        {
+          path: 'normal-file.ts',
+          status: 'modified',
+          chunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              header: '@@ -1,1 +1,1 @@',
+              lines: [{ type: 'add', content: '+new line', newLineNumber: 1 }],
+            },
+          ],
+          additions: 1,
+          deletions: 0,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: emptyChunkFiles,
+          comments: [],
+          onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
+        })
+      );
+
+      // Navigate with j key
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should skip file with empty chunk and go to normal file
+      expect(result.current.cursor).toEqual({
+        fileIndex: 1,
+        chunkIndex: 0,
+        lineIndex: 0,
+        side: 'right',
+      });
+    });
+
+    it('should handle navigation with all empty files', () => {
+      const allEmptyFiles: DiffFile[] = [
+        {
+          path: 'empty1.ts',
+          status: 'deleted',
+          chunks: [],
+          additions: 0,
+          deletions: 0,
+        },
+        {
+          path: 'empty2.ts',
+          status: 'added',
+          chunks: [],
+          additions: 0,
+          deletions: 0,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useKeyboardNavigation({
+          files: allEmptyFiles,
+          comments: [],
+          onToggleReviewed: mockToggleReviewed,
+          reviewedFiles: new Set(),
+        })
+      );
+
+      // Try to navigate
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'j' });
+        window.dispatchEvent(event);
+      });
+
+      // Should remain null as there's nothing to navigate to
+      expect(result.current.cursor).toBe(null);
+    });
+  });
 });
