@@ -64,6 +64,10 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
 
     const highlightClass = isCurrentLine ? 'keyboard-cursor' : '';
 
+    React.useEffect(() => {
+      console.log('[DiffLineRow] Rendering line with content:', line.content);
+    }, [line.content]);
+
     return (
       <tr
         id={lineId}

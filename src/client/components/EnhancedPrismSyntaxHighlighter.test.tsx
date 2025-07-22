@@ -1,5 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import { WordHighlightProvider } from '../contexts/WordHighlightContext';
 
 import { EnhancedPrismSyntaxHighlighter } from './EnhancedPrismSyntaxHighlighter';
 
@@ -10,7 +13,8 @@ vi.mock('./PrismSyntaxHighlighter', () => ({
 
 // Mock useWordHighlight
 const mockUseWordHighlight = vi.fn();
-vi.mock('../hooks/useWordHighlight', () => ({
+vi.mock('../contexts/WordHighlightContext', () => ({
+  WordHighlightProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useWordHighlight: () => mockUseWordHighlight(),
 }));
 
@@ -25,14 +29,22 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
   });
 
   it('should render code content', () => {
-    render(<EnhancedPrismSyntaxHighlighter code="const hello = world" />);
+    render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="const hello = world" />
+      </WordHighlightProvider>
+    );
 
     expect(screen.getByText(/hello/)).toBeInTheDocument();
     expect(screen.getByText(/world/)).toBeInTheDocument();
   });
 
   it('should wrap words in spans with word-token class', () => {
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="hello world" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello world" />
+      </WordHighlightProvider>
+    );
 
     const wordTokens = container.querySelectorAll('.word-token');
     expect(wordTokens).toHaveLength(2);
@@ -48,7 +60,11 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
       isWordHighlighted: vi.fn((word: string) => word.toLowerCase() === 'hello'),
     });
 
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="hello world Hello" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello world Hello" />
+      </WordHighlightProvider>
+    );
 
     const highlightedWords = container.querySelectorAll('.word-highlight');
     expect(highlightedWords).toHaveLength(2); // Both "hello" and "Hello"
@@ -63,7 +79,11 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
       isWordHighlighted: vi.fn(() => false),
     });
 
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="hello world" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello world" />
+      </WordHighlightProvider>
+    );
 
     const firstWord = container.querySelector('.word-token');
     if (firstWord) {
@@ -81,7 +101,11 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
       isWordHighlighted: vi.fn(() => false),
     });
 
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="hello world" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello world" />
+      </WordHighlightProvider>
+    );
 
     const firstWord = container.querySelector('.word-token');
     if (firstWord) {
@@ -92,28 +116,42 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
 
   it('should pass through className prop', () => {
     const { container } = render(
-      <EnhancedPrismSyntaxHighlighter code="hello world" className="custom-class" />
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello world" className="custom-class" />
+      </WordHighlightProvider>
     );
 
     expect(container.querySelector('.custom-class')).toBeInTheDocument();
   });
 
   it('should handle empty code', () => {
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="" />
+      </WordHighlightProvider>
+    );
 
     const wordTokens = container.querySelectorAll('.word-token');
     expect(wordTokens).toHaveLength(0);
   });
 
   it('should handle code with special characters', () => {
-    const { container } = render(<EnhancedPrismSyntaxHighlighter code="hello, world! foo.bar" />);
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello, world! foo.bar" />
+      </WordHighlightProvider>
+    );
 
     const wordTokens = container.querySelectorAll('.word-token');
     expect(wordTokens).toHaveLength(4); // hello, world, foo, bar
   });
 
   it('should preserve non-word characters', () => {
-    render(<EnhancedPrismSyntaxHighlighter code="hello, world!" />);
+    render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="hello, world!" />
+      </WordHighlightProvider>
+    );
 
     expect(screen.getByText(/,/)).toBeInTheDocument();
     expect(screen.getByText(/!/)).toBeInTheDocument();

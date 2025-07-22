@@ -26,9 +26,15 @@ export function useWordHighlight(): UseWordHighlightReturn {
   const handleMouseOver = useCallback(
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement;
+      console.log('[useWordHighlight] handleMouseOver', {
+        target,
+        classList: target.classList.toString(),
+        hasWordToken: target.classList.contains(WORD_TOKEN_CLASS),
+      });
 
       // Check if target is a word token element
       if (!target.classList.contains(WORD_TOKEN_CLASS)) {
+        console.log('[useWordHighlight] Not a word token, skipping');
         return;
       }
 
@@ -41,9 +47,11 @@ export function useWordHighlight(): UseWordHighlightReturn {
 
         // Find word at cursor position
         const words = detectWords(text);
+        console.log('[useWordHighlight] Detected words:', words);
 
         // If only one word in the text, highlight it
         if (words.length === 1 && words[0]) {
+          console.log('[useWordHighlight] Single word, highlighting:', words[0].word);
           setHighlightedWord(normalizeWord(words[0].word));
           return;
         }
@@ -55,7 +63,10 @@ export function useWordHighlight(): UseWordHighlightReturn {
         const wordAtCursor = words.find((word) => charIndex >= word.start && charIndex < word.end);
 
         if (wordAtCursor) {
+          console.log('[useWordHighlight] Word at cursor:', wordAtCursor.word);
           setHighlightedWord(normalizeWord(wordAtCursor.word));
+        } else {
+          console.log('[useWordHighlight] No word at cursor position', { charIndex, words });
         }
       }, HOVER_DELAY_MS);
     },
@@ -63,6 +74,7 @@ export function useWordHighlight(): UseWordHighlightReturn {
   );
 
   const handleMouseOut = useCallback(() => {
+    console.log('[useWordHighlight] handleMouseOut');
     clearHighlightTimeout();
     setHighlightedWord(null);
   }, [clearHighlightTimeout]);
