@@ -71,7 +71,7 @@ export function SideBySideDiffChunk({
 
   // Handle comment trigger from keyboard navigation
   useEffect(() => {
-    if (commentTrigger && commentTrigger.lineIndex !== undefined) {
+    if (commentTrigger?.lineIndex !== undefined) {
       const line = chunk.lines[commentTrigger.lineIndex];
       if (line && line.type !== 'delete') {
         const lineNumber = line.newLineNumber;
