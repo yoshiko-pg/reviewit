@@ -8,8 +8,6 @@ const WORD_REGEX = /[\w]+/g;
 const MIN_WORD_LENGTH = 2;
 const MAX_WORD_LENGTH = 100;
 
-// Removed keyword filtering to match Gerrit's behavior
-
 export function detectWords(text: string): WordMatch[] {
   const words: WordMatch[] = [];
   let match: RegExpExecArray | null;
