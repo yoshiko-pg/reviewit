@@ -32,6 +32,7 @@ export function useKeyboardNavigation({
   onCreateComment,
   onCopyAllComments,
   onShowCommentsList,
+  isModalOpen = false,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -293,6 +294,11 @@ export function useKeyboardNavigation({
   // Handle keyboard events
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      // Ignore all keyboard shortcuts when modal is open
+      if (isModalOpen) {
+        return;
+      }
+
       const target = event.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
@@ -451,6 +457,7 @@ export function useKeyboardNavigation({
       onShowCommentsList,
       isHelpOpen,
       moveToCenterOfViewport,
+      isModalOpen,
     ]
   );
 

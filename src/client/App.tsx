@@ -97,6 +97,7 @@ function App() {
     onShowCommentsList: () => {
       setIsCommentsListOpen(true);
     },
+    isModalOpen: isCommentsListOpen || isSettingsOpen,
   });
 
   const handleMouseDown = (e: React.MouseEvent) => {

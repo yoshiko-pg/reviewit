@@ -35,6 +35,7 @@ export interface UseKeyboardNavigationProps {
   onCreateComment?: () => void;
   onCopyAllComments?: () => void;
   onShowCommentsList?: () => void;
+  isModalOpen?: boolean;
 }
 
 /**
