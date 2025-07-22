@@ -94,6 +94,9 @@ function App() {
         void handleCopyAllComments();
       }
     },
+    onShowCommentsList: () => {
+      setIsCommentsListOpen(true);
+    },
   });
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -213,20 +216,6 @@ function App() {
       sendCommentsBeforeUnload();
     };
   }, [comments]);
-
-  // Handle keyboard shortcut for comments list
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Shift+L to open comments list
-      if (event.shiftKey && event.key === 'L') {
-        event.preventDefault();
-        setIsCommentsListOpen(true);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Establish SSE connection for tab close detection
   useEffect(() => {

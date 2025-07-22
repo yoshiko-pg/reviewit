@@ -31,6 +31,7 @@ export function useKeyboardNavigation({
   onToggleReviewed,
   onCreateComment,
   onCopyAllComments,
+  onShowCommentsList,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -425,6 +426,14 @@ export function useKeyboardNavigation({
             onCopyAllComments();
           }
           break;
+
+        // Show comments list
+        case 'L':
+          if (event.shiftKey && onShowCommentsList) {
+            event.preventDefault();
+            onShowCommentsList();
+          }
+          break;
       }
     },
     [
@@ -439,6 +448,7 @@ export function useKeyboardNavigation({
       onToggleReviewed,
       onCreateComment,
       onCopyAllComments,
+      onShowCommentsList,
       isHelpOpen,
       moveToCenterOfViewport,
     ]
