@@ -66,3 +66,14 @@ export function isValidWord(word: string): boolean {
 export function normalizeWord(word: string): string {
   return word.toLowerCase();
 }
+
+// Check if a token content is a valid word (not just symbols)
+export function isWordToken(content: string): boolean {
+  // Trim spaces from token content
+  const trimmed = content.trim();
+  if (!trimmed) return false;
+
+  // Must match word pattern and be valid
+  const match = trimmed.match(/^\w+$/);
+  return match !== null && isValidWord(trimmed);
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { detectWords, isValidWord, normalizeWord } from './wordDetection';
+import { detectWords, isValidWord, normalizeWord, isWordToken } from './wordDetection';
 
 describe('wordDetection', () => {
   describe('detectWords', () => {
@@ -82,6 +82,76 @@ describe('wordDetection', () => {
     it('should preserve underscores and numbers', () => {
       expect(normalizeWord('test_123')).toBe('test_123');
       expect(normalizeWord('_private')).toBe('_private');
+    });
+  });
+
+  describe('isWordToken', () => {
+    it('should return true for valid word tokens', () => {
+      expect(isWordToken('hello')).toBe(true);
+      expect(isWordToken('world123')).toBe(true);
+      expect(isWordToken('foo_bar')).toBe(true);
+      expect(isWordToken('camelCase')).toBe(true);
+    });
+
+    it('should return false for symbols and punctuation', () => {
+      expect(isWordToken('+')).toBe(false);
+      expect(isWordToken('-')).toBe(false);
+      expect(isWordToken('=')).toBe(false);
+      expect(isWordToken('!')).toBe(false);
+      expect(isWordToken('@')).toBe(false);
+      expect(isWordToken('#')).toBe(false);
+      expect(isWordToken('$')).toBe(false);
+      expect(isWordToken('%')).toBe(false);
+      expect(isWordToken('^')).toBe(false);
+      expect(isWordToken('&')).toBe(false);
+      expect(isWordToken('*')).toBe(false);
+      expect(isWordToken('(')).toBe(false);
+      expect(isWordToken(')')).toBe(false);
+      expect(isWordToken('[')).toBe(false);
+      expect(isWordToken(']')).toBe(false);
+      expect(isWordToken('{')).toBe(false);
+      expect(isWordToken('}')).toBe(false);
+      expect(isWordToken(';')).toBe(false);
+      expect(isWordToken(':')).toBe(false);
+      expect(isWordToken(',')).toBe(false);
+      expect(isWordToken('.')).toBe(false);
+      expect(isWordToken('<')).toBe(false);
+      expect(isWordToken('>')).toBe(false);
+      expect(isWordToken('/')).toBe(false);
+      expect(isWordToken('?')).toBe(false);
+    });
+
+    it('should return false for mixed content', () => {
+      expect(isWordToken('hello,')).toBe(false);
+      expect(isWordToken('world!')).toBe(false);
+      expect(isWordToken('foo.bar')).toBe(false);
+      expect(isWordToken('test()')).toBe(false);
+    });
+
+    it('should return false for common keywords', () => {
+      expect(isWordToken('if')).toBe(false);
+      expect(isWordToken('for')).toBe(false);
+      expect(isWordToken('function')).toBe(false);
+      expect(isWordToken('class')).toBe(false);
+    });
+
+    it('should return false for too short words', () => {
+      expect(isWordToken('a')).toBe(false);
+      expect(isWordToken('i')).toBe(false);
+    });
+
+    it('should handle tokens with leading/trailing spaces', () => {
+      expect(isWordToken(' hello')).toBe(true);
+      expect(isWordToken('hello ')).toBe(true);
+      expect(isWordToken(' hello ')).toBe(true);
+      expect(isWordToken('  world  ')).toBe(true);
+    });
+
+    it('should return false for only spaces', () => {
+      expect(isWordToken(' ')).toBe(false);
+      expect(isWordToken('   ')).toBe(false);
+      expect(isWordToken('\t')).toBe(false);
+      expect(isWordToken('\n')).toBe(false);
     });
   });
 });

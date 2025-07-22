@@ -1,8 +1,7 @@
 import { type Token } from 'prism-react-renderer';
-import React from 'react';
 
 import { useWordHighlight } from '../contexts/WordHighlightContext';
-import { detectWords, type WordMatch } from '../utils/wordDetection';
+import { isWordToken } from '../utils/wordDetection';
 
 import { PrismSyntaxHighlighter, type PrismSyntaxHighlighterProps } from './PrismSyntaxHighlighter';
 
@@ -20,53 +19,25 @@ export function EnhancedPrismSyntaxHighlighter(props: EnhancedPrismSyntaxHighlig
     getTokenProps: (options: { token: Token }) => Record<string, unknown>
   ) => {
     const tokenProps = getTokenProps({ token });
-    const words = detectWords(token.content);
 
-    // If no words detected, render the token as-is
-    if (words.length === 0) {
-      return <span key={key} {...tokenProps} />;
-    }
-
-    // Split the token content into parts (words and non-words)
-    const parts: React.ReactNode[] = [];
-    let lastOffset = 0;
-
-    words.forEach((word: WordMatch, index: number) => {
-      // Add text before the word (punctuation, spaces, etc.)
-      if (word.start > lastOffset) {
-        parts.push(
-          <span key={`${key}-before-${index}`}>
-            {token.content.substring(lastOffset, word.start)}
-          </span>
-        );
-      }
-
-      // Add the word with highlighting capability
-      const isHighlighted = isWordHighlighted(word.word);
-      parts.push(
+    // Check if this token is a word token (not symbols)
+    if (isWordToken(token.content)) {
+      const trimmedContent = token.content.trim();
+      const isHighlighted = isWordHighlighted(trimmedContent);
+      return (
         <span
-          key={`${key}-word-${index}`}
-          className={`word-token ${isHighlighted ? 'word-highlight' : ''}`}
-          data-word={word.word}
+          key={key}
+          {...tokenProps}
+          className={`${tokenProps.className || ''} word-token ${isHighlighted ? 'word-highlight' : ''}`}
+          data-word={trimmedContent}
         >
-          {word.word}
+          {token.content}
         </span>
       );
-
-      lastOffset = word.end;
-    });
-
-    // Add remaining text after the last word
-    if (lastOffset < token.content.length) {
-      parts.push(<span key={`${key}-after`}>{token.content.substring(lastOffset)}</span>);
     }
 
-    // Wrap all parts in a span with the original token props (for syntax highlighting)
-    return (
-      <span key={key} {...tokenProps}>
-        {parts}
-      </span>
-    );
+    // Not a word token, render as-is
+    return <span key={key} {...tokenProps} />;
   };
 
   return (
