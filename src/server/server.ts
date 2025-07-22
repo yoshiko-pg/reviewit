@@ -189,9 +189,12 @@ export async function startServer(
     // When client disconnects (tab closed, navigation, etc.)
     req.on('close', () => {
       clearInterval(heartbeatInterval);
-      console.log('Client disconnected, shutting down server...');
-      outputFinalComments();
-      process.exit(0);
+      // Add a small delay to ensure any pending sendBeacon requests are processed
+      setTimeout(() => {
+        console.log('Client disconnected, shutting down server...');
+        outputFinalComments();
+        process.exit(0);
+      }, 100);
     });
   });
 
