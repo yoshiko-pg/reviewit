@@ -9,13 +9,13 @@ import { EnhancedPrismSyntaxHighlighter } from './EnhancedPrismSyntaxHighlighter
 // Mock PrismSyntaxHighlighter
 vi.mock('./PrismSyntaxHighlighter', () => ({
   PrismSyntaxHighlighter: ({ code, className, renderToken, onMouseOver, onMouseOut }: any) => {
-    // For tests, split the code into word tokens
-    const tokens = code.split(/\s+/).filter(Boolean);
+    // For tests, create tokens that may contain multiple words (like XML/HTML tags)
+    const tokens = [{ content: code, types: ['test-token'] }];
     return (
       <span className={className} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
         {renderToken ?
-          tokens.map((content: string, idx: number) =>
-            renderToken({ content, types: [] }, idx, () => ({ className: 'token' }))
+          tokens.map((token: any, idx: number) =>
+            renderToken(token, idx, () => ({ className: 'token' }))
           )
         : <span>{code}</span>}
       </span>
@@ -160,7 +160,6 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
   });
 
   it('should not mark symbols as word tokens', () => {
-    // In our mock, we split by spaces, so let's test with actual tokens
     const { container } = render(
       <WordHighlightProvider>
         <EnhancedPrismSyntaxHighlighter code="+ - = ! @" />
@@ -169,5 +168,18 @@ describe('EnhancedPrismSyntaxHighlighter', () => {
 
     const wordTokens = container.querySelectorAll('.word-token');
     expect(wordTokens).toHaveLength(0); // No symbols should be marked as word tokens
+  });
+
+  it('should handle XML/HTML-like tokens with multiple words', () => {
+    const { container } = render(
+      <WordHighlightProvider>
+        <EnhancedPrismSyntaxHighlighter code="EnhancedPrismSyntaxHighlighter code" />
+      </WordHighlightProvider>
+    );
+
+    const wordTokens = container.querySelectorAll('.word-token');
+    expect(wordTokens).toHaveLength(2); // Should detect both words
+    expect(wordTokens[0]).toHaveTextContent('EnhancedPrismSyntaxHighlighter');
+    expect(wordTokens[1]).toHaveTextContent('code');
   });
 });

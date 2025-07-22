@@ -20,24 +20,44 @@ export function EnhancedPrismSyntaxHighlighter(props: EnhancedPrismSyntaxHighlig
   ) => {
     const tokenProps = getTokenProps({ token });
 
-    // Check if this token is a word token (not symbols)
-    if (isWordToken(token.content)) {
-      const trimmedContent = token.content.trim();
-      const isHighlighted = isWordHighlighted(trimmedContent);
-      return (
-        <span
-          key={key}
-          {...tokenProps}
-          className={`${tokenProps.className || ''} word-token ${isHighlighted ? 'word-highlight' : ''}`}
-          data-word={trimmedContent}
-        >
-          {token.content}
-        </span>
-      );
+    // Split token content by spaces to handle XML/HTML tags that contain multiple words
+    const parts = token.content.split(/( +)/);
+
+    // If only one part and it's not a word, render as-is
+    if (parts.length === 1 && parts[0] && !isWordToken(parts[0])) {
+      return <span key={key} {...tokenProps} />;
     }
 
-    // Not a word token, render as-is
-    return <span key={key} {...tokenProps} />;
+    // Render each part, checking if it's a word
+    const renderedParts = parts.map((part, index) => {
+      // Skip empty parts
+      if (!part) return null;
+
+      // Check if this part is a word (not spaces or symbols)
+      if (isWordToken(part)) {
+        const trimmedPart = part.trim();
+        const isHighlighted = isWordHighlighted(trimmedPart);
+        return (
+          <span
+            key={`${key}-${index}`}
+            className={`word-token ${isHighlighted ? 'word-highlight' : ''}`}
+            data-word={trimmedPart}
+          >
+            {part}
+          </span>
+        );
+      }
+
+      // Not a word, render as plain text
+      return <span key={`${key}-${index}`}>{part}</span>;
+    });
+
+    // Wrap all parts in a span with the original token props (for syntax highlighting)
+    return (
+      <span key={key} {...tokenProps}>
+        {renderedParts}
+      </span>
+    );
   };
 
   return (
