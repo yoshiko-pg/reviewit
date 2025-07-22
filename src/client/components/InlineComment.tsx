@@ -1,5 +1,5 @@
 import { Check, Edit2, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { type Comment } from '../../types/diff';
 
@@ -10,6 +10,9 @@ interface InlineCommentProps {
   onUpdateComment: (commentId: string, newBody: string) => void;
   onClick?: () => void;
   isClickable?: boolean;
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onCancelEdit?: () => void;
 }
 
 export function InlineComment({
@@ -19,10 +22,16 @@ export function InlineComment({
   onUpdateComment,
   onClick,
   isClickable = false,
+  isEditing: externalIsEditing,
+  onStartEdit,
+  onCancelEdit,
 }: InlineCommentProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [internalIsEditing, setInternalIsEditing] = useState(false);
   const [editedBody, setEditedBody] = useState(comment.body);
+
+  // Use external editing state if provided, otherwise use internal state
+  const isEditing = externalIsEditing !== undefined ? externalIsEditing : internalIsEditing;
 
   const handleCopyPrompt = async (e?: React.MouseEvent) => {
     if (e && isClickable) {
@@ -42,7 +51,11 @@ export function InlineComment({
     if (e && isClickable) {
       e.stopPropagation();
     }
-    setIsEditing(true);
+    if (onStartEdit) {
+      onStartEdit();
+    } else {
+      setInternalIsEditing(true);
+    }
     setEditedBody(comment.body);
   };
 
@@ -50,7 +63,11 @@ export function InlineComment({
     if (e && isClickable) {
       e.stopPropagation();
     }
-    setIsEditing(false);
+    if (onCancelEdit) {
+      onCancelEdit();
+    } else {
+      setInternalIsEditing(false);
+    }
     setEditedBody(comment.body);
   };
 
@@ -61,8 +78,19 @@ export function InlineComment({
     if (editedBody.trim() !== comment.body) {
       onUpdateComment(comment.id, editedBody.trim());
     }
-    setIsEditing(false);
+    if (onCancelEdit) {
+      onCancelEdit(); // Use onCancelEdit to close external editing state
+    } else {
+      setInternalIsEditing(false);
+    }
   };
+
+  // Update edited body when isEditing changes to true
+  useEffect(() => {
+    if (isEditing) {
+      setEditedBody(comment.body);
+    }
+  }, [isEditing, comment.body]);
 
   return (
     <div
