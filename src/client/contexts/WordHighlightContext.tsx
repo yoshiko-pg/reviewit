@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useEffect,
   type ReactNode,
 } from 'react';
 
@@ -66,6 +67,15 @@ export function WordHighlightProvider({ children }: { children: ReactNode }) {
     },
     [highlightedWord]
   );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const value: WordHighlightContextValue = {
     highlightedWord,
