@@ -59,6 +59,9 @@ export function useAppearanceSettings() {
   const applyTheme = (theme: 'light' | 'dark') => {
     const root = document.documentElement;
 
+    // Set data-theme attribute for CSS selectors
+    root.setAttribute('data-theme', theme);
+
     if (theme === 'light') {
       // Light theme colors
       root.style.setProperty('--color-github-bg-primary', '#ffffff');
