@@ -1,7 +1,9 @@
-import { X, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect } from 'react';
 
 import type { Comment } from '../../types/diff';
+
+import { InlineComment } from './InlineComment';
 
 interface CommentsListModalProps {
   isOpen: boolean;
@@ -9,6 +11,8 @@ interface CommentsListModalProps {
   onNavigate: (comment: Comment) => void;
   comments: Comment[];
   onRemoveComment: (commentId: string) => void;
+  onGeneratePrompt: (comment: Comment) => string;
+  onUpdateComment: (commentId: string, newBody: string) => void;
 }
 
 export function CommentsListModal({
@@ -17,6 +21,8 @@ export function CommentsListModal({
   onNavigate,
   comments,
   onRemoveComment,
+  onGeneratePrompt,
+  onUpdateComment,
 }: CommentsListModalProps) {
   useEffect(() => {
     if (!isOpen) return;
@@ -38,18 +44,6 @@ export function CommentsListModal({
     onClose();
   };
 
-  const handleDeleteComment = (e: React.MouseEvent, commentId: string) => {
-    e.stopPropagation();
-    onRemoveComment(commentId);
-  };
-
-  const formatLineNumber = (line: number | [number, number]) => {
-    if (Array.isArray(line)) {
-      return `L${line[0]}-L${line[1]}`;
-    }
-    return `L${line}`;
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -68,37 +62,17 @@ export function CommentsListModal({
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-88px)]">
           {comments.length === 0 ?
             <p className="text-github-text-secondary text-center">No comments yet</p>
-          : <div className="space-y-2">
+          : <div className="space-y-0">
               {comments.map((comment) => (
-                <div
+                <InlineComment
                   key={comment.id}
-                  className="p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  comment={comment}
+                  onGeneratePrompt={onGeneratePrompt}
+                  onRemoveComment={onRemoveComment}
+                  onUpdateComment={onUpdateComment}
                   onClick={() => handleCommentClick(comment)}
-                >
-                  <div className="flex items-center justify-between mb-2 gap-3">
-                    <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
-                      <span
-                        className="font-mono px-1 py-0.5 rounded overflow-hidden text-ellipsis whitespace-nowrap"
-                        style={{
-                          backgroundColor: 'var(--color-yellow-path-bg)',
-                          color: 'var(--color-yellow-path-text)',
-                        }}
-                      >
-                        {comment.file}:{formatLineNumber(comment.line).replace(/L/g, '')}
-                      </span>
-                    </div>
-                    <button
-                      onClick={(e) => handleDeleteComment(e, comment.id)}
-                      className="text-xs p-1.5 bg-github-bg-tertiary text-green-600 border border-github-border rounded hover:bg-green-500/10 hover:border-green-600 transition-all"
-                      title="Resolve"
-                    >
-                      <Check size={12} />
-                    </button>
-                  </div>
-                  <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
-                    {comment.body}
-                  </div>
-                </div>
+                  isClickable={true}
+                />
               ))}
             </div>
           }

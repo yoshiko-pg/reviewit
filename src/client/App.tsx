@@ -564,6 +564,8 @@ function App() {
         onNavigate={handleNavigateToComment}
         comments={comments}
         onRemoveComment={removeComment}
+        onGeneratePrompt={generatePrompt}
+        onUpdateComment={updateComment}
       />
     </div>
   );

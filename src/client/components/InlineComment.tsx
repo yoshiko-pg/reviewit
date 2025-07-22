@@ -8,6 +8,8 @@ interface InlineCommentProps {
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
+  onClick?: () => void;
+  isClickable?: boolean;
 }
 
 export function InlineComment({
@@ -15,12 +17,17 @@ export function InlineComment({
   onGeneratePrompt,
   onRemoveComment,
   onUpdateComment,
+  onClick,
+  isClickable = false,
 }: InlineCommentProps) {
   const [isCopied, setIsCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedBody, setEditedBody] = useState(comment.body);
 
-  const handleCopyPrompt = async () => {
+  const handleCopyPrompt = async (e?: React.MouseEvent) => {
+    if (e && isClickable) {
+      e.stopPropagation();
+    }
     try {
       const prompt = onGeneratePrompt(comment);
       await navigator.clipboard.writeText(prompt);
@@ -31,17 +38,26 @@ export function InlineComment({
     }
   };
 
-  const handleStartEdit = () => {
+  const handleStartEdit = (e?: React.MouseEvent) => {
+    if (e && isClickable) {
+      e.stopPropagation();
+    }
     setIsEditing(true);
     setEditedBody(comment.body);
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (e?: React.MouseEvent) => {
+    if (e && isClickable) {
+      e.stopPropagation();
+    }
     setIsEditing(false);
     setEditedBody(comment.body);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = (e?: React.MouseEvent) => {
+    if (e && isClickable) {
+      e.stopPropagation();
+    }
     if (editedBody.trim() !== comment.body) {
       onUpdateComment(comment.id, editedBody.trim());
     }
@@ -51,7 +67,10 @@ export function InlineComment({
   return (
     <div
       id={`comment-${comment.id}`}
-      className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm transition-all"
+      className={`m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm transition-all ${
+        isClickable ? 'hover:shadow-md cursor-pointer' : ''
+      }`}
+      onClick={isClickable ? onClick : undefined}
     >
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
@@ -98,7 +117,12 @@ export function InlineComment({
                 <Edit2 size={12} />
               </button>
               <button
-                onClick={() => onRemoveComment(comment.id)}
+                onClick={(e) => {
+                  if (isClickable) {
+                    e.stopPropagation();
+                  }
+                  onRemoveComment(comment.id);
+                }}
                 className="text-xs p-1.5 bg-github-bg-tertiary text-green-600 border border-github-border rounded hover:bg-green-500/10 hover:border-green-600 transition-all"
                 title="Resolve"
               >

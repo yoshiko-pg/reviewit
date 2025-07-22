@@ -30,6 +30,8 @@ const mockComments: Comment[] = [
 ];
 
 const mockRemoveComment = vi.fn();
+const mockGeneratePrompt = vi.fn().mockReturnValue('test prompt');
+const mockUpdateComment = vi.fn();
 
 describe('CommentsListModal', () => {
   beforeEach(() => {
@@ -46,6 +48,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
     expect(container.firstChild).toBeNull();
@@ -61,6 +65,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
     expect(screen.getByText('All Comments')).toBeInTheDocument();
@@ -76,6 +82,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -95,6 +103,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -114,6 +124,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -135,6 +147,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -154,6 +168,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={[]}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -170,6 +186,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
@@ -189,6 +207,8 @@ describe('CommentsListModal', () => {
         onNavigate={onNavigate}
         comments={mockComments}
         onRemoveComment={mockRemoveComment}
+        onGeneratePrompt={mockGeneratePrompt}
+        onUpdateComment={mockUpdateComment}
       />
     );
 
