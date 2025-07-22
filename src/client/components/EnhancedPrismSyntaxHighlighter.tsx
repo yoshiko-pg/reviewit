@@ -1,4 +1,4 @@
-import { Highlight } from 'prism-react-renderer';
+import { Highlight, type Token } from 'prism-react-renderer';
 import React from 'react';
 
 import { getFileExtension, getFileName } from '../../utils/fileUtils';
@@ -15,12 +15,6 @@ interface EnhancedPrismSyntaxHighlighterProps {
   language?: string;
   className?: string;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
-}
-
-interface TokenProps {
-  className?: string;
-  style?: React.CSSProperties;
-  [key: string]: unknown;
 }
 
 // Detect language from file extension
@@ -104,38 +98,35 @@ export function EnhancedPrismSyntaxHighlighter({
   className,
   syntaxTheme = 'vsDark',
 }: EnhancedPrismSyntaxHighlighterProps) {
-  console.log('[EnhancedPrismSyntaxHighlighter] Component called with code:', code);
   const { handleMouseOver, handleMouseOut, isWordHighlighted } = useWordHighlight();
-
-  React.useEffect(() => {
-    console.log('[EnhancedPrismSyntaxHighlighter] Component mounted/updated');
-  }, [code]);
-
   const detectedLang = language || detectLanguage(currentFilename);
   const { actualLang } = useHighlightedCode(code, detectedLang);
   const theme = getSyntaxTheme(syntaxTheme);
 
-  // Helper function to split token text by word boundaries
-  const renderTokenWithWords = (tokenText: string, tokenProps: TokenProps) => {
-    const words = detectWords(tokenText);
-    console.log('[EnhancedPrismSyntaxHighlighter] renderTokenWithWords:', {
-      tokenText,
-      wordsFound: words.length,
-      words: words.map((w) => w.word),
-    });
+  // Helper function to render a token with word detection
+  const renderTokenWithWords = (
+    token: Token,
+    key: number,
+    getTokenProps: (options: { token: Token }) => Record<string, unknown>
+  ) => {
+    const tokenProps = getTokenProps({ token });
+    const words = detectWords(token.content);
+
+    // If no words detected, render the token as-is
     if (words.length === 0) {
-      return <span {...tokenProps}>{tokenText}</span>;
+      return <span key={key} {...tokenProps} />;
     }
 
+    // Split the token content into parts (words and non-words)
     const parts: React.ReactNode[] = [];
     let lastOffset = 0;
 
     words.forEach((word: WordMatch, index: number) => {
-      // Add text before the word
+      // Add text before the word (punctuation, spaces, etc.)
       if (word.start > lastOffset) {
         parts.push(
-          <span key={`before-${index}`} {...tokenProps}>
-            {tokenText.substring(lastOffset, word.start)}
+          <span key={`${key}-before-${index}`}>
+            {token.content.substring(lastOffset, word.start)}
           </span>
         );
       }
@@ -144,9 +135,8 @@ export function EnhancedPrismSyntaxHighlighter({
       const isHighlighted = isWordHighlighted(word.word);
       parts.push(
         <span
-          key={`word-${index}`}
-          {...tokenProps}
-          className={`word-token ${isHighlighted ? 'word-highlight' : ''} ${tokenProps.className ?? ''}`}
+          key={`${key}-word-${index}`}
+          className={`word-token ${isHighlighted ? 'word-highlight' : ''}`}
           data-word={word.word}
         >
           {word.word}
@@ -157,15 +147,16 @@ export function EnhancedPrismSyntaxHighlighter({
     });
 
     // Add remaining text after the last word
-    if (lastOffset < tokenText.length) {
-      parts.push(
-        <span key="after" {...tokenProps}>
-          {tokenText.substring(lastOffset)}
-        </span>
-      );
+    if (lastOffset < token.content.length) {
+      parts.push(<span key={`${key}-after`}>{token.content.substring(lastOffset)}</span>);
     }
 
-    return <>{parts}</>;
+    // Wrap all parts in a span with the original token props (for syntax highlighting)
+    return (
+      <span key={key} {...tokenProps}>
+        {parts}
+      </span>
+    );
   };
 
   return (
@@ -179,14 +170,7 @@ export function EnhancedPrismSyntaxHighlighter({
         >
           {tokens.map((line, i) => (
             <span key={i} {...getLineProps({ line })}>
-              {line.map((token, key) => {
-                const tokenProps = getTokenProps({ token });
-                return (
-                  <React.Fragment key={key}>
-                    {renderTokenWithWords(token.content, tokenProps)}
-                  </React.Fragment>
-                );
-              })}
+              {line.map((token, key) => renderTokenWithWords(token, key, getTokenProps))}
             </span>
           ))}
         </span>

@@ -34,16 +34,9 @@ export function WordHighlightProvider({ children }: { children: ReactNode }) {
   const handleMouseOver = useCallback(
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement;
-      console.log('[WordHighlightContext] handleMouseOver', {
-        target,
-        classList: target.classList.toString(),
-        hasWordToken: target.classList.contains('word-token'),
-        dataWord: target.getAttribute('data-word'),
-      });
 
       // Check if target is a word token element
       if (!target.classList.contains('word-token')) {
-        console.log('[WordHighlightContext] Not a word token, skipping');
         return;
       }
 
@@ -51,12 +44,10 @@ export function WordHighlightProvider({ children }: { children: ReactNode }) {
 
       const word = target.getAttribute('data-word');
       if (!word) {
-        console.log('[WordHighlightContext] No data-word attribute');
         return;
       }
 
       timeoutRef.current = setTimeout(() => {
-        console.log('[WordHighlightContext] Setting highlighted word:', word);
         setHighlightedWord(word);
       }, HOVER_DELAY_MS);
     },
@@ -64,7 +55,6 @@ export function WordHighlightProvider({ children }: { children: ReactNode }) {
   );
 
   const handleMouseOut = useCallback(() => {
-    console.log('[WordHighlightContext] handleMouseOut - clearing highlight');
     clearHighlightTimeout();
     setHighlightedWord(null);
   }, [clearHighlightTimeout]);
