@@ -1,5 +1,5 @@
 import { X, Check } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 import type { Comment } from '../../types/diff';
 
@@ -18,17 +18,6 @@ export function CommentsListModal({
   comments,
   onRemoveComment,
 }: CommentsListModalProps) {
-  // Group comments by file
-  const commentsByFile = useMemo(() => {
-    const grouped: Record<string, Comment[]> = {};
-    comments.forEach((comment) => {
-      const fileGroup = grouped[comment.file] || [];
-      fileGroup.push(comment);
-      grouped[comment.file] = fileGroup;
-    });
-    return grouped;
-  }, [comments]);
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -79,42 +68,35 @@ export function CommentsListModal({
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-88px)]">
           {comments.length === 0 ?
             <p className="text-github-text-secondary text-center">No comments yet</p>
-          : <div className="space-y-4">
-              {Object.entries(commentsByFile).map(([file, fileComments]) => (
-                <div key={file}>
-                  <h3 className="text-sm font-medium text-github-text-secondary mb-2">{file}</h3>
-                  <div className="space-y-2">
-                    {fileComments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        className="p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer"
-                        onClick={() => handleCommentClick(comment)}
+          : <div className="space-y-2">
+              {comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => handleCommentClick(comment)}
+                >
+                  <div className="flex items-center justify-between mb-2 gap-3">
+                    <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
+                      <span
+                        className="font-mono px-1 py-0.5 rounded overflow-hidden text-ellipsis whitespace-nowrap"
+                        style={{
+                          backgroundColor: 'var(--color-yellow-path-bg)',
+                          color: 'var(--color-yellow-path-text)',
+                        }}
                       >
-                        <div className="flex items-center justify-between mb-2 gap-3">
-                          <div className="flex items-center gap-2 text-xs text-github-text-secondary flex-1 min-w-0">
-                            <span
-                              className="font-mono px-1 py-0.5 rounded overflow-hidden text-ellipsis whitespace-nowrap"
-                              style={{
-                                backgroundColor: 'var(--color-yellow-path-bg)',
-                                color: 'var(--color-yellow-path-text)',
-                              }}
-                            >
-                              {file}:{formatLineNumber(comment.line).replace('L', '')}
-                            </span>
-                          </div>
-                          <button
-                            onClick={(e) => handleDeleteComment(e, comment.id)}
-                            className="text-xs p-1.5 bg-github-bg-tertiary text-green-600 border border-github-border rounded hover:bg-green-500/10 hover:border-green-600 transition-all"
-                            title="Resolve"
-                          >
-                            <Check size={12} />
-                          </button>
-                        </div>
-                        <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
-                          {comment.body}
-                        </div>
-                      </div>
-                    ))}
+                        {comment.file}:{formatLineNumber(comment.line).replace(/L/g, '')}
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteComment(e, comment.id)}
+                      className="text-xs p-1.5 bg-github-bg-tertiary text-green-600 border border-github-border rounded hover:bg-green-500/10 hover:border-green-600 transition-all"
+                      title="Resolve"
+                    >
+                      <Check size={12} />
+                    </button>
+                  </div>
+                  <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
+                    {comment.body}
                   </div>
                 </div>
               ))}

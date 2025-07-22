@@ -66,7 +66,7 @@ describe('CommentsListModal', () => {
     expect(screen.getByText('All Comments')).toBeInTheDocument();
   });
 
-  it('should display all comments grouped by file', () => {
+  it('should display all comments in a flat list', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
     render(
@@ -78,10 +78,6 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
       />
     );
-
-    // Check file headers
-    expect(screen.getByText('src/file1.ts')).toBeInTheDocument();
-    expect(screen.getByText('src/file2.ts')).toBeInTheDocument();
 
     // Check comment bodies
     expect(screen.getByText('First comment')).toBeInTheDocument();
@@ -102,16 +98,10 @@ describe('CommentsListModal', () => {
       />
     );
 
-    // Check that file paths and line numbers are displayed
-    const filePathSpans = screen.getAllByText((content, element) => {
-      return !!(
-        element?.className?.includes('font-mono') &&
-        element?.tagName === 'SPAN' &&
-        content.includes('src/')
-      );
-    });
-
-    expect(filePathSpans.length).toBe(3); // Three comments
+    // Check that file paths and line numbers are displayed correctly
+    expect(screen.getByText('src/file1.ts:10')).toBeInTheDocument();
+    expect(screen.getByText('src/file1.ts:20-25')).toBeInTheDocument();
+    expect(screen.getByText('src/file2.ts:42')).toBeInTheDocument();
   });
 
   it('should call onNavigate when clicking on a comment', () => {

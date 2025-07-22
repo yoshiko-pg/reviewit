@@ -258,16 +258,38 @@ function App() {
   };
 
   const handleNavigateToComment = (comment: Comment) => {
-    // Find the comment element and scroll to it
-    const commentId = `comment-${comment.id}`;
-    const element = document.getElementById(commentId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Add a temporary highlight effect
-      element.classList.add('ring-2', 'ring-yellow-500');
-      setTimeout(() => {
-        element.classList.remove('ring-2', 'ring-yellow-500');
-      }, 2000);
+    // Find the comment's position in the diff structure
+    if (!diffData) return;
+
+    const fileIndex = diffData.files.findIndex((f) => f.path === comment.file);
+    if (fileIndex === -1) return;
+
+    const file = diffData.files[fileIndex];
+    if (!file) return;
+
+    const targetLineNumber = Array.isArray(comment.line) ? comment.line[1] : comment.line;
+
+    // Find chunk and line index
+    for (let chunkIndex = 0; chunkIndex < file.chunks.length; chunkIndex++) {
+      const chunk = file.chunks[chunkIndex];
+      if (!chunk) continue;
+
+      for (let lineIndex = 0; lineIndex < chunk.lines.length; lineIndex++) {
+        const line = chunk.lines[lineIndex];
+        if (!line) continue;
+
+        const lineNumber = line.newLineNumber || line.oldLineNumber;
+        if (lineNumber === targetLineNumber) {
+          // Use setCursorPosition which will handle scrolling automatically
+          setCursorPosition({
+            fileIndex,
+            chunkIndex,
+            lineIndex,
+            side: line.newLineNumber ? 'right' : 'left',
+          });
+          return;
+        }
+      }
     }
   };
 
