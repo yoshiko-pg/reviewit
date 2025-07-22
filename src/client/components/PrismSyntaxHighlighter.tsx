@@ -1,4 +1,5 @@
-import { Highlight } from 'prism-react-renderer';
+import { Highlight, type Token } from 'prism-react-renderer';
+import React from 'react';
 
 import { getFileExtension, getFileName } from '../../utils/fileUtils';
 import { useHighlightedCode } from '../hooks/useHighlightedCode';
@@ -7,11 +8,18 @@ import { getSyntaxTheme } from '../utils/syntaxThemes';
 
 import type { AppearanceSettings } from './SettingsModal';
 
-interface PrismSyntaxHighlighterProps {
+export interface PrismSyntaxHighlighterProps {
   code: string;
   language?: string;
   className?: string;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  renderToken?: (
+    token: Token,
+    key: number,
+    getTokenProps: (options: { token: Token }) => Record<string, unknown>
+  ) => React.ReactNode;
+  onMouseOver?: (e: React.MouseEvent) => void;
+  onMouseOut?: (e: React.MouseEvent) => void;
 }
 
 // Detect language from file extension
@@ -94,6 +102,9 @@ export function PrismSyntaxHighlighter({
   language,
   className,
   syntaxTheme = 'vsDark',
+  renderToken,
+  onMouseOver,
+  onMouseOut,
 }: PrismSyntaxHighlighterProps) {
   const detectedLang = language || detectLanguage(currentFilename);
   const { actualLang } = useHighlightedCode(code, detectedLang);
@@ -105,12 +116,16 @@ export function PrismSyntaxHighlighter({
         <span
           className={className}
           style={{ ...style, background: 'transparent', backgroundColor: 'transparent' }}
+          onMouseOver={onMouseOver}
+          onMouseOut={onMouseOut}
         >
           {tokens.map((line, i) => (
             <span key={i} {...getLineProps({ line })}>
-              {line.map((token, key) => (
-                <span key={key} {...getTokenProps({ token })} />
-              ))}
+              {line.map((token, key) =>
+                renderToken ?
+                  renderToken(token, key, getTokenProps)
+                : <span key={key} {...getTokenProps({ token })} />
+              )}
             </span>
           ))}
         </span>

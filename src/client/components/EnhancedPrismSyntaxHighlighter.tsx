@@ -1,110 +1,20 @@
-import { Highlight, type Token } from 'prism-react-renderer';
+import { type Token } from 'prism-react-renderer';
 import React from 'react';
 
-import { getFileExtension, getFileName } from '../../utils/fileUtils';
 import { useWordHighlight } from '../contexts/WordHighlightContext';
-import { useHighlightedCode } from '../hooks/useHighlightedCode';
-import Prism from '../utils/prism';
-import { getSyntaxTheme } from '../utils/syntaxThemes';
 import { detectWords, type WordMatch } from '../utils/wordDetection';
 
-import type { AppearanceSettings } from './SettingsModal';
+import { PrismSyntaxHighlighter, type PrismSyntaxHighlighterProps } from './PrismSyntaxHighlighter';
 
-interface EnhancedPrismSyntaxHighlighterProps {
-  code: string;
-  language?: string;
-  className?: string;
-  syntaxTheme?: AppearanceSettings['syntaxTheme'];
-}
+type EnhancedPrismSyntaxHighlighterProps = Omit<
+  PrismSyntaxHighlighterProps,
+  'renderToken' | 'onMouseOver' | 'onMouseOut'
+>;
 
-// Detect language from file extension
-function detectLanguage(filename: string): string {
-  const basename = getFileName(filename).toLowerCase();
-  const ext = getFileExtension(filename);
-
-  // Check for special filenames first
-  const filenameMap: Record<string, string> = {
-    dockerfile: 'docker',
-    makefile: 'makefile',
-    '.gitignore': 'git',
-    '.env': 'bash',
-    '.bashrc': 'bash',
-    '.zshrc': 'bash',
-    '.bash_profile': 'bash',
-    '.profile': 'bash',
-  };
-
-  if (filenameMap[basename]) {
-    return filenameMap[basename];
-  }
-
-  const extensionMap: Record<string, string> = {
-    ts: 'typescript',
-    tsx: 'tsx',
-    js: 'javascript',
-    jsx: 'jsx',
-    json: 'json',
-    css: 'css',
-    scss: 'css',
-    html: 'html',
-    sh: 'bash',
-    bash: 'bash',
-    zsh: 'bash',
-    fish: 'bash',
-    yml: 'yaml',
-    yaml: 'yaml',
-    md: 'markdown',
-    py: 'python',
-    rb: 'ruby',
-    go: 'go',
-    rs: 'rust',
-    java: 'java',
-    cpp: 'cpp',
-    c: 'c',
-    php: 'php',
-    sql: 'sql',
-    xml: 'xml',
-    swift: 'swift',
-    kt: 'kotlin',
-    scala: 'scala',
-    r: 'r',
-    lua: 'lua',
-    perl: 'perl',
-    dockerfile: 'docker',
-    makefile: 'makefile',
-    gitignore: 'git',
-    env: 'bash',
-    conf: 'nginx',
-    ini: 'ini',
-    toml: 'toml',
-    sol: 'solidity',
-    vim: 'vim',
-    dart: 'dart',
-    cs: 'csharp',
-  };
-
-  return extensionMap[ext || ''] || 'text';
-}
-
-let currentFilename = '';
-
-export function setCurrentFilename(filename: string) {
-  currentFilename = filename;
-}
-
-export function EnhancedPrismSyntaxHighlighter({
-  code,
-  language,
-  className,
-  syntaxTheme = 'vsDark',
-}: EnhancedPrismSyntaxHighlighterProps) {
+export function EnhancedPrismSyntaxHighlighter(props: EnhancedPrismSyntaxHighlighterProps) {
   const { handleMouseOver, handleMouseOut, isWordHighlighted } = useWordHighlight();
-  const detectedLang = language || detectLanguage(currentFilename);
-  const { actualLang } = useHighlightedCode(code, detectedLang);
-  const theme = getSyntaxTheme(syntaxTheme);
 
-  // Helper function to render a token with word detection
-  const renderTokenWithWords = (
+  const renderToken = (
     token: Token,
     key: number,
     getTokenProps: (options: { token: Token }) => Record<string, unknown>
@@ -160,21 +70,14 @@ export function EnhancedPrismSyntaxHighlighter({
   };
 
   return (
-    <Highlight code={code} language={actualLang} theme={theme} prism={Prism}>
-      {({ style, tokens, getLineProps, getTokenProps }) => (
-        <span
-          className={className}
-          style={{ ...style, background: 'transparent', backgroundColor: 'transparent' }}
-          onMouseOver={handleMouseOver}
-          onMouseOut={handleMouseOut}
-        >
-          {tokens.map((line, i) => (
-            <span key={i} {...getLineProps({ line })}>
-              {line.map((token, key) => renderTokenWithWords(token, key, getTokenProps))}
-            </span>
-          ))}
-        </span>
-      )}
-    </Highlight>
+    <PrismSyntaxHighlighter
+      {...props}
+      renderToken={renderToken}
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
+    />
   );
 }
+
+// Re-export setCurrentFilename from PrismSyntaxHighlighter
+export { setCurrentFilename } from './PrismSyntaxHighlighter';

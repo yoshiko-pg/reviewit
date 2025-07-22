@@ -8,7 +8,18 @@ import { EnhancedPrismSyntaxHighlighter } from './EnhancedPrismSyntaxHighlighter
 
 // Mock PrismSyntaxHighlighter
 vi.mock('./PrismSyntaxHighlighter', () => ({
-  PrismSyntaxHighlighter: ({ code, className }: any) => <span className={className}>{code}</span>,
+  PrismSyntaxHighlighter: ({ code, className, renderToken, onMouseOver, onMouseOut }: any) => {
+    // For simplicity in tests, just create one token with the entire code
+    // This mimics how Prism might create a single token for plain text
+    return (
+      <span className={className} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+        {renderToken ?
+          renderToken({ content: code, types: [] }, 0, () => ({ className: 'token' }))
+        : <span>{code}</span>}
+      </span>
+    );
+  },
+  setCurrentFilename: vi.fn(),
 }));
 
 // Mock useWordHighlight
