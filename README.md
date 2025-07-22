@@ -91,6 +91,22 @@ For Enterprise Server PRs, you must set a token generated on YOUR Enterprise Ser
 | `--mode`         | side-by-side | Display mode: `inline` or `side-by-side`                               |
 | `--tui`          | false        | Use terminal UI mode instead of WebUI                                  |
 | `--clean`        | false        | Clear all existing comments on startup                                 |
+| `--watch`        | false        | Enable file watching mode with manual reload button (WebUI only)       |
+
+## 🔄 Watch Mode
+
+Add the `--watch` flag to monitor file changes and see a reload button when updates are detected:
+
+```bash
+npx difit --watch                    # Watch for changes
+npx difit . --watch                  # Watch working directory changes
+npx difit working --watch            # Watch staging area changes
+npx difit HEAD main --watch          # Watch when comparing branches
+```
+
+When changes are detected, an orange reload button appears in the WebUI. Click it to refresh the diff view.
+
+**Note**: Watch mode is currently available in WebUI only.
 
 ## 💬 Comment System
 
