@@ -14,8 +14,9 @@ import { GitDiffParser } from './git-diff.js';
 import { type Comment, type DiffResponse } from '@/types/diff.js';
 
 interface ServerOptions {
-  targetCommitish: string;
-  baseCommitish: string;
+  targetCommitish?: string;
+  baseCommitish?: string;
+  stdinDiff?: string;
   preferredPort?: number;
   host?: string;
   openBrowser?: boolean;
@@ -44,25 +45,33 @@ export async function startServer(
     next();
   });
 
-  const isValidCommit = await parser.validateCommit(options.targetCommitish);
-  if (!isValidCommit) {
-    throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
+  // Skip validation if using stdin diff
+  if (!options.stdinDiff) {
+    const isValidCommit = await parser.validateCommit(options.targetCommitish ?? '');
+    if (!isValidCommit) {
+      throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
+    }
   }
 
-  diffData = await parser.parseDiff(
-    options.targetCommitish,
-    options.baseCommitish,
-    currentIgnoreWhitespace
-  );
+  if (options.stdinDiff) {
+    // Parse stdin diff directly
+    diffData = parser.parseStdinDiff(options.stdinDiff);
+  } else {
+    diffData = await parser.parseDiff(
+      options.targetCommitish ?? '',
+      options.baseCommitish ?? '',
+      currentIgnoreWhitespace
+    );
+  }
 
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
-    if (ignoreWhitespace !== currentIgnoreWhitespace) {
+    if (ignoreWhitespace !== currentIgnoreWhitespace && !options.stdinDiff) {
       currentIgnoreWhitespace = ignoreWhitespace;
       diffData = await parser.parseDiff(
-        options.targetCommitish,
-        options.baseCommitish,
+        options.targetCommitish ?? '',
+        options.baseCommitish ?? '',
         ignoreWhitespace
       );
     }
@@ -71,14 +80,20 @@ export async function startServer(
       ...diffData,
       ignoreWhitespace,
       mode: diffMode,
-      baseCommitish: options.baseCommitish,
-      targetCommitish: options.targetCommitish,
+      baseCommitish: options.baseCommitish || 'stdin',
+      targetCommitish: options.targetCommitish || 'stdin',
       clearComments: options.clearComments,
     });
   });
 
   app.get(/^\/api\/blob\/(.*)$/, async (req, res) => {
     try {
+      // If using stdin diff, blob content is not available
+      if (options.stdinDiff) {
+        res.status(404).json({ error: 'Blob content not available for stdin diff' });
+        return;
+      }
+
       const filepath = req.params[0];
       const ref = (req.query.ref as string) || 'HEAD';
 

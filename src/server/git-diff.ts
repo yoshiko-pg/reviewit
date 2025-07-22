@@ -88,7 +88,14 @@ export class GitDiffParser {
       const block = `diff --git ${fileBlocks[i]}`;
       const summaryItem = summary[i];
 
-      if (!summaryItem) continue;
+      // For stdin diff, we don't have summary
+      if (!summaryItem) {
+        const file = this.parseFileBlock(block, null);
+        if (file) {
+          files.push(file);
+        }
+        continue;
+      }
 
       const file = this.parseFileBlock(block, summaryItem);
       if (file) {
@@ -101,7 +108,7 @@ export class GitDiffParser {
 
   private parseFileBlock(
     block: string,
-    summary: DiffResultTextFile | DiffResultBinaryFile
+    summary: DiffResultTextFile | DiffResultBinaryFile | null
   ): DiffFile | null {
     const lines = block.split('\n');
     const headerLine = lines[0];
@@ -138,8 +145,20 @@ export class GitDiffParser {
       status,
     };
 
+    // Parse chunks
+    const chunks = this.parseChunks(lines);
+
     // Handle different summary types
-    if ('binary' in summary && summary.binary) {
+    if (!summary) {
+      // No summary - count additions/deletions from chunks
+      const { additions, deletions } = this.countLinesFromChunks(chunks);
+      return {
+        ...baseFile,
+        additions,
+        deletions,
+        chunks,
+      };
+    } else if ('binary' in summary && summary.binary) {
       // Binary file
       return {
         ...baseFile,
@@ -148,14 +167,26 @@ export class GitDiffParser {
         chunks: [], // No chunks for binary files
       };
     } else {
-      // Text file
+      // Text file with summary
       return {
         ...baseFile,
         additions: summary.insertions,
         deletions: summary.deletions,
-        chunks: this.parseChunks(lines),
+        chunks,
       };
     }
+  }
+
+  private countLinesFromChunks(chunks: DiffChunk[]): { additions: number; deletions: number } {
+    let additions = 0;
+    let deletions = 0;
+    for (const chunk of chunks) {
+      for (const line of chunk.lines) {
+        if (line.type === 'add') additions++;
+        else if (line.type === 'delete') deletions++;
+      }
+    }
+    return { additions, deletions };
   }
 
   private parseChunks(lines: string[]): DiffChunk[] {
@@ -231,6 +262,21 @@ export class GitDiffParser {
     } catch {
       return false;
     }
+  }
+
+  parseStdinDiff(diffContent: string): DiffResponse {
+    // For stdin diff, we pass an empty summary array
+    // parseUnifiedDiff will handle it by counting additions/deletions from the actual diff content
+    const emptySummary: DiffResult['files'] = [];
+
+    // Use the existing parseUnifiedDiff method
+    const files = this.parseUnifiedDiff(diffContent, emptySummary);
+
+    return {
+      commit: 'stdin diff',
+      files,
+      isEmpty: files.length === 0,
+    };
   }
 
   async getBlobContent(filepath: string, ref: string): Promise<Buffer> {

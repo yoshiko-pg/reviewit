@@ -55,6 +55,33 @@ program
   .option('--clean', 'start with a clean slate by clearing all existing comments')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
+      // Check if we should read from stdin
+      const shouldReadStdin = !process.stdin.isTTY || commitish === '-';
+
+      if (shouldReadStdin) {
+        // Read unified diff from stdin
+        const diffContent = await readStdin();
+        if (!diffContent.trim()) {
+          console.error('Error: No diff content received from stdin');
+          process.exit(1);
+        }
+
+        // Start server with stdin diff
+        const { url } = await startServer({
+          stdinDiff: diffContent,
+          preferredPort: options.port,
+          host: options.host,
+          openBrowser: options.open,
+          mode: options.mode,
+          clearComments: options.clean,
+        });
+
+        console.log(`\n🚀 difit server started on ${url}`);
+        console.log(`📋 Reviewing: diff from stdin`);
+        console.log('\nPress Ctrl+C to stop the server');
+        return;
+      }
+
       // Determine target and base commitish
       let targetCommitish = commitish;
       let baseCommitish: string;
@@ -180,6 +207,14 @@ program
 program.parse();
 
 // Check for untracked files and prompt user to add them for diff visibility
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk as Buffer);
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 async function handleUntrackedFiles(git: SimpleGit): Promise<void> {
   const files = await findUntrackedFiles(git);
   if (files.length === 0) {
