@@ -176,6 +176,18 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <span className="text-github-text-secondary">Add comment at current line</span>
               </div>
               <div className="flex justify-between text-sm">
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    Shift
+                  </kbd>
+                  <span className="text-github-text-secondary">+</span>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    L
+                  </kbd>
+                </div>
+                <span className="text-github-text-secondary">View all comments list</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   .
                 </kbd>
