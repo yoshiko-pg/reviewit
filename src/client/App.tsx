@@ -540,7 +540,8 @@ function App() {
         isOpen={isCommentsListOpen}
         onClose={() => setIsCommentsListOpen(false)}
         onNavigate={handleNavigateToComment}
-        commitHash={diffData.commit}
+        comments={comments}
+        onRemoveComment={removeComment}
       />
     </div>
   );

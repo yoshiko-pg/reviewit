@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import type { Comment } from '../../types/diff';
-import * as useLocalCommentsModule from '../hooks/useLocalComments';
 
 import { CommentsListModal } from './CommentsListModal';
 
@@ -32,13 +31,6 @@ const mockComments: Comment[] = [
 
 const mockRemoveComment = vi.fn();
 
-vi.mock('../hooks/useLocalComments', () => ({
-  useLocalComments: vi.fn(() => ({
-    comments: mockComments,
-    removeComment: mockRemoveComment,
-  })),
-}));
-
 describe('CommentsListModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +40,13 @@ describe('CommentsListModal', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
     const { container } = render(
-      <CommentsListModal isOpen={false} onClose={onClose} onNavigate={onNavigate} />
+      <CommentsListModal
+        isOpen={false}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
     );
     expect(container.firstChild).toBeNull();
   });
@@ -56,14 +54,30 @@ describe('CommentsListModal', () => {
   it('should render when isOpen is true', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
     expect(screen.getByText('Comments List')).toBeInTheDocument();
   });
 
   it('should display all comments grouped by file', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     // Check file headers
     expect(screen.getByText('src/file1.ts')).toBeInTheDocument();
@@ -78,7 +92,15 @@ describe('CommentsListModal', () => {
   it('should display line numbers correctly', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     expect(screen.getByText('L10')).toBeInTheDocument();
     expect(screen.getByText('L20-L25')).toBeInTheDocument();
@@ -88,7 +110,15 @@ describe('CommentsListModal', () => {
   it('should call onNavigate when clicking on a comment', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     const firstComment = screen.getByText('First comment').closest('button');
     fireEvent.click(firstComment!);
@@ -97,11 +127,19 @@ describe('CommentsListModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('should call removeComment when delete button is clicked', () => {
+  it('should call onRemoveComment when delete button is clicked', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
 
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     const deleteButtons = screen.getAllByLabelText(/Delete comment/);
     fireEvent.click(deleteButtons[0]!);
@@ -110,19 +148,17 @@ describe('CommentsListModal', () => {
   });
 
   it('should show empty state when no comments', () => {
-    vi.mocked(useLocalCommentsModule.useLocalComments).mockReturnValueOnce({
-      comments: [],
-      removeComment: vi.fn(),
-      addComment: vi.fn(),
-      updateComment: vi.fn(),
-      clearAllComments: vi.fn(),
-      generatePrompt: vi.fn(),
-      generateAllCommentsPrompt: vi.fn(),
-    });
-
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={[]}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     expect(screen.getByText('No comments yet')).toBeInTheDocument();
   });
@@ -130,7 +166,15 @@ describe('CommentsListModal', () => {
   it('should call onClose when close button is clicked', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     const closeButton = screen.getByLabelText('Close comments list');
     fireEvent.click(closeButton);
@@ -141,7 +185,15 @@ describe('CommentsListModal', () => {
   it('should call onClose when Escape key is pressed', () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
-    render(<CommentsListModal isOpen={true} onClose={onClose} onNavigate={onNavigate} />);
+    render(
+      <CommentsListModal
+        isOpen={true}
+        onClose={onClose}
+        onNavigate={onNavigate}
+        comments={mockComments}
+        onRemoveComment={mockRemoveComment}
+      />
+    );
 
     fireEvent.keyDown(document, { key: 'Escape' });
 

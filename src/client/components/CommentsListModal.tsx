@@ -2,23 +2,22 @@ import { X, Trash2 } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
 import type { Comment } from '../../types/diff';
-import { useLocalComments } from '../hooks/useLocalComments';
 
 interface CommentsListModalProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (comment: Comment) => void;
-  commitHash?: string;
+  comments: Comment[];
+  onRemoveComment: (commentId: string) => void;
 }
 
 export function CommentsListModal({
   isOpen,
   onClose,
   onNavigate,
-  commitHash,
+  comments,
+  onRemoveComment,
 }: CommentsListModalProps) {
-  const { comments, removeComment } = useLocalComments(commitHash);
-
   // Group comments by file
   const commentsByFile = useMemo(() => {
     const grouped: Record<string, Comment[]> = {};
@@ -52,7 +51,7 @@ export function CommentsListModal({
 
   const handleDeleteComment = (e: React.MouseEvent, commentId: string) => {
     e.stopPropagation();
-    removeComment(commentId);
+    onRemoveComment(commentId);
   };
 
   const formatLineNumber = (line: number | [number, number]) => {
@@ -65,13 +64,13 @@ export function CommentsListModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-slate-800 rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-hidden">
-        <div className="p-6 border-b border-slate-700">
+      <div className="relative bg-github-bg-primary border border-github-border rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-hidden">
+        <div className="p-6 border-b border-github-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Comments List</h2>
+            <h2 className="text-xl font-semibold text-github-text-primary">Comments List</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-github-text-secondary hover:text-github-text-primary transition-colors"
               aria-label="Close comments list"
             >
               <X size={20} />
@@ -81,28 +80,30 @@ export function CommentsListModal({
 
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
           {comments.length === 0 ?
-            <p className="text-slate-400 text-center">No comments yet</p>
+            <p className="text-github-text-secondary text-center">No comments yet</p>
           : <div className="space-y-6">
               {Object.entries(commentsByFile).map(([file, fileComments]) => (
                 <div key={file}>
-                  <h3 className="text-sm font-medium text-slate-300 mb-3">{file}</h3>
+                  <h3 className="text-sm font-medium text-github-text-secondary mb-3">{file}</h3>
                   <div className="space-y-2">
                     {fileComments.map((comment) => (
                       <button
                         key={comment.id}
                         onClick={() => handleCommentClick(comment)}
-                        className="w-full text-left p-3 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors group"
+                        className="w-full text-left p-3 bg-github-bg-secondary hover:bg-github-bg-tertiary rounded-md transition-colors group"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <span className="text-xs text-slate-400 font-mono">
+                            <span className="text-xs text-github-text-secondary font-mono">
                               {formatLineNumber(comment.line)}
                             </span>
-                            <p className="text-sm text-white mt-1 break-words">{comment.body}</p>
+                            <p className="text-sm text-github-text-primary mt-1 break-words">
+                              {comment.body}
+                            </p>
                           </div>
                           <button
                             onClick={(e) => handleDeleteComment(e, comment.id)}
-                            className="ml-2 p-1 text-slate-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="ml-2 p-1 text-github-text-secondary hover:text-github-danger opacity-0 group-hover:opacity-100 transition-opacity"
                             aria-label={`Delete comment: ${comment.body}`}
                           >
                             <Trash2 size={16} />
