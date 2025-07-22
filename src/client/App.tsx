@@ -1,10 +1,11 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { type DiffResponse, type LineNumber } from '../types/diff';
+import { type DiffResponse, type LineNumber, type Comment } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { CommentsDropdown } from './components/CommentsDropdown';
+import { CommentsListModal } from './components/CommentsListModal';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
@@ -31,6 +32,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
   const [hasTriggeredSparkles, setHasTriggeredSparkles] = useState(false);
+  const [isCommentsListOpen, setIsCommentsListOpen] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -212,6 +214,20 @@ function App() {
     };
   }, [comments]);
 
+  // Handle keyboard shortcut for comments list
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Shift+L to open comments list
+      if (event.shiftKey && event.key === 'L') {
+        event.preventDefault();
+        setIsCommentsListOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Establish SSE connection for tab close detection
   useEffect(() => {
     const eventSource = new EventSource('/api/heartbeat');
@@ -249,6 +265,20 @@ function App() {
       setTimeout(() => setIsCopiedAll(false), 2000);
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
+    }
+  };
+
+  const handleNavigateToComment = (comment: Comment) => {
+    // Find the comment element and scroll to it
+    const commentId = `comment-${comment.id}`;
+    const element = document.getElementById(commentId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add a temporary highlight effect
+      element.classList.add('ring-2', 'ring-yellow-500');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-yellow-500');
+      }, 2000);
     }
   };
 
@@ -363,6 +393,7 @@ function App() {
                 isCopiedAll={isCopiedAll}
                 onCopyAll={handleCopyAllComments}
                 onDeleteAll={clearAllComments}
+                onViewAll={() => setIsCommentsListOpen(true)}
               />
             )}
             <div className="flex flex-col gap-1 items-center">
@@ -515,6 +546,13 @@ function App() {
       />
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      <CommentsListModal
+        isOpen={isCommentsListOpen}
+        onClose={() => setIsCommentsListOpen(false)}
+        onNavigate={handleNavigateToComment}
+        commitHash={diffData.commit}
+      />
     </div>
   );
 }
