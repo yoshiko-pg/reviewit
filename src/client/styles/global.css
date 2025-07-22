@@ -97,3 +97,26 @@ body,
   outline: 2px solid #4d7adb;
   outline-offset: -2px;
 }
+
+/* Word highlighting styles */
+.word-token {
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.word-highlight {
+  background-color: var(--word-highlight-color, #fffd54);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Dark theme word highlight */
+[data-theme='dark'] {
+  --word-highlight-color: rgba(255, 253, 84, 0.3);
+}
+
+/* Light theme word highlight */
+[data-theme='light'] {
+  --word-highlight-color: #fffd54;
+}
