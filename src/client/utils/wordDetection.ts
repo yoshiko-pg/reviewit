@@ -8,28 +8,7 @@ const WORD_REGEX = /[\w]+/g;
 const MIN_WORD_LENGTH = 2;
 const MAX_WORD_LENGTH = 100;
 
-const COMMON_KEYWORDS = new Set([
-  'if',
-  'for',
-  'var',
-  'let',
-  'const',
-  'function',
-  'return',
-  'class',
-  'new',
-  'this',
-  'true',
-  'false',
-  'null',
-  'undefined',
-  'import',
-  'export',
-  'from',
-  'as',
-  'async',
-  'await',
-]);
+// Removed keyword filtering to match Gerrit's behavior
 
 export function detectWords(text: string): WordMatch[] {
   const words: WordMatch[] = [];
@@ -53,10 +32,6 @@ export function detectWords(text: string): WordMatch[] {
 
 export function isValidWord(word: string): boolean {
   if (word.length < MIN_WORD_LENGTH || word.length > MAX_WORD_LENGTH) {
-    return false;
-  }
-
-  if (COMMON_KEYWORDS.has(word.toLowerCase())) {
     return false;
   }
 

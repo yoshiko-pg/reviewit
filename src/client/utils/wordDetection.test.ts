@@ -64,11 +64,13 @@ describe('wordDetection', () => {
       expect(isValidWord(maxLengthWord)).toBe(true);
     });
 
-    it('should reject common keywords to avoid noise', () => {
-      expect(isValidWord('if')).toBe(false);
-      expect(isValidWord('for')).toBe(false);
-      expect(isValidWord('var')).toBe(false);
-      expect(isValidWord('let')).toBe(false);
+    it('should accept keywords (no filtering)', () => {
+      expect(isValidWord('if')).toBe(true);
+      expect(isValidWord('for')).toBe(true);
+      expect(isValidWord('var')).toBe(true);
+      expect(isValidWord('let')).toBe(true);
+      expect(isValidWord('const')).toBe(true);
+      expect(isValidWord('function')).toBe(true);
     });
   });
 
@@ -128,11 +130,11 @@ describe('wordDetection', () => {
       expect(isWordToken('test()')).toBe(false);
     });
 
-    it('should return false for common keywords', () => {
-      expect(isWordToken('if')).toBe(false);
-      expect(isWordToken('for')).toBe(false);
-      expect(isWordToken('function')).toBe(false);
-      expect(isWordToken('class')).toBe(false);
+    it('should return true for keywords (no filtering)', () => {
+      expect(isWordToken('if')).toBe(true);
+      expect(isWordToken('for')).toBe(true);
+      expect(isWordToken('function')).toBe(true);
+      expect(isWordToken('class')).toBe(true);
     });
 
     it('should return false for too short words', () => {
