@@ -108,7 +108,6 @@ body,
 .word-highlight {
   background-color: var(--word-highlight-color, #fffd54);
   border-radius: 2px;
-  padding: 0 1px;
 }
 
 /* Dark theme word highlight */

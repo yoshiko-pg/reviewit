@@ -10,6 +10,19 @@ type EnhancedPrismSyntaxHighlighterProps = Omit<
   'renderToken' | 'onMouseOver' | 'onMouseOut'
 >;
 
+/**
+ * Syntax highlighter with interactive word highlighting.
+ *
+ * When hovering over a word in the code, all occurrences of that word
+ * are highlighted throughout the visible diff. This helps track variable
+ * usage and identify patterns in the code.
+ *
+ * Features:
+ * - Hover delay of 200ms to avoid accidental highlights
+ * - Case-insensitive word matching
+ * - Filters out single-character words
+ * - Preserves original syntax highlighting from Prism
+ */
 export function EnhancedPrismSyntaxHighlighter(props: EnhancedPrismSyntaxHighlighterProps) {
   const { handleMouseOver, handleMouseOut, isWordHighlighted } = useWordHighlight();
 
