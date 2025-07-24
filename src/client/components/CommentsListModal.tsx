@@ -118,27 +118,6 @@ export function CommentsListModal({
     [selectedIndex, sortedComments, handleDeleteComment]
   );
 
-  // Copy prompt for selected comment with 'c' key (only in comments-list scope)
-  useHotkeys(
-    'c',
-    () => {
-      if (sortedComments[selectedIndex]) {
-        const prompt = onGeneratePrompt(sortedComments[selectedIndex]);
-        navigator.clipboard
-          .writeText(prompt)
-          .then(() => {
-            // Optional: Add some visual feedback here
-            console.log('Comment prompt copied to clipboard');
-          })
-          .catch((error) => {
-            console.error('Failed to copy comment prompt:', error);
-          });
-      }
-    },
-    hotkeyOptions,
-    [selectedIndex, sortedComments, onGeneratePrompt]
-  );
-
   // Scroll selected comment into view
   useEffect(() => {
     if (commentRefs.current[selectedIndex]) {
@@ -169,8 +148,8 @@ export function CommentsListModal({
           <div className="text-xs text-github-text-secondary">
             <span className="font-mono">j/k</span> or <span className="font-mono">↑/↓</span> to
             navigate • <span className="font-mono">Enter</span> to jump •{' '}
-            <span className="font-mono">d</span> to delete • <span className="font-mono">c</span> to
-            copy prompt • <span className="font-mono">Esc</span> to close
+            <span className="font-mono">d</span> to delete • <span className="font-mono">Esc</span>{' '}
+            to close
           </div>
         </div>
 
