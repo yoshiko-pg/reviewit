@@ -1,6 +1,7 @@
 import type { DiffFile, Comment } from '../../../types/diff';
+import { getCommentKey } from '../../utils/navigation/domHelpers';
+import { hasContentOnSide } from '../../utils/navigation/lineHelpers';
 
-import { hasContentOnSide, getCommentKey } from './helpers';
 import type { CursorPosition, ViewMode } from './types';
 
 /**

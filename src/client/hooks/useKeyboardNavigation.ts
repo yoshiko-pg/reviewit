@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import type { Comment } from '../../types/diff';
 import { NAVIGATION_SELECTORS } from '../constants/navigation';
+import { getElementId, getCommentKey } from '../utils/navigation/domHelpers';
+import { fixSide, hasContentOnSide } from '../utils/navigation/lineHelpers';
 
 import {
   type CursorPosition,
@@ -10,10 +12,6 @@ import {
   type NavigationResult,
   type UseKeyboardNavigationProps,
   type UseKeyboardNavigationReturn,
-  getElementId,
-  fixSide,
-  getCommentKey,
-  hasContentOnSide,
   createNavigationFilters,
   createScrollToElement,
 } from './keyboardNavigation';

@@ -1,8 +1,7 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { type DiffResponse, type DiffFile, type LineNumber, type Comment } from '../types/diff';
-
+import { type DiffResponse, type LineNumber, type Comment } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { CommentsDropdown } from './components/CommentsDropdown';
@@ -14,11 +13,11 @@ import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
-import { type CursorPosition } from './hooks/keyboardNavigation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
 import { getFileElementId } from './utils/domUtils';
+import { findCommentPosition } from './utils/navigation/positionHelpers';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -258,49 +257,6 @@ function App() {
     } catch (error) {
       console.error('Failed to copy all comments prompt:', error);
     }
-  };
-
-  const findLinePosition = (
-    file: DiffFile,
-    targetLineNumber: number
-  ): { chunkIndex: number; lineIndex: number; side: 'left' | 'right' } | null => {
-    for (let chunkIndex = 0; chunkIndex < file.chunks.length; chunkIndex++) {
-      const chunk = file.chunks[chunkIndex];
-      if (!chunk) continue;
-
-      for (let lineIndex = 0; lineIndex < chunk.lines.length; lineIndex++) {
-        const line = chunk.lines[lineIndex];
-        if (!line) continue;
-
-        const lineNumber = line.newLineNumber || line.oldLineNumber;
-        if (lineNumber === targetLineNumber) {
-          return {
-            chunkIndex,
-            lineIndex,
-            side: line.newLineNumber ? 'right' : 'left',
-          };
-        }
-      }
-    }
-    return null;
-  };
-
-  const findCommentPosition = (comment: Comment, files: DiffFile[]): CursorPosition | null => {
-    const fileIndex = files.findIndex((f) => f.path === comment.file);
-    if (fileIndex === -1) return null;
-
-    const file = files[fileIndex];
-    if (!file) return null;
-
-    const targetLineNumber = Array.isArray(comment.line) ? comment.line[1] : comment.line;
-    const position = findLinePosition(file, targetLineNumber);
-
-    if (!position) return null;
-
-    return {
-      fileIndex,
-      ...position,
-    };
   };
 
   const handleNavigateToComment = (comment: Comment) => {
