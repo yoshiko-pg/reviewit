@@ -1,4 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { HotkeysProvider } from 'react-hotkeys-hook';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import type { Comment } from '../../types/diff';
@@ -6,7 +8,14 @@ import type { Comment } from '../../types/diff';
 import { CommentsListModal } from './CommentsListModal';
 
 // Mock react-hotkeys-hook
-vi.mock('react-hotkeys-hook');
+vi.mock('react-hotkeys-hook', () => ({
+  useHotkeys: vi.fn(),
+  useHotkeysContext: vi.fn(() => ({
+    enableScope: vi.fn(),
+    disableScope: vi.fn(),
+  })),
+  HotkeysProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 const mockComments: Comment[] = [
   {
@@ -36,10 +45,12 @@ const mockRemoveComment = vi.fn();
 const mockGeneratePrompt = vi.fn().mockReturnValue('test prompt');
 const mockUpdateComment = vi.fn();
 
+// Wrapper component for HotkeysProvider
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <HotkeysProvider initiallyActiveScopes={['global']}>{children}</HotkeysProvider>
+);
+
 describe('CommentsListModal', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -56,7 +67,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
     expect(container.firstChild).toBeNull();
   });
@@ -73,7 +85,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
     expect(screen.getByText('All Comments')).toBeInTheDocument();
   });
@@ -90,7 +103,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     // Check comment bodies
@@ -111,7 +125,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     // Check that file paths and line numbers are displayed correctly
@@ -132,7 +147,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     const firstComment = screen.getByText('First comment').closest('div');
@@ -155,7 +171,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     const deleteButtons = screen.getAllByTitle('Resolve');
@@ -176,7 +193,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     expect(screen.getByText('No comments yet')).toBeInTheDocument();
@@ -194,7 +212,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     const closeButton = screen.getByLabelText('Close comments list');
@@ -217,7 +236,8 @@ describe('CommentsListModal', () => {
         onRemoveComment={mockRemoveComment}
         onGeneratePrompt={mockGeneratePrompt}
         onUpdateComment={mockUpdateComment}
-      />
+      />,
+      { wrapper }
     );
 
     // Find the escape handler

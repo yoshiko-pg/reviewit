@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useHotkeys, useHotkeysContext } from 'react-hotkeys-hook';
 
 import type { Comment } from '../../types/diff';
 
@@ -27,6 +27,7 @@ export function CommentsListModal({
 }: CommentsListModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const commentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { enableScope, disableScope } = useHotkeysContext();
 
   // Sort comments by file path and line number
   const sortedComments = [...comments].sort((a, b) => {
@@ -60,15 +61,26 @@ export function CommentsListModal({
     },
     [onRemoveComment, selectedIndex, sortedComments.length]
   );
-  // Reset state when modal closes
+  // Reset state and manage scope when modal opens/closes
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      enableScope('comments-list');
+      disableScope('global');
+    } else {
+      disableScope('comments-list');
+      enableScope('global');
       setSelectedIndex(0);
     }
-  }, [isOpen]);
+
+    return () => {
+      // Cleanup: ensure global scope is enabled when component unmounts
+      enableScope('global');
+      disableScope('comments-list');
+    };
+  }, [isOpen, enableScope, disableScope]);
 
   // Keyboard shortcuts
-  const hotkeyOptions = { enabled: isOpen, enableOnFormTags: false };
+  const hotkeyOptions = { scopes: 'comments-list', enableOnFormTags: false };
 
   useHotkeys('escape', () => onClose(), hotkeyOptions, [onClose]);
 
@@ -92,6 +104,7 @@ export function CommentsListModal({
     [selectedIndex, sortedComments, handleCommentClick]
   );
 
+  // Delete selected comment with 'd' key (only in comments-list scope)
   useHotkeys(
     'd',
     () => {
@@ -101,6 +114,27 @@ export function CommentsListModal({
     },
     hotkeyOptions,
     [selectedIndex, sortedComments, handleDeleteComment]
+  );
+
+  // Copy prompt for selected comment with 'c' key (only in comments-list scope)
+  useHotkeys(
+    'c',
+    () => {
+      if (sortedComments[selectedIndex]) {
+        const prompt = onGeneratePrompt(sortedComments[selectedIndex]);
+        navigator.clipboard
+          .writeText(prompt)
+          .then(() => {
+            // Optional: Add some visual feedback here
+            console.log('Comment prompt copied to clipboard');
+          })
+          .catch((error) => {
+            console.error('Failed to copy comment prompt:', error);
+          });
+      }
+    },
+    hotkeyOptions,
+    [selectedIndex, sortedComments, onGeneratePrompt]
   );
 
   // Scroll selected comment into view
@@ -133,8 +167,8 @@ export function CommentsListModal({
           <div className="text-xs text-github-text-secondary">
             <span className="font-mono">j/k</span> or <span className="font-mono">↑/↓</span> to
             navigate • <span className="font-mono">Enter</span> to jump •{' '}
-            <span className="font-mono">d</span> to delete • <span className="font-mono">Esc</span>{' '}
-            to close
+            <span className="font-mono">d</span> to delete • <span className="font-mono">c</span> to
+            copy prompt • <span className="font-mono">Esc</span> to close
           </div>
         </div>
 

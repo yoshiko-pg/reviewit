@@ -30,8 +30,8 @@ export function useKeyboardNavigation({
   onToggleReviewed,
   onCreateComment,
   onCopyAllComments,
+  onDeleteAllComments,
   onShowCommentsList,
-  isModalOpen = false,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -292,51 +292,49 @@ export function useKeyboardNavigation({
 
   // Common options for all hotkeys
   const hotkeyOptions = {
-    enabled: !isModalOpen,
+    scopes: 'global',
     enableOnFormTags: false,
     preventDefault: true,
   };
 
   // Line navigation
-  useHotkeys('j, down', () => navigateToLine('next'), hotkeyOptions, [navigateToLine, isModalOpen]);
-  useHotkeys('k, up', () => navigateToLine('prev'), hotkeyOptions, [navigateToLine, isModalOpen]);
+  useHotkeys('j, down', () => navigateToLine('next'), hotkeyOptions, [navigateToLine]);
+  useHotkeys('k, up', () => navigateToLine('prev'), hotkeyOptions, [navigateToLine]);
 
   // Chunk navigation
-  useHotkeys('n', () => navigateToChunk('next'), hotkeyOptions, [navigateToChunk, isModalOpen]);
-  useHotkeys('p', () => navigateToChunk('prev'), hotkeyOptions, [navigateToChunk, isModalOpen]);
+  useHotkeys('n', () => navigateToChunk('next'), hotkeyOptions, [navigateToChunk]);
+  useHotkeys('p', () => navigateToChunk('prev'), hotkeyOptions, [navigateToChunk]);
 
   // Comment navigation
-  useHotkeys('shift+n', () => navigateToComment('next'), hotkeyOptions, [
-    navigateToComment,
-    isModalOpen,
-  ]);
-  useHotkeys('shift+p', () => navigateToComment('prev'), hotkeyOptions, [
-    navigateToComment,
-    isModalOpen,
-  ]);
+  useHotkeys('shift+n', () => navigateToComment('next'), hotkeyOptions, [navigateToComment]);
+  useHotkeys('shift+p', () => navigateToComment('prev'), hotkeyOptions, [navigateToComment]);
 
   // File navigation
-  useHotkeys(']', () => navigateToFile('next'), { ...hotkeyOptions, useKey: true }, [
-    navigateToFile,
-    isModalOpen,
-  ]);
-  useHotkeys('[', () => navigateToFile('prev'), { ...hotkeyOptions, useKey: true }, [
-    navigateToFile,
-    isModalOpen,
-  ]);
+  useHotkeys(
+    ']',
+    () => navigateToFile('next'),
+    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    [navigateToFile]
+  );
+  useHotkeys(
+    '[',
+    () => navigateToFile('prev'),
+    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    [navigateToFile]
+  );
 
   // Side switching (side-by-side mode only)
   useHotkeys(
     'h, left',
     () => switchSide('left'),
-    { ...hotkeyOptions, enabled: !isModalOpen && viewMode === 'side-by-side' },
-    [switchSide, viewMode, isModalOpen]
+    { ...hotkeyOptions, enabled: viewMode === 'side-by-side' },
+    [switchSide, viewMode]
   );
   useHotkeys(
     'l, right',
     () => switchSide('right'),
-    { ...hotkeyOptions, enabled: !isModalOpen && viewMode === 'side-by-side' },
-    [switchSide, viewMode, isModalOpen]
+    { ...hotkeyOptions, enabled: viewMode === 'side-by-side' },
+    [switchSide, viewMode]
   );
 
   // File review toggle
@@ -351,7 +349,7 @@ export function useKeyboardNavigation({
       }
     },
     hotkeyOptions,
-    [cursor, files, onToggleReviewed, isModalOpen]
+    [cursor, files, onToggleReviewed]
   );
 
   // Comment creation
@@ -368,22 +366,26 @@ export function useKeyboardNavigation({
       }
     },
     hotkeyOptions,
-    [cursor, files, onCreateComment, isModalOpen]
+    [cursor, files, onCreateComment]
   );
 
   // Help toggle
-  useHotkeys('?', () => setIsHelpOpen(!isHelpOpen), { ...hotkeyOptions, useKey: true }, [
-    isHelpOpen,
-    isModalOpen,
-  ]);
+  useHotkeys(
+    '?',
+    () => setIsHelpOpen(!isHelpOpen),
+    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    [isHelpOpen]
+  );
 
   // Move to center of viewport
-  useHotkeys('.', () => moveToCenterOfViewport(), { ...hotkeyOptions, useKey: true }, [
-    moveToCenterOfViewport,
-    isModalOpen,
-  ]);
+  useHotkeys(
+    '.',
+    () => moveToCenterOfViewport(),
+    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    [moveToCenterOfViewport]
+  );
 
-  // Copy all comments prompt
+  // Copy all comments prompt - available in both global and comments-list scopes
   useHotkeys(
     'shift+c',
     () => {
@@ -391,8 +393,20 @@ export function useKeyboardNavigation({
         onCopyAllComments();
       }
     },
-    hotkeyOptions,
-    [onCopyAllComments, isModalOpen]
+    { ...hotkeyOptions, scopes: ['global', 'comments-list'] },
+    [onCopyAllComments]
+  );
+
+  // Delete all comments - available in both global and comments-list scopes
+  useHotkeys(
+    'shift+d',
+    () => {
+      if (onDeleteAllComments) {
+        onDeleteAllComments();
+      }
+    },
+    { ...hotkeyOptions, scopes: ['global', 'comments-list'] },
+    [onDeleteAllComments]
   );
 
   // Show comments list
@@ -404,7 +418,7 @@ export function useKeyboardNavigation({
       }
     },
     hotkeyOptions,
-    [onShowCommentsList, isModalOpen]
+    [onShowCommentsList]
   );
 
   return {
