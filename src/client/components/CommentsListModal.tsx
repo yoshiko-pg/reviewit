@@ -25,8 +25,19 @@ export function CommentsListModal({
   onUpdateComment,
 }: CommentsListModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const commentRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Sort comments by file path and line number
+  const sortedComments = [...comments].sort((a, b) => {
+    // First sort by file path
+    const fileCompare = a.file.localeCompare(b.file);
+    if (fileCompare !== 0) return fileCompare;
+
+    // Then sort by line number
+    const aLine = Array.isArray(a.line) ? a.line[0] : a.line;
+    const bLine = Array.isArray(b.line) ? b.line[0] : b.line;
+    return aLine - bLine;
+  });
 
   const handleCommentClick = useCallback(
     (comment: Comment) => {
@@ -41,30 +52,21 @@ export function CommentsListModal({
       if (confirm(`Delete this comment?\n\n"${comment.body}"`)) {
         onRemoveComment(comment.id);
         // Adjust selected index if needed
-        if (selectedIndex >= comments.length - 1 && selectedIndex > 0) {
+        if (selectedIndex >= sortedComments.length - 1 && selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
         }
       }
     },
-    [onRemoveComment, selectedIndex, comments.length]
+    [onRemoveComment, selectedIndex, sortedComments.length]
   );
   useEffect(() => {
     if (!isOpen) {
       // Reset state when modal closes
       setSelectedIndex(0);
-      setEditingCommentId(null);
       return;
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't handle shortcuts if editing
-      if (editingCommentId) {
-        if (e.key === 'Escape') {
-          setEditingCommentId(null);
-        }
-        return;
-      }
-
       switch (e.key) {
         case 'Escape':
           onClose();
@@ -72,7 +74,7 @@ export function CommentsListModal({
         case 'j':
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex((prev) => Math.min(prev + 1, comments.length - 1));
+          setSelectedIndex((prev) => Math.min(prev + 1, sortedComments.length - 1));
           break;
         case 'k':
         case 'ArrowUp':
@@ -81,20 +83,14 @@ export function CommentsListModal({
           break;
         case 'Enter':
           e.preventDefault();
-          if (comments[selectedIndex]) {
-            handleCommentClick(comments[selectedIndex]);
-          }
-          break;
-        case 'c':
-          e.preventDefault();
-          if (comments[selectedIndex]) {
-            setEditingCommentId(comments[selectedIndex].id);
+          if (sortedComments[selectedIndex]) {
+            handleCommentClick(sortedComments[selectedIndex]);
           }
           break;
         case 'd':
           e.preventDefault();
-          if (comments[selectedIndex]) {
-            handleDeleteComment(comments[selectedIndex]);
+          if (sortedComments[selectedIndex]) {
+            handleDeleteComment(sortedComments[selectedIndex]);
           }
           break;
       }
@@ -102,15 +98,7 @@ export function CommentsListModal({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [
-    isOpen,
-    onClose,
-    selectedIndex,
-    comments,
-    editingCommentId,
-    handleCommentClick,
-    handleDeleteComment,
-  ]);
+  }, [isOpen, onClose, selectedIndex, sortedComments, handleCommentClick, handleDeleteComment]);
 
   // Scroll selected comment into view
   useEffect(() => {
@@ -142,18 +130,18 @@ export function CommentsListModal({
           <div className="text-xs text-github-text-secondary">
             <span className="font-mono">j/k</span> or <span className="font-mono">↑/↓</span> to
             navigate • <span className="font-mono">Enter</span> to jump •{' '}
-            <span className="font-mono">c</span> to edit • <span className="font-mono">d</span> to
-            delete • <span className="font-mono">Esc</span> to close
+            <span className="font-mono">d</span> to delete • <span className="font-mono">Esc</span>{' '}
+            to close
           </div>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
           <div className="p-6">
-            {comments.length === 0 ?
+            {sortedComments.length === 0 ?
               <p className="text-github-text-secondary text-center">No comments yet</p>
             : <>
                 <div className="space-y-2">
-                  {comments.map((comment, index) => (
+                  {sortedComments.map((comment, index) => (
                     <div
                       key={comment.id}
                       ref={(el) => {
@@ -165,25 +153,19 @@ export function CommentsListModal({
                         comment={comment}
                         onGeneratePrompt={onGeneratePrompt}
                         onRemoveComment={onRemoveComment}
-                        onUpdateComment={(id, body) => {
-                          onUpdateComment(id, body);
-                          setEditingCommentId(null);
-                        }}
-                        onClick={() => {
+                        onUpdateComment={onUpdateComment}
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedIndex(index);
                           handleCommentClick(comment);
                         }}
-                        isClickable={true}
-                        isEditing={editingCommentId === comment.id}
-                        onStartEdit={() => setEditingCommentId(comment.id)}
-                        onCancelEdit={() => setEditingCommentId(null)}
                       />
                     </div>
                   ))}
                 </div>
-                {comments.length > 0 && (
+                {sortedComments.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-github-border text-xs text-github-text-secondary text-center">
-                    {selectedIndex + 1} of {comments.length} comments
+                    {selectedIndex + 1} of {sortedComments.length} comments
                   </div>
                 )}
               </>
