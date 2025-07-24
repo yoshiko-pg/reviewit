@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useHotkeys, useHotkeysContext } from 'react-hotkeys-hook';
+import { useEffect } from 'react';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -7,8 +8,26 @@ interface HelpModalProps {
 }
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+  const { enableScope, disableScope } = useHotkeysContext();
+
   // Handle Escape key to close modal
   useHotkeys('escape', () => onClose(), { enabled: isOpen }, [onClose, isOpen]);
+
+  // Manage scopes when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      // Disable global scope when help modal is open
+      disableScope('global');
+    } else {
+      // Re-enable global scope when modal closes
+      enableScope('global');
+    }
+
+    return () => {
+      // Cleanup: ensure global scope is enabled
+      enableScope('global');
+    };
+  }, [isOpen, enableScope, disableScope]);
 
   if (!isOpen) return null;
 

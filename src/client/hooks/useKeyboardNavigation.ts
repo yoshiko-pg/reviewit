@@ -421,6 +421,7 @@ export function useKeyboardNavigation({
     [onShowCommentsList]
   );
 
+
   return {
     cursor,
     isHelpOpen,

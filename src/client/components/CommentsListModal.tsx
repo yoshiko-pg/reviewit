@@ -64,11 +64,13 @@ export function CommentsListModal({
   // Reset state and manage scope when modal opens/closes
   useEffect(() => {
     if (isOpen) {
+      // Enable the modal scope first, then disable global
       enableScope('comments-list');
       disableScope('global');
     } else {
-      disableScope('comments-list');
+      // Enable global first, then disable modal scope
       enableScope('global');
+      disableScope('comments-list');
       setSelectedIndex(0);
     }
 
