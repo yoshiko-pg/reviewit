@@ -1,6 +1,5 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { HotkeysProvider } from 'react-hotkeys-hook';
 
 import { type DiffResponse, type LineNumber, type Comment } from '../types/diff';
 
@@ -299,11 +298,8 @@ function App() {
     );
   }
 
-  console.log('[App] Initializing HotkeysProvider with navigation scope');
-
   return (
-    <HotkeysProvider initiallyActiveScopes={['navigation']}>
-      <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
         <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
           <div
             className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
@@ -550,8 +546,7 @@ function App() {
           onGeneratePrompt={generatePrompt}
           onUpdateComment={updateComment}
         />
-      </div>
-    </HotkeysProvider>
+    </div>
   );
 }
 
