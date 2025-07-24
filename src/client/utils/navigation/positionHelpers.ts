@@ -4,13 +4,15 @@ import type { CursorPosition } from '../../hooks/keyboardNavigation/types';
 /**
  * Finds the position of a specific line number within a file's diff chunks
  * @param file The diff file to search in
+ * @param fileIndex The index of the file in the files array
  * @param targetLineNumber The line number to find
- * @returns The position including chunk index, line index, and side, or null if not found
+ * @returns The cursor position including file, chunk, and line indices, or null if not found
  */
 export function findLinePosition(
   file: DiffFile,
+  fileIndex: number,
   targetLineNumber: number
-): { chunkIndex: number; lineIndex: number; side: 'left' | 'right' } | null {
+): CursorPosition | null {
   for (let chunkIndex = 0; chunkIndex < file.chunks.length; chunkIndex++) {
     const chunk = file.chunks[chunkIndex];
     if (!chunk) continue;
@@ -22,6 +24,7 @@ export function findLinePosition(
       const lineNumber = line.newLineNumber || line.oldLineNumber;
       if (lineNumber === targetLineNumber) {
         return {
+          fileIndex,
           chunkIndex,
           lineIndex,
           side: line.newLineNumber ? 'right' : 'left',
@@ -46,12 +49,5 @@ export function findCommentPosition(comment: Comment, files: DiffFile[]): Cursor
   if (!file) return null;
 
   const targetLineNumber = Array.isArray(comment.line) ? comment.line[1] : comment.line;
-  const position = findLinePosition(file, targetLineNumber);
-
-  if (!position) return null;
-
-  return {
-    fileIndex,
-    ...position,
-  };
+  return findLinePosition(file, fileIndex, targetLineNumber);
 }
