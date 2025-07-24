@@ -300,7 +300,7 @@ function App() {
   }
 
   return (
-    <HotkeysProvider initiallyActiveScopes={['global']}>
+    <HotkeysProvider initiallyActiveScopes={['navigation']}>
       <div className="h-screen flex flex-col">
         <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
           <div

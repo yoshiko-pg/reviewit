@@ -292,7 +292,7 @@ export function useKeyboardNavigation({
 
   // Common options for all hotkeys
   const hotkeyOptions = {
-    scopes: 'global',
+    scopes: 'navigation',
     enableOnFormTags: false,
     preventDefault: true,
   };
@@ -313,13 +313,13 @@ export function useKeyboardNavigation({
   useHotkeys(
     ']',
     () => navigateToFile('next'),
-    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    { ...hotkeyOptions, useKey: true },
     [navigateToFile]
   );
   useHotkeys(
     '[',
     () => navigateToFile('prev'),
-    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    { ...hotkeyOptions, useKey: true },
     [navigateToFile]
   );
 
@@ -373,7 +373,7 @@ export function useKeyboardNavigation({
   useHotkeys(
     '?',
     () => setIsHelpOpen(!isHelpOpen),
-    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    { ...hotkeyOptions, useKey: true },
     [isHelpOpen]
   );
 
@@ -381,11 +381,11 @@ export function useKeyboardNavigation({
   useHotkeys(
     '.',
     () => moveToCenterOfViewport(),
-    { ...hotkeyOptions, useKey: true, scopes: 'global' },
+    { ...hotkeyOptions, useKey: true },
     [moveToCenterOfViewport]
   );
 
-  // Copy all comments prompt - available in both global and comments-list scopes
+  // Copy all comments prompt - available in both navigation and comments-list scopes
   useHotkeys(
     'shift+c',
     () => {
@@ -393,11 +393,11 @@ export function useKeyboardNavigation({
         onCopyAllComments();
       }
     },
-    { ...hotkeyOptions, scopes: ['global', 'comments-list'] },
+    { ...hotkeyOptions, scopes: ['navigation', 'comments-list'] },
     [onCopyAllComments]
   );
 
-  // Delete all comments - available in both global and comments-list scopes
+  // Delete all comments - available in both navigation and comments-list scopes
   useHotkeys(
     'shift+d',
     () => {
@@ -405,7 +405,7 @@ export function useKeyboardNavigation({
         onDeleteAllComments();
       }
     },
-    { ...hotkeyOptions, scopes: ['global', 'comments-list'] },
+    { ...hotkeyOptions, scopes: ['navigation', 'comments-list'] },
     [onDeleteAllComments]
   );
 
