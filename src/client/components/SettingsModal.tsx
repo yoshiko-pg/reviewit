@@ -53,16 +53,20 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
 
   // Manage scopes when modal opens/closes
   useEffect(() => {
+    console.log(`[SettingsModal] isOpen changed to: ${isOpen}`);
     if (isOpen) {
       // Disable navigation scope when settings modal is open
+      console.log('[SettingsModal] Opening - disabling navigation scope');
       disableScope('navigation');
     } else {
       // Re-enable navigation scope when modal closes
+      console.log('[SettingsModal] Closing - enabling navigation scope');
       enableScope('navigation');
     }
 
     return () => {
       // Cleanup: ensure navigation scope is enabled
+      console.log('[SettingsModal] Cleanup - enabling navigation scope');
       enableScope('navigation');
     };
   }, [isOpen, enableScope, disableScope]);

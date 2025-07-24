@@ -33,6 +33,7 @@ export function useKeyboardNavigation({
   onDeleteAllComments,
   onShowCommentsList,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
+  console.log('[useKeyboardNavigation] Hook initialized');
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -298,8 +299,14 @@ export function useKeyboardNavigation({
   };
 
   // Line navigation
-  useHotkeys('j, down', () => navigateToLine('next'), hotkeyOptions, [navigateToLine]);
-  useHotkeys('k, up', () => navigateToLine('prev'), hotkeyOptions, [navigateToLine]);
+  useHotkeys('j, down', () => {
+    console.log('[Navigation] J key pressed - navigating to next line');
+    navigateToLine('next');
+  }, hotkeyOptions, [navigateToLine]);
+  useHotkeys('k, up', () => {
+    console.log('[Navigation] K key pressed - navigating to previous line');
+    navigateToLine('prev');
+  }, hotkeyOptions, [navigateToLine]);
 
   // Chunk navigation
   useHotkeys('n', () => navigateToChunk('next'), hotkeyOptions, [navigateToChunk]);
@@ -421,6 +428,25 @@ export function useKeyboardNavigation({
     [onShowCommentsList]
   );
 
+  // Debug: Test hotkey that should always work (no scope)
+  useHotkeys(
+    'shift+s',
+    () => {
+      console.log('[Debug] Shift+S pressed - this should ALWAYS work (no scope restriction)');
+    },
+    { enableOnFormTags: false, preventDefault: true },
+    []
+  );
+
+  // Debug: Test navigation scope
+  useHotkeys(
+    'shift+t',
+    () => {
+      console.log('[Debug] Shift+T pressed - this should only work when navigation scope is active');
+    },
+    { scopes: 'navigation', enableOnFormTags: false, preventDefault: true },
+    []
+  );
 
   return {
     cursor,

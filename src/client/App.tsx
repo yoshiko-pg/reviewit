@@ -299,6 +299,8 @@ function App() {
     );
   }
 
+  console.log('[App] Initializing HotkeysProvider with navigation scope');
+
   return (
     <HotkeysProvider initiallyActiveScopes={['navigation']}>
       <div className="h-screen flex flex-col">
