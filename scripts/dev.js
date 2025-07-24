@@ -2,12 +2,19 @@
 import { spawn } from 'child_process';
 
 const commitish = process.argv[2] || 'HEAD';
+const compareWith = process.argv[3];
 const CLI_SERVER_READY_MESSAGE = 'difit server started';
 
 console.log('🚀 Starting CLI server...');
 
 // Start CLI server
-const cliProcess = spawn('pnpm', ['run', 'dev:cli', commitish, '--no-open'], {
+const cliArgs = ['run', 'dev:cli', commitish];
+if (compareWith) {
+  cliArgs.push(compareWith);
+}
+cliArgs.push('--no-open');
+
+const cliProcess = spawn('pnpm', cliArgs, {
   // Pipe stdout to capture CLI server ready
   stdio: ['inherit', 'pipe', 'inherit'],
   shell: true,
@@ -26,7 +33,7 @@ cliProcess.stdout.on('data', (data) => {
   if (!cliReady && output.includes(CLI_SERVER_READY_MESSAGE)) {
     cliReady = true;
     console.log('🎨 Starting Vite dev server...');
-    viteProcess = spawn('vite', ['--open'], {
+    viteProcess = spawn('pnpm', ['exec', 'vite', '--open'], {
       stdio: 'inherit',
       shell: true,
     });
@@ -44,6 +51,8 @@ process.on('SIGINT', () => {
 cliProcess.on('exit', (code) => {
   if (code !== 0) {
     console.error(`CLI server exited with code ${code}`);
-    process.exit(code);
   }
+  // Kill vite process when CLI exits
+  viteProcess?.kill('SIGINT');
+  process.exit(code || 0);
 });
