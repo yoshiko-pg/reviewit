@@ -147,48 +147,48 @@ export function CommentsListModal({
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-          {comments.length === 0 ?
-            <p className="text-github-text-secondary text-center">No comments yet</p>
-          : <>
-              <div className="space-y-0">
-                {comments.map((comment, index) => (
-                  <div
-                    key={comment.id}
-                    ref={(el) => {
-                      commentRefs.current[index] = el;
-                    }}
-                    className={`relative ${
-                      selectedIndex === index ? 'ring-2 ring-blue-500 rounded' : ''
-                    }`}
-                  >
-                    <InlineComment
-                      comment={comment}
-                      onGeneratePrompt={onGeneratePrompt}
-                      onRemoveComment={onRemoveComment}
-                      onUpdateComment={(id, body) => {
-                        onUpdateComment(id, body);
-                        setEditingCommentId(null);
+        <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
+          <div className="p-6">
+            {comments.length === 0 ?
+              <p className="text-github-text-secondary text-center">No comments yet</p>
+            : <>
+                <div className="space-y-2">
+                  {comments.map((comment, index) => (
+                    <div
+                      key={comment.id}
+                      ref={(el) => {
+                        commentRefs.current[index] = el;
                       }}
-                      onClick={() => {
-                        setSelectedIndex(index);
-                        handleCommentClick(comment);
-                      }}
-                      isClickable={true}
-                      isEditing={editingCommentId === comment.id}
-                      onStartEdit={() => setEditingCommentId(comment.id)}
-                      onCancelEdit={() => setEditingCommentId(null)}
-                    />
-                  </div>
-                ))}
-              </div>
-              {comments.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-github-border text-xs text-github-text-secondary text-center">
-                  {selectedIndex + 1} of {comments.length} comments
+                      className={`${selectedIndex === index ? 'ring-2 ring-blue-500 rounded' : ''}`}
+                    >
+                      <InlineComment
+                        comment={comment}
+                        onGeneratePrompt={onGeneratePrompt}
+                        onRemoveComment={onRemoveComment}
+                        onUpdateComment={(id, body) => {
+                          onUpdateComment(id, body);
+                          setEditingCommentId(null);
+                        }}
+                        onClick={() => {
+                          setSelectedIndex(index);
+                          handleCommentClick(comment);
+                        }}
+                        isClickable={true}
+                        isEditing={editingCommentId === comment.id}
+                        onStartEdit={() => setEditingCommentId(comment.id)}
+                        onCancelEdit={() => setEditingCommentId(null)}
+                      />
+                    </div>
+                  ))}
                 </div>
-              )}
-            </>
-          }
+                {comments.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-github-border text-xs text-github-text-secondary text-center">
+                    {selectedIndex + 1} of {comments.length} comments
+                  </div>
+                )}
+              </>
+            }
+          </div>
         </div>
       </div>
     </div>

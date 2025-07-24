@@ -95,7 +95,7 @@ export function InlineComment({
   return (
     <div
       id={`comment-${comment.id}`}
-      className={`m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm transition-all ${
+      className={`p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm transition-all ${
         isClickable ? 'hover:shadow-md cursor-pointer' : ''
       }`}
       onClick={isClickable ? onClick : undefined}
