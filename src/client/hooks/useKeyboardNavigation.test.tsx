@@ -1,21 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
+import { HotkeysProvider } from 'react-hotkeys-hook';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import type { DiffFile } from '../../types/diff';
 
 import { useKeyboardNavigation } from './useKeyboardNavigation';
-
-// Mock react-hotkeys-hook
-vi.mock('react-hotkeys-hook', () => ({
-  useHotkeys: vi.fn(),
-  useHotkeysContext: vi.fn(() => ({
-    enableScope: vi.fn(),
-    disableScope: vi.fn(),
-  })),
-  HotkeysProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
 
 // Mock scrollIntoView and getElementById
 Element.prototype.scrollIntoView = vi.fn();
@@ -111,7 +102,9 @@ const mockFiles: DiffFile[] = [
 ];
 
 // Wrapper component - using the mocked HotkeysProvider
-const wrapper = ({ children }: { children: React.ReactNode }) => children as React.ReactElement;
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <HotkeysProvider initiallyActiveScopes={['navigation']}>{children}</HotkeysProvider>
+);
 
 describe('useKeyboardNavigation', () => {
   beforeEach(() => {
@@ -688,7 +681,7 @@ describe('useKeyboardNavigation', () => {
   });
 
   describe('Scope handling', () => {
-    it('should use global scope for hotkeys', () => {
+    it('should use navigation scope for hotkeys', () => {
       const { result } = renderHook(
         () =>
           useKeyboardNavigation({

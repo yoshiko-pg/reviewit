@@ -63,27 +63,20 @@ export function CommentsListModal({
   );
   // Reset state and manage scope when modal opens/closes
   useEffect(() => {
-    console.log(`[CommentsListModal] isOpen changed to: ${isOpen}`);
     if (isOpen) {
       // Enable the modal scope first, then disable navigation
-      console.log('[CommentsListModal] Opening - enabling comments-list scope');
       enableScope('comments-list');
-      console.log('[CommentsListModal] Opening - disabling navigation scope');
       disableScope('navigation');
     } else {
       // Enable navigation first, then disable modal scope
-      console.log('[CommentsListModal] Closing - enabling navigation scope');
       enableScope('navigation');
-      console.log('[CommentsListModal] Closing - disabling comments-list scope');
       disableScope('comments-list');
       setSelectedIndex(0);
     }
 
     return () => {
       // Cleanup: ensure navigation scope is enabled when component unmounts
-      console.log('[CommentsListModal] Cleanup - enabling navigation scope');
       enableScope('navigation');
-      console.log('[CommentsListModal] Cleanup - disabling comments-list scope');
       disableScope('comments-list');
     };
   }, [isOpen, enableScope, disableScope]);

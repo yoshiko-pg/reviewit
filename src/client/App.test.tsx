@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { HotkeysProvider } from 'react-hotkeys-hook';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 
@@ -47,6 +48,15 @@ Object.defineProperty(window, 'EventSource', {
 let mockComments: any[] = [];
 const mockClearAllComments = vi.fn();
 
+// Helper to render App with HotkeysProvider
+const renderApp = () => {
+  return render(
+    <HotkeysProvider initiallyActiveScopes={['navigation']}>
+      <App />
+    </HotkeysProvider>
+  );
+};
+
 const mockDiffResponse: DiffResponse = {
   commit: 'abc123',
   files: [
@@ -75,7 +85,7 @@ describe('App Component - Clear Comments Functionality', () => {
     it('should not show delete button when no comments exist', async () => {
       mockComments = [];
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         // Cleanup All Prompt should not be visible without comments (dropdown doesn't exist)
@@ -95,7 +105,7 @@ describe('App Component - Clear Comments Functionality', () => {
         },
       ];
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         // Find and click the dropdown toggle button (chevron)
@@ -114,7 +124,7 @@ describe('App Component - Clear Comments Functionality', () => {
         { id: '2', file: 'test.ts', line: 20, body: 'Comment 2', timestamp: '2024-01-01' },
       ];
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         // First, open the dropdown
@@ -140,7 +150,7 @@ describe('App Component - Clear Comments Functionality', () => {
 
       mockFetch(responseWithClearFlag);
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(mockClearAllComments).toHaveBeenCalled();
@@ -155,7 +165,7 @@ describe('App Component - Clear Comments Functionality', () => {
 
       mockFetch(responseWithoutClearFlag);
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(mockClearAllComments).not.toHaveBeenCalled();
@@ -170,7 +180,7 @@ describe('App Component - Clear Comments Functionality', () => {
 
       mockFetch(responseWithoutFlag);
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(mockClearAllComments).not.toHaveBeenCalled();
@@ -187,7 +197,7 @@ describe('App Component - Clear Comments Functionality', () => {
 
       mockFetch(responseWithClearFlag);
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(consoleLogSpy).toHaveBeenCalledWith(

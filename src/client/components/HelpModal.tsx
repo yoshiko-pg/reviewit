@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
-import { useHotkeys, useHotkeysContext } from 'react-hotkeys-hook';
 import { useEffect } from 'react';
+import { useHotkeys, useHotkeysContext } from 'react-hotkeys-hook';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -15,20 +15,16 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
   // Manage scopes when modal opens/closes
   useEffect(() => {
-    console.log(`[HelpModal] isOpen changed to: ${isOpen}`);
     if (isOpen) {
       // Disable navigation scope when help modal is open
-      console.log('[HelpModal] Opening - disabling navigation scope');
       disableScope('navigation');
     } else {
       // Re-enable navigation scope when modal closes
-      console.log('[HelpModal] Closing - enabling navigation scope');
       enableScope('navigation');
     }
 
     return () => {
       // Cleanup: ensure navigation scope is enabled
-      console.log('[HelpModal] Cleanup - enabling navigation scope');
       enableScope('navigation');
     };
   }, [isOpen, enableScope, disableScope]);

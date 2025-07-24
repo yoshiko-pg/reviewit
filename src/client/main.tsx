@@ -11,8 +11,6 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-console.log('[main.tsx] Initializing HotkeysProvider with navigation scope');
-
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <HotkeysProvider initiallyActiveScopes={['navigation']}>

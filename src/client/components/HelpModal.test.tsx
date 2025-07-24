@@ -4,7 +4,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HelpModal } from './HelpModal';
 
 // Mock react-hotkeys-hook
-vi.mock('react-hotkeys-hook');
+vi.mock('react-hotkeys-hook', () => ({
+  useHotkeys: vi.fn(),
+  useHotkeysContext: vi.fn(() => ({
+    enableScope: vi.fn(),
+    disableScope: vi.fn(),
+  })),
+  HotkeysProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 describe('HelpModal', () => {
   beforeEach(() => {
