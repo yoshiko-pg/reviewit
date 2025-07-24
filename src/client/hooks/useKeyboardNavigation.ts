@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import type { Comment } from '../../types/diff';
 import { NAVIGATION_SELECTORS } from '../constants/navigation';
@@ -289,181 +290,122 @@ export function useKeyboardNavigation({
     [files, viewMode, scrollToElement]
   );
 
-  // Handle keyboard events
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      // Ignore all keyboard shortcuts when modal is open
-      if (isModalOpen) {
-        return;
-      }
+  // Common options for all hotkeys
+  const hotkeyOptions = {
+    enabled: !isModalOpen,
+    enableOnFormTags: false,
+    preventDefault: true,
+  };
 
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
+  // Line navigation
+  useHotkeys('j, down', () => navigateToLine('next'), hotkeyOptions, [navigateToLine, isModalOpen]);
+  useHotkeys('k, up', () => navigateToLine('prev'), hotkeyOptions, [navigateToLine, isModalOpen]);
 
-      // Ignore keyboard shortcuts when modifier keys are pressed (except for Shift)
-      if (event.ctrlKey || event.metaKey || event.altKey) {
-        return;
-      }
+  // Chunk navigation
+  useHotkeys('n', () => navigateToChunk('next'), hotkeyOptions, [navigateToChunk, isModalOpen]);
+  useHotkeys('p', () => navigateToChunk('prev'), hotkeyOptions, [navigateToChunk, isModalOpen]);
 
-      switch (event.key) {
-        // Line navigation
-        case 'j':
-          event.preventDefault();
-          navigateToLine('next');
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          navigateToLine('next');
-          break;
-        case 'k':
-          event.preventDefault();
-          navigateToLine('prev');
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          navigateToLine('prev');
-          break;
+  // Comment navigation
+  useHotkeys('shift+n', () => navigateToComment('next'), hotkeyOptions, [
+    navigateToComment,
+    isModalOpen,
+  ]);
+  useHotkeys('shift+p', () => navigateToComment('prev'), hotkeyOptions, [
+    navigateToComment,
+    isModalOpen,
+  ]);
 
-        // Chunk navigation
-        case 'n':
-          event.preventDefault();
-          navigateToChunk('next');
-          break;
-        case 'p':
-          event.preventDefault();
-          navigateToChunk('prev');
-          break;
+  // File navigation
+  useHotkeys(']', () => navigateToFile('next'), { ...hotkeyOptions, useKey: true }, [
+    navigateToFile,
+    isModalOpen,
+  ]);
+  useHotkeys('[', () => navigateToFile('prev'), { ...hotkeyOptions, useKey: true }, [
+    navigateToFile,
+    isModalOpen,
+  ]);
 
-        // Comment navigation
-        case 'N':
-          if (event.shiftKey) {
-            event.preventDefault();
-            navigateToComment('next');
-          }
-          break;
-        case 'P':
-          if (event.shiftKey) {
-            event.preventDefault();
-            navigateToComment('prev');
-          }
-          break;
-
-        // File navigation
-        case ']':
-          event.preventDefault();
-          navigateToFile('next');
-          break;
-        case '[':
-          event.preventDefault();
-          navigateToFile('prev');
-          break;
-
-        // Side switching (side-by-side mode only)
-        case 'h':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('left');
-          }
-          break;
-        case 'ArrowLeft':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('left');
-          }
-          break;
-        case 'l':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('right');
-          }
-          break;
-        case 'ArrowRight':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('right');
-          }
-          break;
-
-        // File review toggle
-        case 'r':
-          event.preventDefault();
-          if (cursor) {
-            const file = files[cursor.fileIndex];
-            if (file) {
-              onToggleReviewed(file.path);
-            }
-          }
-          break;
-
-        // Comment creation
-        case 'c':
-          event.preventDefault();
-          if (cursor && onCreateComment) {
-            // Get the current line
-            const line =
-              files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
-            // Only create comment if not on a deleted line
-            if (line && line.type !== 'delete') {
-              onCreateComment();
-            }
-          }
-          break;
-
-        // Help toggle
-        case '?':
-          event.preventDefault();
-          setIsHelpOpen(!isHelpOpen);
-          break;
-
-        // Move to center of viewport
-        case '.':
-          event.preventDefault();
-          moveToCenterOfViewport();
-          break;
-
-        // Copy all comments prompt
-        case 'C':
-          if (event.shiftKey && onCopyAllComments) {
-            event.preventDefault();
-            onCopyAllComments();
-          }
-          break;
-
-        // Show comments list
-        case 'L':
-          if (event.shiftKey && onShowCommentsList) {
-            event.preventDefault();
-            onShowCommentsList();
-          }
-          break;
-      }
-    },
-    [
-      navigateToLine,
-      navigateToChunk,
-      navigateToComment,
-      navigateToFile,
-      switchSide,
-      viewMode,
-      cursor,
-      files,
-      onToggleReviewed,
-      onCreateComment,
-      onCopyAllComments,
-      onShowCommentsList,
-      isHelpOpen,
-      moveToCenterOfViewport,
-      isModalOpen,
-    ]
+  // Side switching (side-by-side mode only)
+  useHotkeys(
+    'h, left',
+    () => switchSide('left'),
+    { ...hotkeyOptions, enabled: !isModalOpen && viewMode === 'side-by-side' },
+    [switchSide, viewMode, isModalOpen]
+  );
+  useHotkeys(
+    'l, right',
+    () => switchSide('right'),
+    { ...hotkeyOptions, enabled: !isModalOpen && viewMode === 'side-by-side' },
+    [switchSide, viewMode, isModalOpen]
   );
 
-  // Register keyboard event listener
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  // File review toggle
+  useHotkeys(
+    'r',
+    () => {
+      if (cursor) {
+        const file = files[cursor.fileIndex];
+        if (file) {
+          onToggleReviewed(file.path);
+        }
+      }
+    },
+    hotkeyOptions,
+    [cursor, files, onToggleReviewed, isModalOpen]
+  );
+
+  // Comment creation
+  useHotkeys(
+    'c',
+    () => {
+      if (cursor && onCreateComment) {
+        // Get the current line
+        const line = files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+        // Only create comment if not on a deleted line
+        if (line && line.type !== 'delete') {
+          onCreateComment();
+        }
+      }
+    },
+    hotkeyOptions,
+    [cursor, files, onCreateComment, isModalOpen]
+  );
+
+  // Help toggle
+  useHotkeys('?', () => setIsHelpOpen(!isHelpOpen), { ...hotkeyOptions, useKey: true }, [
+    isHelpOpen,
+    isModalOpen,
+  ]);
+
+  // Move to center of viewport
+  useHotkeys('.', () => moveToCenterOfViewport(), { ...hotkeyOptions, useKey: true }, [
+    moveToCenterOfViewport,
+    isModalOpen,
+  ]);
+
+  // Copy all comments prompt
+  useHotkeys(
+    'shift+c',
+    () => {
+      if (onCopyAllComments) {
+        onCopyAllComments();
+      }
+    },
+    hotkeyOptions,
+    [onCopyAllComments, isModalOpen]
+  );
+
+  // Show comments list
+  useHotkeys(
+    'shift+l',
+    () => {
+      if (onShowCommentsList) {
+        onShowCommentsList();
+      }
+    },
+    hotkeyOptions,
+    [onShowCommentsList, isModalOpen]
+  );
 
   return {
     cursor,

@@ -1,5 +1,6 @@
 import { Check, Edit2, Save, X } from 'lucide-react';
 import { useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import { type Comment } from '../../types/diff';
 
@@ -45,8 +46,8 @@ export function InlineComment({
     setEditedBody(comment.body);
   };
 
-  const handleSaveEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleSaveEdit = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (editedBody.trim() !== comment.body) {
       onUpdateComment(comment.id, editedBody.trim());
     }
@@ -57,6 +58,29 @@ export function InlineComment({
     e.stopPropagation();
     onRemoveComment(comment.id);
   };
+
+  // Keyboard shortcuts for editing
+  useHotkeys(
+    'escape',
+    () => {
+      if (isEditing) {
+        handleCancelEdit();
+      }
+    },
+    { enableOnFormTags: ['textarea'], enabled: isEditing },
+    [isEditing]
+  );
+
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (isEditing) {
+        handleSaveEdit();
+      }
+    },
+    { enableOnFormTags: ['textarea'], enabled: isEditing },
+    [isEditing, editedBody, comment.body]
+  );
 
   return (
     <div
@@ -151,17 +175,8 @@ export function InlineComment({
           autoFocus
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.stopPropagation();
-              handleCancelEdit();
-            } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              e.stopPropagation();
-              e.preventDefault();
-              if (editedBody.trim() !== comment.body) {
-                onUpdateComment(comment.id, editedBody.trim());
-              }
-              setIsEditing(false);
-            }
+            // Stop propagation to prevent triggering parent keyboard handlers
+            e.stopPropagation();
           }}
         />
       )}

@@ -5,6 +5,9 @@ import type { Comment } from '../../types/diff';
 
 import { CommentsListModal } from './CommentsListModal';
 
+// Mock react-hotkeys-hook
+vi.mock('react-hotkeys-hook');
+
 const mockComments: Comment[] = [
   {
     id: '1',
@@ -34,6 +37,9 @@ const mockGeneratePrompt = vi.fn().mockReturnValue('test prompt');
 const mockUpdateComment = vi.fn();
 
 describe('CommentsListModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -197,9 +203,11 @@ describe('CommentsListModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onClose when Escape key is pressed', () => {
+  it('should call onClose when Escape key is pressed', async () => {
     const onClose = vi.fn();
     const onNavigate = vi.fn();
+    const { useHotkeys } = await import('react-hotkeys-hook');
+
     render(
       <CommentsListModal
         isOpen={true}
@@ -212,8 +220,13 @@ describe('CommentsListModal', () => {
       />
     );
 
-    fireEvent.keyDown(document, { key: 'Escape' });
+    // Find the escape handler
+    const calls = (useHotkeys as any).mock.calls;
+    const escapeCall = calls.find((call: any) => call[0] === 'escape');
+    expect(escapeCall).toBeDefined();
 
+    // Call the handler
+    escapeCall[1]();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import type { Comment } from '../../types/diff';
 
@@ -59,46 +60,48 @@ export function CommentsListModal({
     },
     [onRemoveComment, selectedIndex, sortedComments.length]
   );
+  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      // Reset state when modal closes
       setSelectedIndex(0);
-      return;
     }
+  }, [isOpen]);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'Escape':
-          onClose();
-          break;
-        case 'j':
-        case 'ArrowDown':
-          e.preventDefault();
-          setSelectedIndex((prev) => Math.min(prev + 1, sortedComments.length - 1));
-          break;
-        case 'k':
-        case 'ArrowUp':
-          e.preventDefault();
-          setSelectedIndex((prev) => Math.max(prev - 1, 0));
-          break;
-        case 'Enter':
-          e.preventDefault();
-          if (sortedComments[selectedIndex]) {
-            handleCommentClick(sortedComments[selectedIndex]);
-          }
-          break;
-        case 'd':
-          e.preventDefault();
-          if (sortedComments[selectedIndex]) {
-            handleDeleteComment(sortedComments[selectedIndex]);
-          }
-          break;
+  // Keyboard shortcuts
+  const hotkeyOptions = { enabled: isOpen, enableOnFormTags: false };
+
+  useHotkeys('escape', () => onClose(), hotkeyOptions, [onClose]);
+
+  useHotkeys(
+    'j, down',
+    () => setSelectedIndex((prev) => Math.min(prev + 1, sortedComments.length - 1)),
+    hotkeyOptions,
+    [sortedComments.length]
+  );
+
+  useHotkeys('k, up', () => setSelectedIndex((prev) => Math.max(prev - 1, 0)), hotkeyOptions, []);
+
+  useHotkeys(
+    'enter',
+    () => {
+      if (sortedComments[selectedIndex]) {
+        handleCommentClick(sortedComments[selectedIndex]);
       }
-    };
+    },
+    hotkeyOptions,
+    [selectedIndex, sortedComments, handleCommentClick]
+  );
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, selectedIndex, sortedComments, handleCommentClick, handleDeleteComment]);
+  useHotkeys(
+    'd',
+    () => {
+      if (sortedComments[selectedIndex]) {
+        handleDeleteComment(sortedComments[selectedIndex]);
+      }
+    },
+    hotkeyOptions,
+    [selectedIndex, sortedComments, handleDeleteComment]
+  );
 
   // Scroll selected comment into view
   useEffect(() => {

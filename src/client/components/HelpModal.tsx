@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -7,18 +7,8 @@ interface HelpModalProps {
 }
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  // Handle Escape key to close modal
+  useHotkeys('escape', () => onClose(), { enabled: isOpen }, [onClose, isOpen]);
 
   if (!isOpen) return null;
 
