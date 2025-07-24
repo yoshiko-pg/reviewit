@@ -1,9 +1,23 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { HelpModal } from './HelpModal';
 
+// Mock react-hotkeys-hook
+vi.mock('react-hotkeys-hook', () => ({
+  useHotkeys: vi.fn(),
+  useHotkeysContext: vi.fn(() => ({
+    enableScope: vi.fn(),
+    disableScope: vi.fn(),
+  })),
+  HotkeysProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 describe('HelpModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('should not render when isOpen is false', () => {
     const onClose = vi.fn();
     const { container } = render(<HelpModal isOpen={false} onClose={onClose} />);
@@ -39,44 +53,38 @@ describe('HelpModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onClose when Escape key is pressed', () => {
+  it('should register escape hotkey when open', async () => {
     const onClose = vi.fn();
+    const { useHotkeys } = await import('react-hotkeys-hook');
+
     render(<HelpModal isOpen={true} onClose={onClose} />);
 
-    fireEvent.keyDown(document, { key: 'Escape' });
+    // Check that useHotkeys was called with escape key
+    expect(useHotkeys).toHaveBeenCalledWith('escape', expect.any(Function), { enabled: true }, [
+      onClose,
+      true,
+    ]);
 
+    // Get the handler that was registered and call it
+    const calls = (useHotkeys as any).mock.calls;
+    const escapeCall = calls.find((call: any) => call[0] === 'escape');
+    expect(escapeCall).toBeDefined();
+
+    // Call the handler
+    escapeCall[1]();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call onClose for other keys', () => {
+  it('should not register escape hotkey when closed', async () => {
     const onClose = vi.fn();
-    render(<HelpModal isOpen={true} onClose={onClose} />);
-
-    fireEvent.keyDown(document, { key: 'Enter' });
-    fireEvent.keyDown(document, { key: 'a' });
-
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it('should remove event listener when unmounted', () => {
-    const onClose = vi.fn();
-    const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
-
-    const { unmount } = render(<HelpModal isOpen={true} onClose={onClose} />);
-    unmount();
-
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
-  });
-
-  it('should not add event listener when isOpen is false', () => {
-    const onClose = vi.fn();
-    const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+    const { useHotkeys } = await import('react-hotkeys-hook');
 
     render(<HelpModal isOpen={false} onClose={onClose} />);
 
-    // The addEventListener might be called by other components,
-    // so we check if it's called with our specific handler
-    const keydownCalls = addEventListenerSpy.mock.calls.filter((call) => call[0] === 'keydown');
-    expect(keydownCalls.length).toBe(0);
+    // Check that useHotkeys was called with enabled: false
+    expect(useHotkeys).toHaveBeenCalledWith('escape', expect.any(Function), { enabled: false }, [
+      onClose,
+      false,
+    ]);
   });
 });

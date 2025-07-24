@@ -1,6 +1,7 @@
 import type { DiffFile } from '../../../types/diff';
+import { getElementId } from '../../utils/navigation/domHelpers';
+import { fixSide } from '../../utils/navigation/lineHelpers';
 
-import { fixSide, getElementId } from './helpers';
 import type {
   CursorPosition,
   NavigationDirection,

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { HotkeysProvider } from 'react-hotkeys-hook';
 
 import App from './App';
 import './styles/global.css';
@@ -12,6 +13,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <HotkeysProvider initiallyActiveScopes={['navigation']}>
+      <App />
+    </HotkeysProvider>
   </React.StrictMode>
 );

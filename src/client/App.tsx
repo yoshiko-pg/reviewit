@@ -1,10 +1,11 @@
 import { Columns, AlignLeft, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { type DiffResponse, type LineNumber } from '../types/diff';
+import { type DiffResponse, type LineNumber, type Comment } from '../types/diff';
 
 import { Checkbox } from './components/Checkbox';
 import { CommentsDropdown } from './components/CommentsDropdown';
+import { CommentsListModal } from './components/CommentsListModal';
 import { DiffViewer } from './components/DiffViewer';
 import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
@@ -16,6 +17,7 @@ import { useAppearanceSettings } from './hooks/useAppearanceSettings';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
 import { getFileElementId } from './utils/domUtils';
+import { findCommentPosition } from './utils/navigation/positionHelpers';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
@@ -31,6 +33,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
   const [hasTriggeredSparkles, setHasTriggeredSparkles] = useState(false);
+  const [isCommentsListOpen, setIsCommentsListOpen] = useState(false);
 
   const { settings, updateSettings } = useAppearanceSettings();
 
@@ -91,6 +94,14 @@ function App() {
       if (comments.length > 0) {
         void handleCopyAllComments();
       }
+    },
+    onDeleteAllComments: () => {
+      if (comments.length > 0 && confirm('Delete all comments?')) {
+        clearAllComments();
+      }
+    },
+    onShowCommentsList: () => {
+      setIsCommentsListOpen(true);
     },
   });
 
@@ -252,6 +263,15 @@ function App() {
     }
   };
 
+  const handleNavigateToComment = (comment: Comment) => {
+    if (!diffData) return;
+
+    const position = findCommentPosition(comment, diffData.files);
+    if (position) {
+      setCursorPosition(position);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-github-bg-primary">
@@ -363,6 +383,7 @@ function App() {
                 isCopiedAll={isCopiedAll}
                 onCopyAll={handleCopyAllComments}
                 onDeleteAll={clearAllComments}
+                onViewAll={() => setIsCommentsListOpen(true)}
               />
             )}
             <div className="flex flex-col gap-1 items-center">
@@ -515,6 +536,16 @@ function App() {
       />
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      <CommentsListModal
+        isOpen={isCommentsListOpen}
+        onClose={() => setIsCommentsListOpen(false)}
+        onNavigate={handleNavigateToComment}
+        comments={comments}
+        onRemoveComment={removeComment}
+        onGeneratePrompt={generatePrompt}
+        onUpdateComment={updateComment}
+      />
     </div>
   );
 }

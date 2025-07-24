@@ -1,4 +1,4 @@
-import { Copy, Eraser, ChevronDown, Check } from 'lucide-react';
+import { Copy, Eraser, ChevronDown, Check, List } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 interface CommentsDropdownProps {
@@ -6,6 +6,7 @@ interface CommentsDropdownProps {
   isCopiedAll: boolean;
   onCopyAll: () => void;
   onDeleteAll: () => void;
+  onViewAll?: () => void;
 }
 
 export function CommentsDropdown({
@@ -13,6 +14,7 @@ export function CommentsDropdown({
   isCopiedAll,
   onCopyAll,
   onDeleteAll,
+  onViewAll,
 }: CommentsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,11 @@ export function CommentsDropdown({
 
   const handleDeleteAll = () => {
     onDeleteAll();
+    setIsOpen(false);
+  };
+
+  const handleViewAll = () => {
+    onViewAll?.();
     setIsOpen(false);
   };
 
@@ -100,6 +107,16 @@ export function CommentsDropdown({
             borderTop: 'none',
           }}
         >
+          {onViewAll && (
+            <button
+              onClick={handleViewAll}
+              className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 text-github-text-primary hover:bg-github-bg-tertiary transition-colors"
+              disabled={commentsCount === 0}
+            >
+              <List size={12} />
+              View All Comments
+            </button>
+          )}
           <button
             onClick={handleDeleteAll}
             className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 text-github-text-primary hover:bg-github-bg-tertiary transition-colors"

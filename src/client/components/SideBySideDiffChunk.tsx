@@ -538,7 +538,7 @@ export function SideBySideDiffChunk({
                               : 'justify-center'
                             }`}
                           >
-                            <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'}`}>
+                            <div className={`${layout === 'full' ? 'w-full' : 'w-1/2'} m-2 mx-4`}>
                               <InlineComment
                                 comment={comment}
                                 onGeneratePrompt={onGeneratePrompt}

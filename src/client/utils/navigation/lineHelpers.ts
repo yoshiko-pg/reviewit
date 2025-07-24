@@ -1,15 +1,5 @@
 import type { DiffFile } from '../../../types/diff';
-
-import type { CursorPosition, ViewMode } from './types';
-
-/**
- * Creates a DOM element ID from a cursor position
- * Format: file-{fileIndex}-chunk-{chunkIndex}-line-{lineIndex}[-{side}]
- */
-export function getElementId(position: CursorPosition, viewMode: ViewMode): string {
-  const baseId = `file-${position.fileIndex}-chunk-${position.chunkIndex}-line-${position.lineIndex}`;
-  return viewMode === 'side-by-side' ? `${baseId}-${position.side}` : baseId;
-}
+import type { CursorPosition } from '../../hooks/keyboardNavigation/types';
 
 /**
  * Gets the line type at a given position
@@ -54,11 +44,4 @@ export function fixSide(position: CursorPosition, files: DiffFile[]): CursorPosi
     return { ...position, side: position.side === 'left' ? 'right' : 'left' };
   }
   return position;
-}
-
-/**
- * Creates a comment lookup key from file path and line number
- */
-export function getCommentKey(filePath: string, lineNumber: number): string {
-  return `${filePath}:${lineNumber}`;
 }
