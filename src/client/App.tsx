@@ -10,9 +10,11 @@ import { FileList } from './components/FileList';
 import { GitHubIcon } from './components/GitHubIcon';
 import { HelpModal } from './components/HelpModal';
 import { Logo } from './components/Logo';
+import { ReloadButton } from './components/ReloadButton';
 import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useFileWatch } from './hooks/useFileWatch';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useLocalComments } from './hooks/useLocalComments';
 import { getFileElementId } from './utils/domUtils';
@@ -71,6 +73,11 @@ function App() {
     chunkIndex: number;
     lineIndex: number;
   } | null>(null);
+
+  // File watch for reload functionality - initialize with callback
+  const { shouldReload, reload, watchState } = useFileWatch(async () => {
+    await fetchDiffData();
+  });
 
   const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
@@ -365,6 +372,13 @@ function App() {
               onChange={setIgnoreWhitespace}
               label="Ignore Whitespace"
               title={ignoreWhitespace ? 'Show whitespace changes' : 'Ignore whitespace changes'}
+            />
+            {/* File Watch Reload Button */}
+            <ReloadButton
+              shouldReload={shouldReload}
+              isReloading={watchState.isReloading}
+              onReload={reload}
+              changeType={watchState.lastChangeType}
             />
           </div>
           <div className="flex items-center gap-4 text-sm text-github-text-secondary">
