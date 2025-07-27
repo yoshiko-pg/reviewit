@@ -41,7 +41,7 @@ npx difit feature  # featureブランチの最新コミット
 ### 2つのコミットを比較
 
 ```bash
-npx difit HEAD main      # HEADとmainブランチを比較
+npx difit @ main         # mainブランチと比較（@はHEADのエイリアス）
 npx difit feature main   # ブランチ間を比較
 npx difit . origin/main  # 作業ディレクトリとリモートmainを比較
 ```
@@ -75,6 +75,21 @@ Enterprise ServerのPRを表示する場合、あなたのEnterprise Serverイ�
 1. `https://YOUR-ENTERPRISE-SERVER/settings/tokens`にアクセス
 2. 適切なスコープでパーソナルアクセストークンを生成
 3. `GITHUB_TOKEN`環境変数として設定
+
+### 標準入力
+
+パイプを使用して標準入力経由で統一diff形式を渡すことで、任意のツールからのdiffをdifitで表示できます。
+
+```bash
+# 他のツールからのdiffを表示
+diff -u file1.txt file2.txt | npx difit
+
+# 保存されたパッチをレビュー
+cat changes.patch | npx difit
+
+# マージベースとの比較
+git diff --merge-base main feature | npx difit
+```
 
 ## ⚙️ CLIオプション
 

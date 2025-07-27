@@ -41,7 +41,7 @@ npx difit feature  # feature 分支上的最新提交
 ### 比较两个提交
 
 ```bash
-npx difit HEAD main      # 比较 HEAD 与 main 分支
+npx difit @ main         # 与 main 分支比较（@ 是 HEAD 的别名）
 npx difit feature main   # 比较分支
 npx difit . origin/main  # 比较工作目录与远程 main
 ```
@@ -75,6 +75,21 @@ difit 使用以下方式自动处理 GitHub 认证：
 1. 转到 `https://YOUR-ENTERPRISE-SERVER/settings/tokens`
 2. 生成具有适当范围的个人访问令牌
 3. 将其设置为 `GITHUB_TOKEN` 环境变量
+
+### 标准输入
+
+通过使用管道通过标准输入传递统一差异，您可以使用 difit 查看来自任何工具的差异。
+
+```bash
+# 查看来自其他工具的差异
+diff -u file1.txt file2.txt | npx difit
+
+# 审查保存的补丁
+cat changes.patch | npx difit
+
+# 与合并基础比较
+git diff --merge-base main feature | npx difit
+```
 
 ## ⚙️ CLI 选项
 

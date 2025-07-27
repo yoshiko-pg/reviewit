@@ -41,7 +41,7 @@ npx difit feature  # feature 브랜치의 최신 커밋
 ### 두 커밋 비교
 
 ```bash
-npx difit HEAD main      # HEAD와 main 브랜치 비교
+npx difit @ main         # main 브랜치와 비교 (@는 HEAD의 별칭)
 npx difit feature main   # 브랜치 간 비교
 npx difit . origin/main  # 작업 디렉토리와 원격 main 비교
 ```
@@ -75,6 +75,21 @@ Enterprise Server PR의 경우 귀하의 Enterprise Server 인스턴스에서 �
 1. `https://YOUR-ENTERPRISE-SERVER/settings/tokens`로 이동
 2. 적절한 범위로 개인 액세스 토큰 생성
 3. `GITHUB_TOKEN` 환경 변수로 설정
+
+### 표준 입력
+
+파이프를 사용하여 표준 입력을 통해 통합 diff를 전달하면 모든 도구의 diff를 difit으로 볼 수 있습니다.
+
+```bash
+# 다른 도구의 diff 보기
+diff -u file1.txt file2.txt | npx difit
+
+# 저장된 패치 검토
+cat changes.patch | npx difit
+
+# 머지 베이스와 비교
+git diff --merge-base main feature | npx difit
+```
 
 ## ⚙️ CLI 옵션
 

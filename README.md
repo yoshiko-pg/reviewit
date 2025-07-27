@@ -41,9 +41,7 @@ npx difit feature  # Latest commit on feature branch
 ### Compare two commits
 
 ```bash
-npx difit HEAD main      # Compare HEAD with main branch
-npx difit @ main         # Compare HEAD with main branch (@ is alias for HEAD)
-npx difit @^ @~3         # Compare previous commit with 3 commits ago
+npx difit @ main         # Compare with main branch (@ is alias for HEAD)
 npx difit feature main   # Compare branches
 npx difit . origin/main  # Compare working directory with remote main
 ```
@@ -57,32 +55,6 @@ npx difit .        # All uncommitted changes (staging area + unstaged)
 npx difit staged   # Staging area changes
 npx difit working  # Unstaged changes only
 ```
-
-### Stdin Support
-
-difit can read unified diffs from stdin, enabling powerful pipeline workflows:
-
-```bash
-# Basic usage
-git diff | npx difit
-
-# Or explicitly with -
-git diff | npx difit -
-
-# Custom context lines
-git diff -U10 | npx difit
-
-# Compare against merge base
-git diff --merge-base main feature | npx difit
-
-# View diffs from other tools
-diff -u file1.txt file2.txt | npx difit
-
-# Review saved patches
-cat changes.patch | npx difit
-```
-
-This allows you to use difit with any tool that outputs unified diff format, giving you full control over what differences to review.
 
 ### GitHub PR
 
@@ -104,6 +76,21 @@ For Enterprise Server PRs, you must set a token generated on YOUR Enterprise Ser
 2. Generate a personal access token with appropriate scopes
 3. Set it as `GITHUB_TOKEN` environment variable
 
+### Stdin
+
+By using a pipe to pass unified diffs via stdin, you can view diffs from any tool with difit.
+
+```bash
+# View diffs from other tools
+diff -u file1.txt file2.txt | npx difit
+
+# Review saved patches
+cat changes.patch | npx difit
+
+# Compare against merge base
+git diff --merge-base main feature | npx difit
+```
+
 ## ⚙️ CLI Options
 
 | Flag             | Default      | Description                                                            |
@@ -117,22 +104,6 @@ For Enterprise Server PRs, you must set a token generated on YOUR Enterprise Ser
 | `--mode`         | side-by-side | Display mode: `inline` or `side-by-side`                               |
 | `--tui`          | false        | Use terminal UI mode instead of WebUI                                  |
 | `--clean`        | false        | Clear all existing comments on startup                                 |
-| `--watch`        | false        | Enable file watching mode with manual reload button (WebUI only)       |
-
-## 🔄 Watch Mode
-
-Add the `--watch` flag to monitor file changes and see a reload button when updates are detected:
-
-```bash
-npx difit --watch                    # Watch for changes
-npx difit . --watch                  # Watch working directory changes
-npx difit working --watch            # Watch staging area changes
-npx difit HEAD main --watch          # Watch when comparing branches
-```
-
-When changes are detected, an orange reload button appears in the WebUI. Click it to refresh the diff view.
-
-**Note**: Watch mode is currently available in WebUI only.
 
 ## 💬 Comment System
 
