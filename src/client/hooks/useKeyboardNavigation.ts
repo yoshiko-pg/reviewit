@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import type { Comment } from '../../types/diff';
 import { NAVIGATION_SELECTORS } from '../constants/navigation';
+import { getElementId, getCommentKey } from '../utils/navigation/domHelpers';
+import { fixSide, hasContentOnSide } from '../utils/navigation/lineHelpers';
 
 import {
   type CursorPosition,
@@ -10,10 +13,6 @@ import {
   type NavigationResult,
   type UseKeyboardNavigationProps,
   type UseKeyboardNavigationReturn,
-  getElementId,
-  fixSide,
-  getCommentKey,
-  hasContentOnSide,
   createNavigationFilters,
   createScrollToElement,
 } from './keyboardNavigation';
@@ -31,6 +30,8 @@ export function useKeyboardNavigation({
   onToggleReviewed,
   onCreateComment,
   onCopyAllComments,
+  onDeleteAllComments,
+  onShowCommentsList,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -289,166 +290,124 @@ export function useKeyboardNavigation({
     [files, viewMode, scrollToElement]
   );
 
-  // Handle keyboard events
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
+  // Common options for all hotkeys
+  const hotkeyOptions = {
+    scopes: 'navigation',
+    enableOnFormTags: false,
+    preventDefault: true,
+  };
 
-      // Ignore keyboard shortcuts when modifier keys are pressed (except for Shift)
-      if (event.ctrlKey || event.metaKey || event.altKey) {
-        return;
-      }
+  // Line navigation
+  useHotkeys('j, down', () => navigateToLine('next'), hotkeyOptions, [navigateToLine]);
+  useHotkeys('k, up', () => navigateToLine('prev'), hotkeyOptions, [navigateToLine]);
 
-      switch (event.key) {
-        // Line navigation
-        case 'j':
-          event.preventDefault();
-          navigateToLine('next');
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          navigateToLine('next');
-          break;
-        case 'k':
-          event.preventDefault();
-          navigateToLine('prev');
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          navigateToLine('prev');
-          break;
+  // Chunk navigation
+  useHotkeys('n', () => navigateToChunk('next'), hotkeyOptions, [navigateToChunk]);
+  useHotkeys('p', () => navigateToChunk('prev'), hotkeyOptions, [navigateToChunk]);
 
-        // Chunk navigation
-        case 'n':
-          event.preventDefault();
-          navigateToChunk('next');
-          break;
-        case 'p':
-          event.preventDefault();
-          navigateToChunk('prev');
-          break;
+  // Comment navigation
+  useHotkeys('shift+n', () => navigateToComment('next'), hotkeyOptions, [navigateToComment]);
+  useHotkeys('shift+p', () => navigateToComment('prev'), hotkeyOptions, [navigateToComment]);
 
-        // Comment navigation
-        case 'N':
-          if (event.shiftKey) {
-            event.preventDefault();
-            navigateToComment('next');
-          }
-          break;
-        case 'P':
-          if (event.shiftKey) {
-            event.preventDefault();
-            navigateToComment('prev');
-          }
-          break;
+  // File navigation
+  useHotkeys(']', () => navigateToFile('next'), { ...hotkeyOptions, useKey: true }, [
+    navigateToFile,
+  ]);
+  useHotkeys('[', () => navigateToFile('prev'), { ...hotkeyOptions, useKey: true }, [
+    navigateToFile,
+  ]);
 
-        // File navigation
-        case ']':
-          event.preventDefault();
-          navigateToFile('next');
-          break;
-        case '[':
-          event.preventDefault();
-          navigateToFile('prev');
-          break;
-
-        // Side switching (side-by-side mode only)
-        case 'h':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('left');
-          }
-          break;
-        case 'ArrowLeft':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('left');
-          }
-          break;
-        case 'l':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('right');
-          }
-          break;
-        case 'ArrowRight':
-          if (viewMode === 'side-by-side') {
-            event.preventDefault();
-            switchSide('right');
-          }
-          break;
-
-        // File review toggle
-        case 'r':
-          event.preventDefault();
-          if (cursor) {
-            const file = files[cursor.fileIndex];
-            if (file) {
-              onToggleReviewed(file.path);
-            }
-          }
-          break;
-
-        // Comment creation
-        case 'c':
-          event.preventDefault();
-          if (cursor && onCreateComment) {
-            // Get the current line
-            const line =
-              files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
-            // Only create comment if not on a deleted line
-            if (line && line.type !== 'delete') {
-              onCreateComment();
-            }
-          }
-          break;
-
-        // Help toggle
-        case '?':
-          event.preventDefault();
-          setIsHelpOpen(!isHelpOpen);
-          break;
-
-        // Move to center of viewport
-        case '.':
-          event.preventDefault();
-          moveToCenterOfViewport();
-          break;
-
-        // Copy all comments prompt
-        case 'C':
-          if (event.shiftKey && onCopyAllComments) {
-            event.preventDefault();
-            onCopyAllComments();
-          }
-          break;
-      }
-    },
-    [
-      navigateToLine,
-      navigateToChunk,
-      navigateToComment,
-      navigateToFile,
-      switchSide,
-      viewMode,
-      cursor,
-      files,
-      onToggleReviewed,
-      onCreateComment,
-      onCopyAllComments,
-      isHelpOpen,
-      moveToCenterOfViewport,
-    ]
+  // Side switching (side-by-side mode only)
+  useHotkeys(
+    'h, left',
+    () => switchSide('left'),
+    { ...hotkeyOptions, enabled: viewMode === 'side-by-side' },
+    [switchSide, viewMode]
+  );
+  useHotkeys(
+    'l, right',
+    () => switchSide('right'),
+    { ...hotkeyOptions, enabled: viewMode === 'side-by-side' },
+    [switchSide, viewMode]
   );
 
-  // Register keyboard event listener
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  // File review toggle
+  useHotkeys(
+    'r',
+    () => {
+      if (cursor) {
+        const file = files[cursor.fileIndex];
+        if (file) {
+          onToggleReviewed(file.path);
+        }
+      }
+    },
+    hotkeyOptions,
+    [cursor, files, onToggleReviewed]
+  );
+
+  // Comment creation
+  useHotkeys(
+    'c',
+    () => {
+      if (cursor && onCreateComment) {
+        // Get the current line
+        const line = files[cursor.fileIndex]?.chunks[cursor.chunkIndex]?.lines[cursor.lineIndex];
+        // Only create comment if not on a deleted line
+        if (line && line.type !== 'delete') {
+          onCreateComment();
+        }
+      }
+    },
+    hotkeyOptions,
+    [cursor, files, onCreateComment]
+  );
+
+  // Help toggle
+  useHotkeys('?', () => setIsHelpOpen(!isHelpOpen), { ...hotkeyOptions, useKey: true }, [
+    isHelpOpen,
+  ]);
+
+  // Move to center of viewport
+  useHotkeys('.', () => moveToCenterOfViewport(), { ...hotkeyOptions, useKey: true }, [
+    moveToCenterOfViewport,
+  ]);
+
+  // Copy all comments prompt - available in both navigation and comments-list scopes
+  useHotkeys(
+    'shift+c',
+    () => {
+      if (onCopyAllComments) {
+        onCopyAllComments();
+      }
+    },
+    { ...hotkeyOptions, scopes: ['navigation', 'comments-list'] },
+    [onCopyAllComments]
+  );
+
+  // Delete all comments - available in both navigation and comments-list scopes
+  useHotkeys(
+    'shift+d',
+    () => {
+      if (onDeleteAllComments) {
+        onDeleteAllComments();
+      }
+    },
+    { ...hotkeyOptions, scopes: ['navigation', 'comments-list'] },
+    [onDeleteAllComments]
+  );
+
+  // Show comments list
+  useHotkeys(
+    'shift+l',
+    () => {
+      if (onShowCommentsList) {
+        onShowCommentsList();
+      }
+    },
+    hotkeyOptions,
+    [onShowCommentsList]
+  );
 
   return {
     cursor,

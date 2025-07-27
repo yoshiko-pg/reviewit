@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useHotkeys, useHotkeysContext } from 'react-hotkeys-hook';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -7,18 +8,26 @@ interface HelpModalProps {
 }
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+  const { enableScope, disableScope } = useHotkeysContext();
+
+  // Handle Escape key to close modal
+  useHotkeys('escape', () => onClose(), { enabled: isOpen }, [onClose, isOpen]);
+
+  // Manage scopes when modal opens/closes
   useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen) {
+      // Disable navigation scope when help modal is open
+      disableScope('navigation');
+    } else {
+      // Re-enable navigation scope when modal closes
+      enableScope('navigation');
+    }
 
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+    return () => {
+      // Cleanup: ensure navigation scope is enabled
+      enableScope('navigation');
     };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, enableScope, disableScope]);
 
   if (!isOpen) return null;
 
@@ -176,6 +185,18 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <span className="text-github-text-secondary">Add comment at current line</span>
               </div>
               <div className="flex justify-between text-sm">
+                <div className="flex gap-2">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    Shift
+                  </kbd>
+                  <span className="text-github-text-secondary">+</span>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    L
+                  </kbd>
+                </div>
+                <span className="text-github-text-secondary">View all comments list</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   .
                 </kbd>
@@ -194,6 +215,18 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </kbd>
                 </div>
                 <span className="text-github-text-secondary">Copy all comments prompt</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <div className="flex items-center gap-1">
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    Shift
+                  </kbd>
+                  <span className="text-github-text-muted">+</span>
+                  <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                    D
+                  </kbd>
+                </div>
+                <span className="text-github-text-secondary">Delete all comments</span>
               </div>
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">

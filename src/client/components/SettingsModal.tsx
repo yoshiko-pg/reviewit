@@ -1,5 +1,6 @@
 import { Settings, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useHotkeysContext } from 'react-hotkeys-hook';
 
 import { LIGHT_THEMES, DARK_THEMES } from '../utils/themeLoader';
 
@@ -39,6 +40,7 @@ const FONT_FAMILIES = [
 
 export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: SettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<AppearanceSettings>(settings);
+  const { enableScope, disableScope } = useHotkeysContext();
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -48,6 +50,22 @@ export function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: S
   useEffect(() => {
     onSettingsChange(localSettings);
   }, [localSettings, onSettingsChange]);
+
+  // Manage scopes when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      // Disable navigation scope when settings modal is open
+      disableScope('navigation');
+    } else {
+      // Re-enable navigation scope when modal closes
+      enableScope('navigation');
+    }
+
+    return () => {
+      // Cleanup: ensure navigation scope is enabled
+      enableScope('navigation');
+    };
+  }, [isOpen, enableScope, disableScope]);
 
   // Get current theme (resolve 'auto' to actual theme)
   const getCurrentTheme = (): 'light' | 'dark' => {

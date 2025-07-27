@@ -34,6 +34,9 @@ export interface UseKeyboardNavigationProps {
   onToggleReviewed: (filePath: string) => void;
   onCreateComment?: () => void;
   onCopyAllComments?: () => void;
+  onDeleteAllComments?: () => void;
+  onShowCommentsList?: () => void;
+  isModalOpen?: boolean;
 }
 
 /**
