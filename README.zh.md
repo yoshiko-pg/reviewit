@@ -6,6 +6,8 @@
   <a href="./README.md">English</a> | <a href="./README.ja.md">日本語</a> | 简体中文 | <a href="./README.ko.md">한국어</a>
 </p>
 
+![difit screenshot](docs/images/screenshot.png)
+
 **difit** 是一个让你使用 GitHub 风格查看器查看和审查本地 git 差异的 CLI 工具。除了清晰的视觉效果外，评论还可以作为 AI 提示进行复制。AI 时代的本地代码审查工具！
 
 ## ✨ 功能

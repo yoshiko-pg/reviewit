@@ -6,6 +6,8 @@
   English | <a href="./README.ja.md">日本語</a> | <a href="./README.zh.md">简体中文</a> | <a href="./README.ko.md">한국어</a>
 </p>
 
+![difit screenshot](docs/images/screenshot.png)
+
 **difit** is a CLI tool that lets you view and review local git diffs with a GitHub-style viewer. In addition to clean visuals, comments can be copied as prompts for AI. The local code review tool for the AI era!
 
 ## ✨ Features
