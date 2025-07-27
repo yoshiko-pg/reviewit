@@ -41,61 +41,87 @@ export function advancePosition(
   files: DiffFile[]
 ): CursorPosition | null {
   let { fileIndex, chunkIndex, lineIndex } = pos;
+  const totalFiles = files.length;
+  let wrappedCount = 0;
 
   if (direction === 'next') {
     lineIndex++;
 
-    // Move to next chunk if needed
-    if (!files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
+    // Keep advancing until we find a valid position
+    while (wrappedCount < totalFiles) {
+      // Check if current line exists
+      if (files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
+        return { ...pos, fileIndex, chunkIndex, lineIndex };
+      }
+
+      // Move to next chunk
       chunkIndex++;
       lineIndex = 0;
 
-      // Move to next file if needed
+      // Check if current chunk exists
       if (!files[fileIndex]?.chunks[chunkIndex]) {
+        // Move to next file
         fileIndex++;
         chunkIndex = 0;
+        lineIndex = 0;
 
         // Wrap around to beginning
-        if (!files[fileIndex]) {
+        if (fileIndex >= totalFiles) {
           fileIndex = 0;
+          wrappedCount++;
         }
       }
     }
   } else {
     lineIndex--;
 
-    // Move to previous chunk if needed
-    if (lineIndex < 0) {
-      chunkIndex--;
+    // Keep advancing backward until we find a valid position
+    while (wrappedCount < totalFiles) {
+      // Check if we need to move to previous chunk
+      if (lineIndex < 0) {
+        chunkIndex--;
 
-      // Move to previous file if needed
-      if (chunkIndex < 0) {
-        fileIndex--;
+        // Check if we need to move to previous file
+        if (chunkIndex < 0) {
+          fileIndex--;
 
-        // Wrap around to end
-        if (fileIndex < 0) {
-          fileIndex = files.length - 1;
-        }
+          // Wrap around to end
+          if (fileIndex < 0) {
+            fileIndex = totalFiles - 1;
+            wrappedCount++;
+          }
 
-        const file = files[fileIndex];
-        if (file) {
-          chunkIndex = file.chunks.length - 1;
+          const file = files[fileIndex];
+          if (file && file.chunks.length > 0) {
+            chunkIndex = file.chunks.length - 1;
+            const chunk = file.chunks[chunkIndex];
+            lineIndex = chunk && chunk.lines.length > 0 ? chunk.lines.length - 1 : -1;
+          } else {
+            chunkIndex = -1;
+            lineIndex = -1;
+          }
+        } else {
+          const chunk = files[fileIndex]?.chunks[chunkIndex];
+          lineIndex = chunk && chunk.lines.length > 0 ? chunk.lines.length - 1 : -1;
         }
       }
 
-      const chunk = files[fileIndex]?.chunks[chunkIndex];
-      if (chunk) {
-        lineIndex = chunk.lines.length - 1;
+      // Check if current position is valid
+      if (lineIndex >= 0 && files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
+        return { ...pos, fileIndex, chunkIndex, lineIndex };
       }
+
+      // If we couldn't find a valid line in this chunk, continue to previous chunk
+      if (lineIndex < 0) {
+        continue;
+      }
+
+      // Otherwise, keep going backward
+      lineIndex--;
     }
   }
 
-  // Validate position
-  if (!files[fileIndex]?.chunks[chunkIndex]?.lines[lineIndex]) {
-    return null;
-  }
-
-  return { ...pos, fileIndex, chunkIndex, lineIndex };
+  return null;
 }
 
 /**

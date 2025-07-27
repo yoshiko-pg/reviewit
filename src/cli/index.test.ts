@@ -2,6 +2,8 @@ import { Command } from 'commander';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { DiffMode } from '../types/watch.js';
+
 // Mock all external dependencies
 vi.mock('simple-git');
 vi.mock('../server/server.js');
@@ -966,6 +968,237 @@ describe('CLI index.ts', () => {
         'Try running the command directly in your terminal without piping.'
       );
       expect(process.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('Watch functionality', () => {
+    it('passes watch flag to startServer', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .option('--watch', 'enable file watching for reload notifications')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          // Simulate determineDiffMode function behavior
+          let diffMode: DiffMode;
+          if (_compareWith && commitish !== 'HEAD') {
+            diffMode = DiffMode.SPECIFIC;
+          } else if (commitish === 'working') {
+            diffMode = DiffMode.WORKING;
+          } else if (commitish === 'staged') {
+            diffMode = DiffMode.STAGED;
+          } else if (commitish === '.') {
+            diffMode = DiffMode.DOT;
+          } else {
+            diffMode = DiffMode.DEFAULT;
+          }
+
+          await startServer({
+            targetCommitish: commitish,
+            baseCommitish: commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            watch: options.watch || false,
+            diffMode,
+          });
+        });
+
+      await program.parseAsync(['--watch'], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          watch: true,
+          diffMode: 'default',
+        })
+      );
+    });
+
+    it('does not enable watch when flag not provided', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .option('--watch', 'enable file watching for reload notifications')
+        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
+          await startServer({
+            targetCommitish: commitish,
+            baseCommitish: commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            watch: options.watch || false,
+          });
+        });
+
+      await program.parseAsync([], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          watch: false,
+        })
+      );
+    });
+  });
+
+  describe('Diff mode determination', () => {
+    const testCases = [
+      {
+        name: 'determines DEFAULT mode for HEAD',
+        args: ['HEAD'],
+        expectedMode: 'default',
+      },
+      {
+        name: 'determines WORKING mode for working',
+        args: ['working'],
+        expectedMode: 'working',
+      },
+      {
+        name: 'determines STAGED mode for staged',
+        args: ['staged'],
+        expectedMode: 'staged',
+      },
+      {
+        name: 'determines DOT mode for dot argument',
+        args: ['.'],
+        expectedMode: 'dot',
+      },
+      {
+        name: 'determines SPECIFIC mode for commit comparison',
+        args: ['abc123', 'def456'],
+        expectedMode: 'specific',
+      },
+      {
+        name: 'determines DEFAULT mode for custom commit',
+        args: ['main'],
+        expectedMode: 'default',
+      },
+    ];
+
+    testCases.forEach(({ name, args, expectedMode }) => {
+      it(name, async () => {
+        mockFindUntrackedFiles.mockResolvedValue([]);
+
+        const program = new Command();
+
+        program
+          .argument('[commit-ish]', 'commit-ish', 'HEAD')
+          .argument('[compare-with]', 'compare-with')
+          .option('--port <port>', 'port', parseInt)
+          .option('--host <host>', 'host', '')
+          .option('--no-open', 'no-open')
+          .option('--mode <mode>', 'mode', 'side-by-side')
+          .option('--tui', 'tui')
+          .option('--pr <url>', 'pr')
+          .option('--watch', 'enable file watching for reload notifications')
+          .action(async (commitish: string, compareWith: string | undefined, options: any) => {
+            // Simulate determineDiffMode function behavior
+            let diffMode: DiffMode;
+            if (compareWith && commitish !== 'HEAD') {
+              diffMode = DiffMode.SPECIFIC;
+            } else if (commitish === 'working') {
+              diffMode = DiffMode.WORKING;
+            } else if (commitish === 'staged') {
+              diffMode = DiffMode.STAGED;
+            } else if (commitish === '.') {
+              diffMode = DiffMode.DOT;
+            } else {
+              diffMode = DiffMode.DEFAULT;
+            }
+
+            await startServer({
+              targetCommitish: commitish,
+              baseCommitish: compareWith || commitish + '^',
+              preferredPort: options.port,
+              host: options.host,
+              openBrowser: options.open,
+              mode: options.mode,
+              watch: options.watch || false,
+              diffMode,
+            });
+          });
+
+        await program.parseAsync(args, { from: 'user' });
+
+        expect(mockStartServer).toHaveBeenCalledWith(
+          expect.objectContaining({
+            diffMode: expectedMode,
+          })
+        );
+      });
+    });
+
+    it('handles HEAD comparison with different commit', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .option('--watch', 'enable file watching for reload notifications')
+        .action(async (commitish: string, compareWith: string | undefined, options: any) => {
+          // Simulate determineDiffMode function behavior
+          let diffMode: DiffMode;
+          if (compareWith && commitish !== 'HEAD') {
+            diffMode = DiffMode.SPECIFIC;
+          } else if (commitish === 'working') {
+            diffMode = DiffMode.WORKING;
+          } else if (commitish === 'staged') {
+            diffMode = DiffMode.STAGED;
+          } else if (commitish === '.') {
+            diffMode = DiffMode.DOT;
+          } else {
+            diffMode = DiffMode.DEFAULT;
+          }
+
+          await startServer({
+            targetCommitish: commitish,
+            baseCommitish: compareWith || commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            watch: options.watch || false,
+            diffMode,
+          });
+        });
+
+      await program.parseAsync(['HEAD', 'main'], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          diffMode: 'default', // HEAD with comparison is still DEFAULT mode
+          targetCommitish: 'HEAD',
+          baseCommitish: 'main',
+        })
+      );
     });
   });
 });

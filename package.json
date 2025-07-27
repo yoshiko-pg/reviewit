@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
+    "@parcel/watcher": "^2.5.1",
     "commander": "^14.0.0",
     "dracula-prism": "^2.1.16",
     "express": "^5.1.0",
