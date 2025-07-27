@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-07-28
+
+### Added
+
+- Comment list view with keyboard navigation (#64)
+  - View all comments in one place with Shift+L
+  - Navigate comments with j/k, jump with Enter, delete with d
+  - Scope-based keyboard shortcuts management
+  - Shift+D to delete all comments
+- Stdin support for reading unified diffs (#58)
+  - Automatically detect piped input
+  - Support explicit stdin mode with '-' argument
+  - Enable workflows like `git diff | npx difit`
+- Hot reload feature with file watching (#61)
+  - Automatic diff updates when files change
+  - Manual refresh button
+  - SSE-based real-time updates
+- Word highlighting in diff viewer like Gerrit (#62)
+  - Highlight all occurrences of hovered word
+  - Theme-aware styling
+  - Case-insensitive matching
+- Protobuf (.proto) syntax highlighting support
+
+### Changed
+
+- Default port changed from 3000 to 4966
+- Refactored code to use optional chaining (#59)
+
+### Fixed
+
+- Cmd+Enter shortcut for updating comments (#67)
+- Last comment not output when closing window (#63)
+- Empty files handling in keyboard navigation (#60)
+- Script hanging when browser tab is closed (#65)
+- Support for two commitish arguments in dev script (#65)
+- Fix validation for @ symbol as Git HEAD alias (#57)
+- Row selection on mouse click disabled - only keyboard navigation moves cursor
+
+### Thanks
+
+- [@haya14busa](https://github.com/haya14busa) for @ symbol support #57, stdin support #58, word highlighting #62, comment list view #64, and bug fixes #60 #63 #65
+- [@noritaka1166](https://github.com/noritaka1166) for optional chaining refactor #59
+- [@yukukotani](https://github.com/yukukotani) for hot reload feature with file watching #61
+- [@tsukasaI](https://github.com/tsukasaI) for Cmd+Enter comment update shortcut #67
+
 ## [2.0.11] - 2025-07-21
 
 ### Added
@@ -439,7 +484,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...v2.1.0
 [2.0.11]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...v2.0.11
 [2.0.10]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...v2.0.10
 [2.0.9]: https://github.com/yoshiko-pg/difit/compare/v2.0.8...v2.0.9
