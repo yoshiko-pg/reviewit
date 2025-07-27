@@ -26,12 +26,6 @@ interface DiffChunkProps {
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
   cursor?: CursorPosition | null;
   fileIndex?: number;
-  onLineClick?: (
-    fileIndex: number,
-    chunkIndex: number,
-    lineIndex: number,
-    side: 'left' | 'right'
-  ) => void;
   commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
   onCommentTriggerHandled?: () => void;
 }
@@ -48,7 +42,6 @@ export function DiffChunk({
   syntaxTheme,
   cursor = null,
   fileIndex = 0,
-  onLineClick,
   commentTrigger,
   onCommentTriggerHandled,
 }: DiffChunkProps) {
@@ -186,7 +179,6 @@ export function DiffChunk({
         syntaxTheme={syntaxTheme}
         cursor={cursor}
         fileIndex={fileIndex}
-        onLineClick={onLineClick}
         commentTrigger={commentTrigger}
         onCommentTriggerHandled={onCommentTriggerHandled}
       />
@@ -261,13 +253,6 @@ export function DiffChunk({
                     setEndLine(null);
                   }}
                   syntaxTheme={syntaxTheme}
-                  onClick={() => {
-                    if (onLineClick) {
-                      // Determine the side based on line type for inline mode
-                      const side = line.type === 'delete' ? 'left' : 'right';
-                      onLineClick(fileIndex, chunkIndex, index, side);
-                    }
-                  }}
                 />
 
                 {lineComments.map((comment) => {

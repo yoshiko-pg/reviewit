@@ -26,12 +26,6 @@ interface SideBySideDiffChunkProps {
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
   cursor?: CursorPosition | null;
   fileIndex?: number;
-  onLineClick?: (
-    fileIndex: number,
-    chunkIndex: number,
-    lineIndex: number,
-    side: 'left' | 'right'
-  ) => void;
   commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
   onCommentTriggerHandled?: () => void;
 }
@@ -56,7 +50,6 @@ export function SideBySideDiffChunk({
   syntaxTheme,
   cursor = null,
   fileIndex = 0,
-  onLineClick,
   commentTrigger,
   onCommentTriggerHandled,
 }: SideBySideDiffChunkProps) {
@@ -326,22 +319,7 @@ export function SideBySideDiffChunk({
             return (
               <React.Fragment key={index}>
                 <tr
-                  className="group cursor-pointer"
-                  onClick={(e) => {
-                    if (onLineClick && !isDragging) {
-                      const target = e.target as HTMLElement;
-                      const isInOldSide =
-                        target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
-                      const isInNewSide =
-                        target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
-
-                      if (isInOldSide && oldLineOriginalIndex >= 0) {
-                        onLineClick(fileIndex, chunkIndex, oldLineOriginalIndex, 'left');
-                      } else if (isInNewSide && newLineOriginalIndex >= 0) {
-                        onLineClick(fileIndex, chunkIndex, newLineOriginalIndex, 'right');
-                      }
-                    }
-                  }}
+                  className="group"
                   onMouseEnter={(e) => {
                     const target = e.target as HTMLElement;
                     const isInOldSide =
