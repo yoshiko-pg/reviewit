@@ -58,6 +58,32 @@ npx difit staged   # Staging area changes
 npx difit working  # Unstaged changes only
 ```
 
+### Stdin Support
+
+difit can read unified diffs from stdin, enabling powerful pipeline workflows:
+
+```bash
+# Basic usage
+git diff | npx difit
+
+# Or explicitly with -
+git diff | npx difit -
+
+# Custom context lines
+git diff -U10 | npx difit
+
+# Compare against merge base
+git diff --merge-base main feature | npx difit
+
+# View diffs from other tools
+diff -u file1.txt file2.txt | npx difit
+
+# Review saved patches
+cat changes.patch | npx difit
+```
+
+This allows you to use difit with any tool that outputs unified diff format, giving you full control over what differences to review.
+
 ### GitHub PR
 
 ```bash

@@ -16,8 +16,9 @@ import { GitDiffParser } from './git-diff.js';
 import { type Comment, type DiffResponse } from '@/types/diff.js';
 
 interface ServerOptions {
-  targetCommitish: string;
-  baseCommitish: string;
+  targetCommitish?: string;
+  baseCommitish?: string;
+  stdinDiff?: string;
   preferredPort?: number;
   host?: string;
   openBrowser?: boolean;
@@ -49,18 +50,25 @@ export async function startServer(
     next();
   });
 
-  // Validate commits at startup
-  const isValidCommit = await parser.validateCommit(options.targetCommitish);
-  if (!isValidCommit) {
-    throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
+  // Skip validation if using stdin diff
+  if (!options.stdinDiff) {
+    const isValidCommit = await parser.validateCommit(options.targetCommitish ?? '');
+    if (!isValidCommit) {
+      throw new Error(`Invalid or non-existent commit: ${options.targetCommitish}`);
+    }
   }
 
   // Generate initial diff data for isEmpty check
-  diffDataCache = await parser.parseDiff(
-    options.targetCommitish,
-    options.baseCommitish,
-    currentIgnoreWhitespace
-  );
+  if (options.stdinDiff) {
+    // Parse stdin diff directly
+    diffDataCache = parser.parseStdinDiff(options.stdinDiff);
+  } else {
+    diffDataCache = await parser.parseDiff(
+      options.targetCommitish ?? '',
+      options.baseCommitish ?? '',
+      currentIgnoreWhitespace
+    );
+  }
 
   // Function to invalidate cache when file changes are detected
   const invalidateCache = () => {
@@ -71,11 +79,11 @@ export async function startServer(
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
     // Regenerate diff data if cache is invalid or whitespace setting changed
-    if (!diffDataCache || ignoreWhitespace !== currentIgnoreWhitespace) {
+    if (!diffDataCache || (ignoreWhitespace !== currentIgnoreWhitespace && !options.stdinDiff)) {
       currentIgnoreWhitespace = ignoreWhitespace;
       diffDataCache = await parser.parseDiff(
-        options.targetCommitish,
-        options.baseCommitish,
+        options.targetCommitish ?? '',
+        options.baseCommitish ?? '',
         ignoreWhitespace
       );
     }
@@ -84,14 +92,20 @@ export async function startServer(
       ...diffDataCache,
       ignoreWhitespace,
       mode: diffMode,
-      baseCommitish: options.baseCommitish,
-      targetCommitish: options.targetCommitish,
+      baseCommitish: options.baseCommitish || 'stdin',
+      targetCommitish: options.targetCommitish || 'stdin',
       clearComments: options.clearComments,
     });
   });
 
   app.get(/^\/api\/blob\/(.*)$/, async (req, res) => {
     try {
+      // If using stdin diff, blob content is not available
+      if (options.stdinDiff) {
+        res.status(404).json({ error: 'Blob content not available for stdin diff' });
+        return;
+      }
+
       const filepath = req.params[0];
       const ref = (req.query.ref as string) || 'HEAD';
 
@@ -216,15 +230,18 @@ export async function startServer(
     }, 5000);
 
     // When client disconnects (tab closed, navigation, etc.)
-    req.on('close', async () => {
+    req.on('close', () => {
       clearInterval(heartbeatInterval);
-      console.log('Client disconnected, shutting down server...');
+      // Add a small delay to ensure any pending sendBeacon requests are processed
+      setTimeout(async () => {
+        console.log('Client disconnected, shutting down server...');
 
-      // Stop file watcher
-      await fileWatcher.stop();
+        // Stop file watcher
+        await fileWatcher.stop();
 
-      outputFinalComments();
-      process.exit(0);
+        outputFinalComments();
+        process.exit(0);
+      }, 100);
     });
   });
 
