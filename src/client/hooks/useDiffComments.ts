@@ -120,59 +120,25 @@ export function useDiffComments(
           `line ${comment.position.line}`
         : `lines ${comment.position.line.start}-${comment.position.line.end}`;
 
-      let prompt = `# Comment on ${comment.filePath} (${comment.position.side} side, ${lineInfo})\n\n`;
-      prompt += `**Comment:** ${comment.body}\n\n`;
-
-      if (comment.codeSnapshot?.content) {
-        prompt += `**Code context:**\n\`\`\`${comment.codeSnapshot.language || ''}\n`;
-        prompt += `${comment.codeSnapshot.content}\n\`\`\`\n\n`;
-      }
-
-      prompt += `**Chunk header:** ${comment.chunkHeader}\n`;
-      prompt += `**Created at:** ${comment.createdAt}\n`;
-
-      return prompt;
+      return `${comment.filePath} (${lineInfo})\n${comment.body}`;
     },
     [comments]
   );
 
   const generateAllCommentsPrompt = useCallback((): string => {
-    if (comments.length === 0) return 'No comments in this diff context.';
+    if (comments.length === 0) return '';
 
-    let prompt = `# All Comments for diff: ${baseCommitish} → ${targetCommitish}\n\n`;
-    prompt += `Total comments: ${comments.length}\n\n`;
-
-    // Group by file
-    const commentsByFile = comments.reduce(
-      (acc, comment) => {
-        if (!acc[comment.filePath]) {
-          acc[comment.filePath] = [];
-        }
-        const fileComments = acc[comment.filePath];
-        if (fileComments) {
-          fileComments.push(comment);
-        }
-        return acc;
-      },
-      {} as Record<string, DiffComment[]>
-    );
-
-    Object.entries(commentsByFile).forEach(([filePath, fileComments]) => {
-      prompt += `## ${filePath} (${fileComments.length} comments)\n\n`;
-
-      fileComments.forEach((comment, index) => {
+    return comments
+      .map((comment) => {
         const lineInfo =
           typeof comment.position.line === 'number' ?
             `line ${comment.position.line}`
           : `lines ${comment.position.line.start}-${comment.position.line.end}`;
 
-        prompt += `### Comment ${index + 1} (${comment.position.side} side, ${lineInfo})\n`;
-        prompt += `${comment.body}\n\n`;
-      });
-    });
-
-    return prompt;
-  }, [comments, baseCommitish, targetCommitish]);
+        return `${comment.filePath} (${lineInfo})\n${comment.body}`;
+      })
+      .join('\n\n');
+  }, [comments]);
 
   return {
     comments,

@@ -4,6 +4,26 @@ import { type ViewedFileRecord, type DiffFile } from '../../types/diff';
 import { storageService } from '../services/StorageService';
 import { generateDiffHash, getDiffContentForHashing } from '../utils/diffUtils';
 
+// Helper function to check if a file is a lock file
+function isLockFile(filePath: string): boolean {
+  const lockFilePatterns = [
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+    'Cargo.lock',
+    'Gemfile.lock',
+    'poetry.lock',
+    'composer.lock',
+    'Pipfile.lock',
+    'go.sum',
+    'pubspec.lock',
+    'flake.lock',
+  ];
+
+  const fileName = filePath.split('/').pop() || '';
+  return lockFilePatterns.includes(fileName);
+}
+
 export interface UseViewedFilesReturn {
   viewedFiles: Set<string>; // Set of file paths
   toggleFileViewed: (filePath: string, diffFile: DiffFile) => Promise<void>;
@@ -16,12 +36,13 @@ export function useViewedFiles(
   baseCommitish?: string,
   targetCommitish?: string,
   currentCommitHash?: string,
-  branchToHash?: Map<string, string>
+  branchToHash?: Map<string, string>,
+  initialFiles?: DiffFile[]
 ): UseViewedFilesReturn {
   const [viewedFileRecords, setViewedFileRecords] = useState<ViewedFileRecord[]>([]);
   const [fileHashes, setFileHashes] = useState<Map<string, string>>(new Map());
 
-  // Load viewed files from storage
+  // Load viewed files from storage and auto-mark lock files
   useEffect(() => {
     if (!baseCommitish || !targetCommitish) return;
 
@@ -31,8 +52,57 @@ export function useViewedFiles(
       currentCommitHash,
       branchToHash
     );
-    setViewedFileRecords(loadedFiles);
-  }, [baseCommitish, targetCommitish, currentCommitHash, branchToHash]);
+
+    // Auto-mark lock files as viewed if we have initial files
+    const processLockFiles = async () => {
+      if (initialFiles && initialFiles.length > 0) {
+        const lockFilesToAdd: ViewedFileRecord[] = [];
+
+        // Create a Set of already viewed file paths for quick lookup
+        const viewedPaths = new Set(loadedFiles.map((f) => f.filePath));
+
+        // Find lock files that aren't already marked as viewed
+        for (const file of initialFiles) {
+          if (isLockFile(file.path) && !viewedPaths.has(file.path)) {
+            try {
+              // Generate hash for the lock file
+              const content = getDiffContentForHashing(file);
+              const hash = await generateDiffHash(content);
+
+              const newRecord: ViewedFileRecord = {
+                filePath: file.path,
+                viewedAt: new Date().toISOString(),
+                diffContentHash: hash,
+              };
+
+              lockFilesToAdd.push(newRecord);
+            } catch (err) {
+              console.error('Failed to generate hash for lock file:', err);
+            }
+          }
+        }
+
+        // Add all lock files to storage at once
+        if (lockFilesToAdd.length > 0) {
+          const updatedRecords = [...loadedFiles, ...lockFilesToAdd];
+          storageService.saveViewedFiles(
+            baseCommitish,
+            targetCommitish,
+            updatedRecords,
+            currentCommitHash,
+            branchToHash
+          );
+          setViewedFileRecords(updatedRecords);
+          return;
+        }
+      }
+
+      setViewedFileRecords(loadedFiles);
+    };
+
+    void processLockFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseCommitish, targetCommitish, currentCommitHash, branchToHash]); // initialFiles intentionally omitted to run only on mount
 
   // Save viewed files to storage
   const saveViewedFiles = useCallback(
