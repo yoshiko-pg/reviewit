@@ -201,8 +201,21 @@ function App() {
     }
   }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
 
-  // Send comments to server before page unload
+  // Send comments to server whenever they change and before page unload
   useEffect(() => {
+    // Sync comments whenever they change
+    if (comments.length > 0) {
+      const data = JSON.stringify({ comments });
+      fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: data,
+      }).catch((error) => {
+        console.error('Failed to sync comments:', error);
+      });
+    }
+
+    // Also handle page unload
     const sendCommentsBeforeUnload = () => {
       if (comments.length > 0) {
         // Use sendBeacon for reliable delivery during page unload
@@ -215,8 +228,6 @@ function App() {
 
     return () => {
       window.removeEventListener('beforeunload', sendCommentsBeforeUnload);
-      // Also send comments when component unmounts
-      sendCommentsBeforeUnload();
     };
   }, [comments]);
 
