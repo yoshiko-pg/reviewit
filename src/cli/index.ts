@@ -6,6 +6,7 @@ import { simpleGit, type SimpleGit } from 'simple-git';
 
 import pkg from '../../package.json' with { type: 'json' };
 import { startServer } from '../server/server.js';
+import { DiffMode } from '../types/watch.js';
 
 import {
   findUntrackedFiles,
@@ -21,6 +22,27 @@ function isSpecialArg(arg: string): arg is SpecialArg {
   return arg === 'working' || arg === 'staged' || arg === '.';
 }
 
+function determineDiffMode(targetCommitish: string, compareWith?: string): DiffMode {
+  // If comparing specific commits/branches (not involving HEAD), no watching needed
+  if (compareWith && targetCommitish !== 'HEAD') {
+    return DiffMode.SPECIFIC;
+  }
+
+  if (targetCommitish === 'working') {
+    return DiffMode.WORKING;
+  }
+
+  if (targetCommitish === 'staged') {
+    return DiffMode.STAGED;
+  }
+
+  if (targetCommitish === '.') {
+    return DiffMode.DOT;
+  }
+  // Default mode: HEAD^ vs HEAD or HEAD vs other commits (watch for HEAD changes)
+  return DiffMode.DEFAULT;
+}
+
 interface CliOptions {
   port?: number;
   host?: string;
@@ -29,6 +51,7 @@ interface CliOptions {
   tui?: boolean;
   pr?: string;
   clean?: boolean;
+  watch?: boolean;
 }
 
 const program = new Command();
@@ -53,6 +76,7 @@ program
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .option('--clean', 'start with a clean slate by clearing all existing comments')
+  .option('--watch', 'enable file watching for reload notifications')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Check if we should read from stdin
@@ -152,6 +176,8 @@ program
         }
       }
 
+      const diffMode = determineDiffMode(targetCommitish, compareWith);
+
       const { url, port, isEmpty } = await startServer({
         targetCommitish,
         baseCommitish,
@@ -160,6 +186,8 @@ program
         openBrowser: options.open,
         mode: options.mode,
         clearComments: options.clean,
+        watch: options.watch || false,
+        diffMode,
       });
 
       console.log(`\n🚀 difit server started on ${url}`);

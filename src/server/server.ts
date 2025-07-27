@@ -7,8 +7,10 @@ import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import { type DiffMode } from '../types/watch.js';
 import { getFileExtension } from '../utils/fileUtils.js';
 
+import { FileWatcherService } from './file-watcher.js';
 import { GitDiffParser } from './git-diff.js';
 
 import { type Comment, type DiffResponse } from '@/types/diff.js';
@@ -23,6 +25,8 @@ interface ServerOptions {
   mode?: string;
   ignoreWhitespace?: boolean;
   clearComments?: boolean;
+  watch?: boolean;
+  diffMode?: DiffMode;
 }
 
 export async function startServer(
@@ -30,8 +34,9 @@ export async function startServer(
 ): Promise<{ port: number; url: string; isEmpty?: boolean; server?: Server }> {
   const app = express();
   const parser = new GitDiffParser();
+  const fileWatcher = new FileWatcherService();
 
-  let diffData: DiffResponse;
+  let diffDataCache: DiffResponse | null = null;
   let currentIgnoreWhitespace = options.ignoreWhitespace || false;
   const diffMode = options.mode || 'side-by-side';
 
@@ -53,23 +58,30 @@ export async function startServer(
     }
   }
 
+  // Generate initial diff data for isEmpty check
   if (options.stdinDiff) {
     // Parse stdin diff directly
-    diffData = parser.parseStdinDiff(options.stdinDiff);
+    diffDataCache = parser.parseStdinDiff(options.stdinDiff);
   } else {
-    diffData = await parser.parseDiff(
+    diffDataCache = await parser.parseDiff(
       options.targetCommitish ?? '',
       options.baseCommitish ?? '',
       currentIgnoreWhitespace
     );
   }
 
+  // Function to invalidate cache when file changes are detected
+  const invalidateCache = () => {
+    diffDataCache = null;
+  };
+
   app.get('/api/diff', async (req, res) => {
     const ignoreWhitespace = req.query.ignoreWhitespace === 'true';
 
-    if (ignoreWhitespace !== currentIgnoreWhitespace && !options.stdinDiff) {
+    // Regenerate diff data if cache is invalid or whitespace setting changed
+    if (!diffDataCache || (ignoreWhitespace !== currentIgnoreWhitespace && !options.stdinDiff)) {
       currentIgnoreWhitespace = ignoreWhitespace;
-      diffData = await parser.parseDiff(
+      diffDataCache = await parser.parseDiff(
         options.targetCommitish ?? '',
         options.baseCommitish ?? '',
         ignoreWhitespace
@@ -77,7 +89,7 @@ export async function startServer(
     }
 
     res.json({
-      ...diffData,
+      ...diffDataCache,
       ignoreWhitespace,
       mode: diffMode,
       baseCommitish: options.baseCommitish || 'stdin',
@@ -184,6 +196,22 @@ export async function startServer(
     }
   }
 
+  // SSE endpoint for file watching
+  app.get('/api/watch', (req, res) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    });
+
+    fileWatcher.addClient(res);
+
+    req.on('close', () => {
+      fileWatcher.removeClient(res);
+    });
+  });
+
   // SSE endpoint to detect when tab is closed
   app.get('/api/heartbeat', (req, res) => {
     res.writeHead(200, {
@@ -202,9 +230,13 @@ export async function startServer(
     }, 5000);
 
     // When client disconnects (tab closed, navigation, etc.)
-    req.on('close', () => {
+    req.on('close', async () => {
       clearInterval(heartbeatInterval);
       console.log('Client disconnected, shutting down server...');
+
+      // Stop file watcher
+      await fileWatcher.stop();
+
       outputFinalComments();
       process.exit(0);
     });
@@ -255,8 +287,18 @@ export async function startServer(
     console.warn('   Make sure this is intended and your network is secure.\n');
   }
 
+  // Start file watcher if enabled
+  if (options.watch && options.diffMode) {
+    try {
+      await fileWatcher.start(options.diffMode, process.cwd(), 300, invalidateCache);
+    } catch (error) {
+      console.warn('⚠️  File watcher failed to start:', error);
+      console.warn('   Continuing without file watching...');
+    }
+  }
+
   // Check if diff is empty and skip browser opening
-  if (diffData.isEmpty) {
+  if (diffDataCache?.isEmpty) {
     // Don't open browser if no differences found
   } else if (options.openBrowser) {
     try {
@@ -266,7 +308,7 @@ export async function startServer(
     }
   }
 
-  return { port, url, isEmpty: diffData.isEmpty, server };
+  return { port, url, isEmpty: diffDataCache?.isEmpty || false, server };
 }
 
 async function startServerWithFallback(

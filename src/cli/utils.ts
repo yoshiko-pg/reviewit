@@ -27,6 +27,7 @@ export function validateCommitish(commitish: string): boolean {
     /^[a-f0-9]{4,40}\^+$/i, // SHA hashes with ^ suffix (parent references)
     /^[a-f0-9]{4,40}~\d+$/i, // SHA hashes with ~N suffix (ancestor references)
     /^HEAD(~\d+|\^\d*)*$/, // HEAD, HEAD~1, HEAD^, HEAD^2, etc.
+    /^@(~\d+|\^\d*)*$/, // @, @~1, @^, @^2, etc. (@ is Git alias for HEAD)
   ];
 
   // Check if it matches any specific patterns first
@@ -42,7 +43,7 @@ function isValidBranchName(name: string): boolean {
   // Git branch name rules
   if (name.startsWith('-')) return false; // Cannot start with dash
   if (name.endsWith('.')) return false; // Cannot end with dot
-  if (name === '@') return false; // Cannot be just @
+  // @ is a valid Git alias for HEAD, so we should allow it
   if (name.includes('..')) return false; // No consecutive dots
   if (name.includes('@{')) return false; // No @{ sequence
   if (name.includes('//')) return false; // No consecutive slashes
