@@ -51,7 +51,6 @@ interface CliOptions {
   tui?: boolean;
   pr?: string;
   clean?: boolean;
-  watch?: boolean;
 }
 
 const program = new Command();
@@ -76,7 +75,6 @@ program
   .option('--tui', 'use terminal UI instead of web interface')
   .option('--pr <url>', 'GitHub PR URL to review (e.g., https://github.com/owner/repo/pull/123)')
   .option('--clean', 'start with a clean slate by clearing all existing comments')
-  .option('--watch', 'enable file watching for reload notifications')
   .action(async (commitish: string, compareWith: string | undefined, options: CliOptions) => {
     try {
       // Check if we should read from stdin
@@ -186,7 +184,6 @@ program
         openBrowser: options.open,
         mode: options.mode,
         clearComments: options.clean,
-        watch: options.watch || false,
         diffMode,
       });
 

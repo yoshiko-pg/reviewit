@@ -25,7 +25,6 @@ interface ServerOptions {
   mode?: string;
   ignoreWhitespace?: boolean;
   clearComments?: boolean;
-  watch?: boolean;
   diffMode?: DiffMode;
 }
 
@@ -290,8 +289,8 @@ export async function startServer(
     console.warn('   Make sure this is intended and your network is secure.\n');
   }
 
-  // Start file watcher if enabled
-  if (options.watch && options.diffMode) {
+  // Start file watcher
+  if (options.diffMode) {
     try {
       await fileWatcher.start(options.diffMode, process.cwd(), 300, invalidateCache);
     } catch (error) {

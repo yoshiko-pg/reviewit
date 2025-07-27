@@ -971,96 +971,6 @@ describe('CLI index.ts', () => {
     });
   });
 
-  describe('Watch functionality', () => {
-    it('passes watch flag to startServer', async () => {
-      mockFindUntrackedFiles.mockResolvedValue([]);
-
-      const program = new Command();
-
-      program
-        .argument('[commit-ish]', 'commit-ish', 'HEAD')
-        .argument('[compare-with]', 'compare-with')
-        .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '')
-        .option('--no-open', 'no-open')
-        .option('--mode <mode>', 'mode', 'side-by-side')
-        .option('--tui', 'tui')
-        .option('--pr <url>', 'pr')
-        .option('--watch', 'enable file watching for reload notifications')
-        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
-          // Simulate determineDiffMode function behavior
-          let diffMode: DiffMode;
-          if (_compareWith && commitish !== 'HEAD') {
-            diffMode = DiffMode.SPECIFIC;
-          } else if (commitish === 'working') {
-            diffMode = DiffMode.WORKING;
-          } else if (commitish === 'staged') {
-            diffMode = DiffMode.STAGED;
-          } else if (commitish === '.') {
-            diffMode = DiffMode.DOT;
-          } else {
-            diffMode = DiffMode.DEFAULT;
-          }
-
-          await startServer({
-            targetCommitish: commitish,
-            baseCommitish: commitish + '^',
-            preferredPort: options.port,
-            host: options.host,
-            openBrowser: options.open,
-            mode: options.mode,
-            watch: options.watch || false,
-            diffMode,
-          });
-        });
-
-      await program.parseAsync(['--watch'], { from: 'user' });
-
-      expect(mockStartServer).toHaveBeenCalledWith(
-        expect.objectContaining({
-          watch: true,
-          diffMode: 'default',
-        })
-      );
-    });
-
-    it('does not enable watch when flag not provided', async () => {
-      mockFindUntrackedFiles.mockResolvedValue([]);
-
-      const program = new Command();
-
-      program
-        .argument('[commit-ish]', 'commit-ish', 'HEAD')
-        .argument('[compare-with]', 'compare-with')
-        .option('--port <port>', 'port', parseInt)
-        .option('--host <host>', 'host', '')
-        .option('--no-open', 'no-open')
-        .option('--mode <mode>', 'mode', 'side-by-side')
-        .option('--tui', 'tui')
-        .option('--pr <url>', 'pr')
-        .option('--watch', 'enable file watching for reload notifications')
-        .action(async (commitish: string, _compareWith: string | undefined, options: any) => {
-          await startServer({
-            targetCommitish: commitish,
-            baseCommitish: commitish + '^',
-            preferredPort: options.port,
-            host: options.host,
-            openBrowser: options.open,
-            mode: options.mode,
-            watch: options.watch || false,
-          });
-        });
-
-      await program.parseAsync([], { from: 'user' });
-
-      expect(mockStartServer).toHaveBeenCalledWith(
-        expect.objectContaining({
-          watch: false,
-        })
-      );
-    });
-  });
-
   describe('Diff mode determination', () => {
     const testCases = [
       {
@@ -1110,7 +1020,6 @@ describe('CLI index.ts', () => {
           .option('--mode <mode>', 'mode', 'side-by-side')
           .option('--tui', 'tui')
           .option('--pr <url>', 'pr')
-          .option('--watch', 'enable file watching for reload notifications')
           .action(async (commitish: string, compareWith: string | undefined, options: any) => {
             // Simulate determineDiffMode function behavior
             let diffMode: DiffMode;
@@ -1133,7 +1042,6 @@ describe('CLI index.ts', () => {
               host: options.host,
               openBrowser: options.open,
               mode: options.mode,
-              watch: options.watch || false,
               diffMode,
             });
           });
@@ -1162,7 +1070,6 @@ describe('CLI index.ts', () => {
         .option('--mode <mode>', 'mode', 'side-by-side')
         .option('--tui', 'tui')
         .option('--pr <url>', 'pr')
-        .option('--watch', 'enable file watching for reload notifications')
         .action(async (commitish: string, compareWith: string | undefined, options: any) => {
           // Simulate determineDiffMode function behavior
           let diffMode: DiffMode;
@@ -1185,7 +1092,6 @@ describe('CLI index.ts', () => {
             host: options.host,
             openBrowser: options.open,
             mode: options.mode,
-            watch: options.watch || false,
             diffMode,
           });
         });
