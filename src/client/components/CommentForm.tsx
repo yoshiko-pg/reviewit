@@ -35,11 +35,13 @@ export function CommentForm({ onSubmit, onCancel }: CommentFormProps) {
 
   return (
     <form
-      className="m-2 mx-3 p-3 bg-github-bg-tertiary border border-github-border rounded-md"
+      className="m-2 mx-3 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400"
       onSubmit={handleSubmit}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-github-text-primary">Add a comment</span>
+        <span className="text-sm font-medium" style={{ color: 'var(--color-yellow-path-text)' }}>
+          Add a comment
+        </span>
         <span className="text-xs text-github-text-muted">
           Cmd+Enter to submit • Escape to cancel
         </span>
@@ -67,10 +69,23 @@ export function CommentForm({ onSubmit, onCancel }: CommentFormProps) {
         </button>
         <button
           type="submit"
-          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:opacity-80 transition-all disabled:opacity-50"
+          className="text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
+          style={{
+            backgroundColor: 'var(--color-yellow-btn-bg)',
+            color: 'var(--color-yellow-btn-text)',
+            border: '1px solid var(--color-yellow-btn-border)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+            e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+          }}
           disabled={!body.trim() || isSubmitting}
         >
-          {isSubmitting ? 'Adding...' : 'Add Comment'}
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </form>

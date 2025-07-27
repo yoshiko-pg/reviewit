@@ -1,4 +1,4 @@
-import { Check, Edit2, Save, X } from 'lucide-react';
+import { Check, Edit2 } from 'lucide-react';
 import { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -57,6 +57,16 @@ export function InlineComment({
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     onRemoveComment(comment.id);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEdit();
+    }
   };
 
   // Keyboard shortcuts for editing
@@ -143,27 +153,6 @@ export function InlineComment({
               </button>
             </>
           )}
-          {isEditing && (
-            <>
-              <button
-                onClick={handleSaveEdit}
-                className="text-xs p-1.5 bg-github-accent text-white border border-github-accent rounded hover:opacity-80 transition-all"
-                title="Save changes"
-              >
-                <Save size={12} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCancelEdit();
-                }}
-                className="text-xs p-1.5 bg-github-bg-tertiary text-github-text-secondary border border-github-border rounded hover:text-github-text-primary hover:bg-github-bg-primary transition-all"
-                title="Cancel editing"
-              >
-                <X size={12} />
-              </button>
-            </>
-          )}
         </div>
       </div>
 
@@ -172,11 +161,6 @@ export function InlineComment({
           {comment.body}
         </div>
       : <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-github-text-muted">
-              Cmd+Enter to save • Escape to cancel
-            </span>
-          </div>
           <textarea
             value={editedBody}
             onChange={(e) => setEditedBody(e.target.value)}
@@ -188,8 +172,39 @@ export function InlineComment({
             onKeyDown={(e) => {
               // Stop propagation to prevent triggering parent keyboard handlers
               e.stopPropagation();
+              handleKeyDown(e);
             }}
           />
+          <div className="flex gap-2 justify-end mt-2">
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-xs px-3 py-1.5 bg-github-bg-tertiary text-github-text-primary border border-github-border rounded hover:opacity-80 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveEdit}
+              className="text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--color-yellow-btn-bg)',
+                color: 'var(--color-yellow-btn-text)',
+                border: '1px solid var(--color-yellow-btn-border)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-hover-bg)';
+                e.currentTarget.style.borderColor = 'var(--color-yellow-btn-hover-border)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-yellow-btn-bg)';
+                e.currentTarget.style.borderColor = 'var(--color-yellow-btn-border)';
+              }}
+              disabled={!editedBody.trim()}
+            >
+              Submit
+            </button>
+          </div>
         </div>
       }
     </div>
