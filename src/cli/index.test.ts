@@ -47,8 +47,8 @@ describe('CLI index.ts', () => {
 
     mockStartServer = vi.mocked(startServer);
     mockStartServer.mockResolvedValue({
-      port: 3000,
-      url: 'http://localhost:3000',
+      port: 4966,
+      url: 'http://localhost:4966',
       isEmpty: false,
     });
 
@@ -482,8 +482,8 @@ describe('CLI index.ts', () => {
     it('displays clean message when flag is used', async () => {
       mockFindUntrackedFiles.mockResolvedValue([]);
       mockStartServer.mockResolvedValue({
-        port: 3000,
-        url: 'http://localhost:3000',
+        port: 4966,
+        url: 'http://localhost:4966',
         isEmpty: false,
       });
 
@@ -533,8 +533,8 @@ describe('CLI index.ts', () => {
     it('does not display clean message when flag is not used', async () => {
       mockFindUntrackedFiles.mockResolvedValue([]);
       mockStartServer.mockResolvedValue({
-        port: 3000,
-        url: 'http://localhost:3000',
+        port: 4966,
+        url: 'http://localhost:4966',
         isEmpty: false,
       });
 
@@ -586,8 +586,8 @@ describe('CLI index.ts', () => {
     it('displays server startup message with correct URL', async () => {
       mockFindUntrackedFiles.mockResolvedValue([]);
       mockStartServer.mockResolvedValue({
-        port: 3000,
-        url: 'http://localhost:3000',
+        port: 4966,
+        url: 'http://localhost:4966',
         isEmpty: false,
       });
 
@@ -628,7 +628,7 @@ describe('CLI index.ts', () => {
       await program.parseAsync([], { from: 'user' });
 
       expect(console.log).toHaveBeenCalledWith(
-        '\n🚀 difit server started on http://localhost:3000'
+        '\n🚀 difit server started on http://localhost:4966'
       );
       expect(console.log).toHaveBeenCalledWith('📋 Reviewing: HEAD');
     });
@@ -636,8 +636,8 @@ describe('CLI index.ts', () => {
     it('displays correct message when no differences found', async () => {
       mockFindUntrackedFiles.mockResolvedValue([]);
       mockStartServer.mockResolvedValue({
-        port: 3000,
-        url: 'http://localhost:3000',
+        port: 4966,
+        url: 'http://localhost:4966',
         isEmpty: true,
       });
 
@@ -677,7 +677,7 @@ describe('CLI index.ts', () => {
         '\n! No differences found. Browser will not open automatically.'
       );
       expect(console.log).toHaveBeenCalledWith(
-        '   Server is running at http://localhost:3000 if you want to check manually.\n'
+        '   Server is running at http://localhost:4966 if you want to check manually.\n'
       );
     });
   });

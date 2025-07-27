@@ -312,7 +312,7 @@ describe('Server Integration Tests', () => {
       });
       servers.push(result.server);
 
-      expect(result.port).toBeGreaterThanOrEqual(3000);
+      expect(result.port).toBeGreaterThanOrEqual(4966);
       expect(result.url).toContain('http://localhost:');
     });
 
@@ -331,8 +331,8 @@ describe('Server Integration Tests', () => {
       });
       servers.push(sideBySideResult.server);
 
-      expect(inlineResult.port).toBeGreaterThanOrEqual(3000);
-      expect(sideBySideResult.port).toBeGreaterThanOrEqual(3000);
+      expect(inlineResult.port).toBeGreaterThanOrEqual(4966);
+      expect(sideBySideResult.port).toBeGreaterThanOrEqual(4966);
     });
 
     it('mode option should be included in diff response', async () => {

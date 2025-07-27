@@ -98,7 +98,7 @@ git diff --merge-base main feature | npx difit
 | `<target>`       | HEAD         | コミットハッシュ、タグ、HEAD~n、ブランチ、または特別な引数                        |
 | `[compare-with]` | -            | 比較対象の2番目のコミット（2つの間のdiffを表示）                                  |
 | `--pr <url>`     | -            | レビューするGitHub PRのURL（例：https://github.com/owner/repo/pull/123）          |
-| `--port`         | 3000         | 優先ポート。使用中の場合は+1にフォールバック                                      |
+| `--port`         | 4966         | 優先ポート。使用中の場合は+1にフォールバック                                      |
 | `--host`         | 127.0.0.1    | サーバーをバインドするホストアドレス（外部からアクセスしたい場合は0.0.0.0を指定） |
 | `--no-open`      | false        | ブラウザを自動的に開かない                                                        |
 | `--mode`         | side-by-side | 表示モード。inline`または`side-by-side`                                           |

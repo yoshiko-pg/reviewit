@@ -278,7 +278,7 @@ export async function startServer(
 
   const { port, url, server } = await startServerWithFallback(
     app,
-    options.preferredPort || 3000,
+    options.preferredPort || 4966,
     options.host || 'localhost'
   );
 

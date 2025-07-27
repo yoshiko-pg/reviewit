@@ -98,7 +98,7 @@ git diff --merge-base main feature | npx difit
 | `<target>`       | HEAD         | 커밋 해시, 태그, HEAD~n, 브랜치 또는 특수 인수                    |
 | `[compare-with]` | -            | 비교할 선택적 두 번째 커밋 (둘 사이의 diff 표시)                  |
 | `--pr <url>`     | -            | 검토할 GitHub PR URL (예: https://github.com/owner/repo/pull/123) |
-| `--port`         | 3000         | 선호 포트; 사용 중인 경우 +1로 대체                               |
+| `--port`         | 4966         | 선호 포트; 사용 중인 경우 +1로 대체                               |
 | `--host`         | 127.0.0.1    | 서버를 바인딩할 호스트 주소 (외부 액세스는 0.0.0.0 사용)          |
 | `--no-open`      | false        | 브라우저를 자동으로 열지 않음                                     |
 | `--mode`         | side-by-side | 표시 모드: `inline` 또는 `side-by-side`                           |
