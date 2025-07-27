@@ -48,6 +48,16 @@ export function InlineComment({
     setIsEditing(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEdit();
+    }
+  };
+
   return (
     <div className="m-2 mx-4 p-3 bg-github-bg-tertiary border border-yellow-600/50 rounded-md border-l-4 border-l-yellow-400 shadow-sm">
       <div className="flex items-center justify-between mb-2 gap-3">
@@ -128,14 +138,22 @@ export function InlineComment({
         <div className="text-github-text-primary text-sm leading-6 whitespace-pre-wrap">
           {comment.body}
         </div>
-      : <textarea
-          value={editedBody}
-          onChange={(e) => setEditedBody(e.target.value)}
-          className="w-full text-github-text-primary text-sm leading-6 bg-github-bg-secondary border border-github-border rounded px-2 py-1 resize-none focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30"
-          rows={Math.max(2, editedBody.split('\n').length)}
-          placeholder="Edit your comment..."
-          autoFocus
-        />
+      : <div>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-github-text-muted">
+              Cmd+Enter to save • Escape to cancel
+            </span>
+          </div>
+          <textarea
+            value={editedBody}
+            onChange={(e) => setEditedBody(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="w-full text-github-text-primary text-sm leading-6 bg-github-bg-secondary border border-github-border rounded px-2 py-1 resize-none focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30"
+            rows={Math.max(2, editedBody.split('\n').length)}
+            placeholder="Edit your comment..."
+            autoFocus
+          />
+        </div>
       }
     </div>
   );
