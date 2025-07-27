@@ -28,6 +28,7 @@ export function loadPrismLanguage(lang: string): Promise<void> {
       vim: () => import('prismjs/components/prism-vim.js'),
       dart: () => import('prismjs/components/prism-dart.js'),
       csharp: () => import('prismjs/components/prism-csharp.js'),
+      protobuf: () => import('prismjs/components/prism-protobuf.js'),
     };
 
     const importFn = languageImports[lang];

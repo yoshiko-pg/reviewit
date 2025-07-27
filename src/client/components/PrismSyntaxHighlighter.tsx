@@ -86,6 +86,7 @@ function detectLanguage(filename: string): string {
     vim: 'vim',
     dart: 'dart',
     cs: 'csharp',
+    proto: 'protobuf',
   };
 
   return extensionMap[ext || ''] || 'text';
