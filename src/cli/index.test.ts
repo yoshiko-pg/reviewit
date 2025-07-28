@@ -1023,7 +1023,7 @@ describe('CLI index.ts', () => {
           .action(async (commitish: string, compareWith: string | undefined, options: any) => {
             // Simulate determineDiffMode function behavior
             let diffMode: DiffMode;
-            if (compareWith && commitish !== 'HEAD') {
+            if (compareWith && commitish !== 'HEAD' && commitish !== '.') {
               diffMode = DiffMode.SPECIFIC;
             } else if (commitish === 'working') {
               diffMode = DiffMode.WORKING;
@@ -1073,7 +1073,7 @@ describe('CLI index.ts', () => {
         .action(async (commitish: string, compareWith: string | undefined, options: any) => {
           // Simulate determineDiffMode function behavior
           let diffMode: DiffMode;
-          if (compareWith && commitish !== 'HEAD') {
+          if (compareWith && commitish !== 'HEAD' && commitish !== '.') {
             diffMode = DiffMode.SPECIFIC;
           } else if (commitish === 'working') {
             diffMode = DiffMode.WORKING;
@@ -1103,6 +1103,57 @@ describe('CLI index.ts', () => {
           diffMode: 'default', // HEAD with comparison is still DEFAULT mode
           targetCommitish: 'HEAD',
           baseCommitish: 'main',
+        })
+      );
+    });
+
+    it('enables watch mode for dot with comparison', async () => {
+      mockFindUntrackedFiles.mockResolvedValue([]);
+
+      const program = new Command();
+
+      program
+        .argument('[commit-ish]', 'commit-ish', 'HEAD')
+        .argument('[compare-with]', 'compare-with')
+        .option('--port <port>', 'port', parseInt)
+        .option('--host <host>', 'host', '')
+        .option('--no-open', 'no-open')
+        .option('--mode <mode>', 'mode', 'side-by-side')
+        .option('--tui', 'tui')
+        .option('--pr <url>', 'pr')
+        .action(async (commitish: string, compareWith: string | undefined, options: any) => {
+          // Simulate determineDiffMode function behavior with the fix
+          let diffMode: DiffMode;
+          if (compareWith && commitish !== 'HEAD' && commitish !== '.') {
+            diffMode = DiffMode.SPECIFIC;
+          } else if (commitish === 'working') {
+            diffMode = DiffMode.WORKING;
+          } else if (commitish === 'staged') {
+            diffMode = DiffMode.STAGED;
+          } else if (commitish === '.') {
+            diffMode = DiffMode.DOT;
+          } else {
+            diffMode = DiffMode.DEFAULT;
+          }
+
+          await startServer({
+            targetCommitish: commitish,
+            baseCommitish: compareWith || commitish + '^',
+            preferredPort: options.port,
+            host: options.host,
+            openBrowser: options.open,
+            mode: options.mode,
+            diffMode,
+          });
+        });
+
+      await program.parseAsync(['.', 'origin/main'], { from: 'user' });
+
+      expect(mockStartServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          diffMode: 'dot', // Dot with comparison should still be DOT mode (watch enabled)
+          targetCommitish: '.',
+          baseCommitish: 'origin/main',
         })
       );
     });
