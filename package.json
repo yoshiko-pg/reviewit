@@ -31,7 +31,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install",
-    "prepublishOnly": "NODE_ENV=production pnpm run build"
+    "prepublishOnly": "NODE_ENV=production pnpm run build",
+    "perf": "node scripts/measure-performance.js",
+    "perf:small": "node scripts/measure-performance.js small",
+    "perf:medium": "node scripts/measure-performance.js medium",
+    "perf:large": "node scripts/measure-performance.js large",
+    "perf:xlarge": "node scripts/measure-performance.js xlarge"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",

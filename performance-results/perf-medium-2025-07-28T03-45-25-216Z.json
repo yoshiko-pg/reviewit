@@ -1,0 +1,299 @@
+{
+  "size": "medium",
+  "stats": {
+    "files": 20,
+    "linesPerFile": 500,
+    "totalLines": 10000
+  },
+  "config": {
+    "iterations": 3,
+    "enabledMeasurements": [
+      {
+        "type": "keyboardNavigation",
+        "enabled": true,
+        "description": "Keyboard navigation performance"
+      }
+    ]
+  },
+  "results": [
+    {
+      "iteration": 1,
+      "timestamp": "2025-07-28T03:44:04.265Z",
+      "keyboardNavigation": {
+        "operations": [
+          {
+            "type": "Next line (j)",
+            "count": 20,
+            "durations": [
+              582.5, 497.70000000298023, 516.2000000029802, 481.20000000298023, 497.69999999552965,
+              481, 498.3999999985099, 482.3999999985099, 497.3999999985099, 481.70000000298023,
+              549.0999999940395, 482, 514.6999999955297, 482.3999999985099, 499, 480.70000000298023,
+              498.1000000014901, 482.6000000014901, 497.8999999985099, 464.5
+            ],
+            "average": 498.3599999997765,
+            "max": 582.5,
+            "min": 464.5
+          },
+          {
+            "type": "Previous line (k)",
+            "count": 10,
+            "durations": [
+              498.1000000014901, 485.09999999403954, 514.7999999970198, 464.8999999985099,
+              480.8999999985099, 465.1000000014901, 481.1000000014901, 465.1000000014901, 498,
+              463.3999999985099
+            ],
+            "average": 481.64999999925493,
+            "max": 514.7999999970198,
+            "min": 463.3999999985099
+          },
+          {
+            "type": "Next chunk (n)",
+            "count": 5,
+            "durations": [
+              482.30000000447035, 474.6000000014901, 513.8000000044703, 465.6000000014901,
+              481.79999999701977
+            ],
+            "average": 483.6200000017881,
+            "max": 513.8000000044703,
+            "min": 465.6000000014901
+          },
+          {
+            "type": "Previous chunk (p)",
+            "count": 3,
+            "durations": [464.70000000298023, 498.5, 465.40000000596046],
+            "average": 476.20000000298023,
+            "max": 498.5,
+            "min": 464.70000000298023
+          },
+          {
+            "type": "Next file (f)",
+            "count": 3,
+            "durations": [15.100000001490116, 14.600000001490116, 13.300000004470348],
+            "average": 14.33333333581686,
+            "max": 15.100000001490116,
+            "min": 13.300000004470348
+          },
+          {
+            "type": "Previous file (F)",
+            "count": 2,
+            "durations": [12.199999995529652, 13.200000002980232],
+            "average": 12.699999999254942,
+            "max": 13.200000002980232,
+            "min": 12.199999995529652
+          }
+        ],
+        "totalDuration": 18698.80000001192,
+        "averageOperationTime": 434.8558139537656
+      },
+      "performanceData": {
+        "marks": [],
+        "measures": []
+      },
+      "memory": {
+        "usedJSHeapSize": 1130000000,
+        "totalJSHeapSize": 1200000000,
+        "jsHeapSizeLimit": 3760000000
+      }
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2025-07-28T03:44:31.292Z",
+      "keyboardNavigation": {
+        "operations": [
+          {
+            "type": "Next line (j)",
+            "count": 20,
+            "durations": [
+              609.6000000014901, 532.1000000014901, 515.5, 464.59999999403954, 498.8999999985099,
+              482, 497.79999999701977, 464.6000000014901, 499.20000000298023, 514.2000000029802,
+              500.20000000298023, 498, 498.1000000014901, 449.29999999701977, 481.3999999985099,
+              464.09999999403954, 481.80000000447035, 449.1000000014901, 498, 497.8999999985099
+            ],
+            "average": 494.81999999992547,
+            "max": 609.6000000014901,
+            "min": 449.1000000014901
+          },
+          {
+            "type": "Previous line (k)",
+            "count": 10,
+            "durations": [
+              499.5, 481.80000000447035, 497.3999999985099, 447.79999999701977, 482.29999999701977,
+              447.8999999985099, 481.59999999403954, 465.69999999552965, 498.1000000014901,
+              464.29999999701977
+            ],
+            "average": 476.63999999836085,
+            "max": 499.5,
+            "min": 447.79999999701977
+          },
+          {
+            "type": "Next chunk (n)",
+            "count": 5,
+            "durations": [516, 481.5, 497.70000000298023, 448.3999999985099, 497.3999999985099],
+            "average": 488.2,
+            "max": 516,
+            "min": 448.3999999985099
+          },
+          {
+            "type": "Previous chunk (p)",
+            "count": 3,
+            "durations": [448.8999999985099, 499.1000000014901, 465.3999999985099],
+            "average": 471.1333333328366,
+            "max": 499.1000000014901,
+            "min": 448.8999999985099
+          },
+          {
+            "type": "Next file (f)",
+            "count": 3,
+            "durations": [14.599999994039536, 14.299999997019768, 16.600000001490116],
+            "average": 15.16666666418314,
+            "max": 16.600000001490116,
+            "min": 14.299999997019768
+          },
+          {
+            "type": "Previous file (F)",
+            "count": 2,
+            "durations": [12, 14.5],
+            "average": 13.25,
+            "max": 14.5,
+            "min": 12
+          }
+        ],
+        "totalDuration": 18589.199999973178,
+        "averageOperationTime": 432.3069767435623
+      },
+      "performanceData": {
+        "marks": [],
+        "measures": []
+      },
+      "memory": {
+        "usedJSHeapSize": 1280000000,
+        "totalJSHeapSize": 1280000000,
+        "jsHeapSizeLimit": 3760000000
+      }
+    },
+    {
+      "iteration": 3,
+      "timestamp": "2025-07-28T03:44:58.165Z",
+      "keyboardNavigation": {
+        "operations": [
+          {
+            "type": "Next line (j)",
+            "count": 20,
+            "durations": [
+              596.0999999940395, 499.70000000298023, 514.7999999970198, 481.1000000014901, 515.5,
+              481, 514.9000000059605, 481.30000000447035, 514.6000000014901, 480.70000000298023,
+              565.7000000029802, 481, 515.3999999985099, 481.5, 497.8999999985099,
+              482.29999999701977, 499, 465.19999999552965, 498.19999999552965, 465.1000000014901
+            ],
+            "average": 501.55,
+            "max": 596.0999999940395,
+            "min": 465.1000000014901
+          },
+          {
+            "type": "Previous line (k)",
+            "count": 10,
+            "durations": [
+              590.5999999940395, 489.1000000014901, 514.2000000029802, 465.8999999985099,
+              497.8999999985099, 464.70000000298023, 498.5, 464.69999999552965, 499.19999999552965,
+              448.79999999701977
+            ],
+            "average": 493.3599999986589,
+            "max": 590.5999999940395,
+            "min": 448.79999999701977
+          },
+          {
+            "type": "Next chunk (n)",
+            "count": 5,
+            "durations": [516, 466.09999999403954, 516, 449.1000000014901, 481.8999999985099],
+            "average": 485.81999999880793,
+            "max": 516,
+            "min": 449.1000000014901
+          },
+          {
+            "type": "Previous chunk (p)",
+            "count": 3,
+            "durations": [466.19999999552965, 497.20000000298023, 465.3999999985099],
+            "average": 476.26666666567326,
+            "max": 497.20000000298023,
+            "min": 465.3999999985099
+          },
+          {
+            "type": "Next file (f)",
+            "count": 3,
+            "durations": [15, 14.700000002980232, 13.200000002980232],
+            "average": 14.300000001986822,
+            "max": 15,
+            "min": 13.200000002980232
+          },
+          {
+            "type": "Previous file (F)",
+            "count": 2,
+            "durations": [12.700000002980232, 13.199999995529652],
+            "average": 12.949999999254942,
+            "max": 13.199999995529652,
+            "min": 12.700000002980232
+          }
+        ],
+        "totalDuration": 18891.29999998212,
+        "averageOperationTime": 439.33255813911904
+      },
+      "performanceData": {
+        "marks": [],
+        "measures": []
+      },
+      "memory": {
+        "usedJSHeapSize": 1130000000,
+        "totalJSHeapSize": 1200000000,
+        "jsHeapSizeLimit": 3760000000
+      }
+    }
+  ],
+  "summary": {
+    "keyboardNavigation": {
+      "averageOperationTime": 435.498449612149,
+      "operationBreakdown": {
+        "Next line (j)": {
+          "averageTime": 498.243333333234,
+          "averageMaxTime": 596.0666666651765
+        },
+        "Previous line (k)": {
+          "averageTime": 483.8833333320915,
+          "averageMaxTime": 534.9666666636864
+        },
+        "Next chunk (n)": {
+          "averageTime": 485.88000000019866,
+          "averageMaxTime": 515.2666666681567
+        },
+        "Previous chunk (p)": {
+          "averageTime": 474.53333333383006,
+          "averageMaxTime": 498.2666666681568
+        },
+        "Next file (f)": {
+          "averageTime": 14.600000000662275,
+          "averageMaxTime": 15.566666667660078
+        },
+        "Previous file (F)": {
+          "averageTime": 12.966666666169962,
+          "averageMaxTime": 13.633333332836628
+        }
+      }
+    }
+  },
+  "metadata": {
+    "timestamp": "2025-07-28T03:45:25.215Z",
+    "duration": 81134,
+    "gitInfo": {
+      "commitHash": "10e30976d456c1adb47d3e3599f5acc20d8be8d0",
+      "branch": "performance-3",
+      "commitMessage": "Add script to generate large diffs for performance testing\n\nThis script generates synthetic diff files of various sizes (small, medium,\nlarge, xlarge) to help test and improve keyboard navigation performance.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "author": "haya14busa",
+      "date": "2025-07-28T12:19:28+09:00"
+    },
+    "memo": "Baseline measurement before optimization",
+    "environment": {
+      "node": "v24.3.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}

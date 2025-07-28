@@ -1,0 +1,58 @@
+{
+  "size": "large",
+  "stats": {
+    "files": 50,
+    "linesPerFile": 1000,
+    "totalLines": 50000
+  },
+  "config": {
+    "iterations": 3,
+    "enabledMeasurements": [
+      {
+        "type": "keyboardNavigation",
+        "enabled": true,
+        "description": "Keyboard navigation performance"
+      }
+    ]
+  },
+  "results": [
+    {
+      "iteration": 1,
+      "timestamp": "2025-07-28T03:39:20.007Z",
+      "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr.group') to be visible\u001b[22m\n\u001b[2m    - locator resolved to 47622 elements. Proceeding with the first one: <tr class=\"group cursor-pointer\">…</tr>\u001b[22m\n"
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2025-07-28T03:39:31.210Z",
+      "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr.group') to be visible\u001b[22m\n\u001b[2m    - locator resolved to 47643 elements. Proceeding with the first one: <tr class=\"group cursor-pointer\">…</tr>\u001b[22m\n"
+    },
+    {
+      "iteration": 3,
+      "timestamp": "2025-07-28T03:39:42.403Z",
+      "error": "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr.group') to be visible\u001b[22m\n"
+    }
+  ],
+  "summary": {
+    "keyboardNavigation": {
+      "averageOperationTime": 0,
+      "operationBreakdown": {}
+    }
+  },
+  "metadata": {
+    "timestamp": "2025-07-28T03:39:53.705Z",
+    "duration": 33894,
+    "gitInfo": {
+      "commitHash": "10e30976d456c1adb47d3e3599f5acc20d8be8d0",
+      "branch": "performance-3",
+      "commitMessage": "Add script to generate large diffs for performance testing\n\nThis script generates synthetic diff files of various sizes (small, medium,\nlarge, xlarge) to help test and improve keyboard navigation performance.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "author": "haya14busa",
+      "date": "2025-07-28T12:19:28+09:00"
+    },
+    "memo": "Baseline measurement before optimization",
+    "environment": {
+      "node": "v24.3.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}
