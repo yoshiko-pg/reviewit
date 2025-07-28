@@ -65,6 +65,14 @@ jobs:
           # Create performance-results directory if it doesn't exist
           mkdir -p performance-results
 
+          # Install playwright in base directory if needed
+          # This ensures the test can run even if base branch doesn't have playwright
+          if ! npm list playwright >/dev/null 2>&1; then
+            echo "Installing playwright for base branch testing..."
+            npm install --no-save playwright
+            npx playwright install chromium
+          fi
+
           # Run performance test using head's script but base's build
           node ../head/scripts/measure-performance.js --size medium --iterations 3 || {
             echo "::notice::Performance test failed on base branch. This might be expected if the base branch has incompatible changes."
