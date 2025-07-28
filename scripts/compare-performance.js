@@ -58,107 +58,58 @@ function generateMarkdownTable(comparison) {
 
   lines.push('# Performance Comparison Report\n');
 
-  // Metadata section
-  lines.push('## Test Information\n');
-  lines.push('| Metric | Baseline | Comparison |');
-  lines.push('|--------|----------|------------|');
-
   const baseline = comparison.baseline;
   const compared = comparison.compared;
 
-  lines.push(
-    `| **Commit** | ${baseline.commitHash.substring(0, 8)} | ${compared.commitHash.substring(0, 8)} |`
-  );
-  lines.push(`| **Branch** | ${baseline.branch} | ${compared.branch} |`);
-  lines.push(
-    `| **Message** | ${baseline.commitMessage.split('\n')[0]} | ${compared.commitMessage.split('\n')[0]} |`
-  );
-  lines.push(
-    `| **Date** | ${new Date(baseline.timestamp).toLocaleString()} | ${new Date(compared.timestamp).toLocaleString()} |`
-  );
-  lines.push(
-    `| **Dirty** | ${baseline.isDirty ? '⚠️ Yes' : '✅ No'} | ${compared.isDirty ? '⚠️ Yes' : '✅ No'} |`
-  );
-
-  if (baseline.memo || compared.memo) {
-    lines.push(`| **Memo** | ${baseline.memo || '-'} | ${compared.memo || '-'} |`);
-  }
-
-  lines.push('\n## Test Configuration\n');
-  lines.push(
-    `- **Size**: ${baseline.size} (${baseline.totalFiles} files, ${baseline.totalLines} lines)`
-  );
-  lines.push(`- **Iterations**: ${baseline.iterations} → ${compared.iterations}`);
-
-  // Performance metrics
-  lines.push('\n## Keyboard Navigation Performance\n');
-
+  // Summary first
   const baselineAvg = comparison.metrics.keyboardNavigation.baseline.averageOperationTime;
   const comparedAvg = comparison.metrics.keyboardNavigation.compared.averageOperationTime;
   const avgChange = comparison.metrics.keyboardNavigation.change;
 
-  lines.push(`### Overall Average Operation Time`);
-  lines.push(`- **Baseline**: ${formatMilliseconds(baselineAvg)}`);
-  lines.push(`- **Compared**: ${formatMilliseconds(comparedAvg)}`);
-  lines.push(`- **Change**: ${formatChange(avgChange)}`);
+  if (avgChange.improved) {
+    lines.push(`## ✅ Performance improved by ${Math.abs(avgChange.percent).toFixed(1)}%\n`);
+  } else if (avgChange.percent > 5) {
+    lines.push(`## ⚠️ Performance regressed by ${avgChange.percent.toFixed(1)}%\n`);
+  } else {
+    lines.push(`## ➡️ Performance remained stable (${avgChange.percent.toFixed(1)}% change)\n`);
+  }
 
-  // Operation breakdown table
-  lines.push('\n### Operation Breakdown\n');
+  // Main performance comparison
+  lines.push('### Average Operation Time');
+  lines.push('```');
+  lines.push(`Baseline: ${formatMilliseconds(baselineAvg)}`);
+  lines.push(`Current:  ${formatMilliseconds(comparedAvg)}`);
   lines.push(
-    '| Operation | Baseline Avg | Compared Avg | Change | Baseline Max | Compared Max | Max Change |'
+    `Change:   ${
+      avgChange.improved ? '🟢'
+      : avgChange.percent > 5 ? '🔴'
+      : '🟡'
+    } ${avgChange.absolute.toFixed(2)}ms (${avgChange.percent > 0 ? '+' : ''}${avgChange.percent.toFixed(1)}%)`
   );
+  lines.push('```\n');
+
+  // Test details
+  lines.push('### Test Configuration');
   lines.push(
-    '|-----------|--------------|--------------|--------|--------------|--------------|------------|'
+    `- **Size**: ${baseline.size} (${baseline.totalFiles} files, ${baseline.totalLines} lines)`
   );
+  lines.push(`- **Iterations**: ${baseline.iterations} → ${compared.iterations}\n`);
 
-  for (const [operation, data] of Object.entries(
-    comparison.metrics.keyboardNavigation.operationBreakdown
-  )) {
-    const baselineOp = data.baseline;
-    const comparedOp = data.compared;
-    const avgChange = data.avgChange;
-    const maxChange = data.maxChange;
-
+  // Commit information in a more compact format
+  lines.push('### Commits Compared');
+  lines.push('| | Baseline | Current |');
+  lines.push('|---|----------|---------|');
+  lines.push(
+    `| **Commit** | \`${baseline.commitHash.substring(0, 8)}\` | \`${compared.commitHash.substring(0, 8)}\` |`
+  );
+  lines.push(`| **Branch** | ${baseline.branch} | ${compared.branch} |`);
+  if (baseline.isDirty || compared.isDirty) {
     lines.push(
-      `| **${operation}** | ${formatMilliseconds(baselineOp.averageTime)} | ` +
-        `${formatMilliseconds(comparedOp.averageTime)} | ${formatChange(avgChange)} | ` +
-        `${formatMilliseconds(baselineOp.averageMaxTime)} | ` +
-        `${formatMilliseconds(comparedOp.averageMaxTime)} | ${formatChange(maxChange)} |`
+      `| **Dirty** | ${baseline.isDirty ? '⚠️ Yes' : '✅ No'} | ${compared.isDirty ? '⚠️ Yes' : '✅ No'} |`
     );
   }
-
-  // Summary
-  lines.push('\n## Summary\n');
-
-  const improvements = [];
-  const regressions = [];
-
-  for (const [operation, data] of Object.entries(
-    comparison.metrics.keyboardNavigation.operationBreakdown
-  )) {
-    if (data.avgChange.improved) {
-      improvements.push(`- ${operation}: ${data.avgChange.percent}% faster`);
-    } else if (data.avgChange.percent > 5) {
-      regressions.push(`- ${operation}: ${data.avgChange.percent}% slower`);
-    }
-  }
-
-  if (avgChange.improved) {
-    lines.push(`✅ **Overall performance improved by ${Math.abs(avgChange.percent)}%**\n`);
-  } else if (avgChange.percent > 5) {
-    lines.push(`⚠️ **Overall performance regressed by ${avgChange.percent}%**\n`);
-  } else {
-    lines.push(`➡️ **Performance remained relatively stable (${avgChange.percent}% change)**\n`);
-  }
-
-  if (improvements.length > 0) {
-    lines.push('### Improvements');
-    lines.push(...improvements);
-  }
-
-  if (regressions.length > 0) {
-    lines.push('\n### Regressions');
-    lines.push(...regressions);
+  if (baseline.memo || compared.memo) {
+    lines.push(`| **Memo** | ${baseline.memo || '-'} | ${compared.memo || '-'} |`);
   }
 
   return lines.join('\n');
@@ -245,20 +196,24 @@ async function main() {
   const args = process.argv.slice(2);
   const resultsDir = path.join(__dirname, '..', 'performance-results');
 
-  // Filter out flags from positional arguments
-  const positionalArgs = args.filter((arg) => !arg.startsWith('--'));
+  // Get size from flag
+  const sizeIndex = args.indexOf('--size');
+  const size = sizeIndex !== -1 && args[sizeIndex + 1] ? args[sizeIndex + 1] : 'medium';
+
+  // Filter out flags and their values from positional arguments
+  const positionalArgs = args.filter((arg, index) => {
+    // Skip flags
+    if (arg.startsWith('--')) return false;
+    // Skip flag values
+    if (index > 0 && args[index - 1] === '--size') return false;
+    return true;
+  });
 
   let baselineFile, comparedFile;
 
   // Parse arguments
   if (positionalArgs.length === 0) {
-    // No args: find latest two results for medium size
-    const latest = await findLatestResults(resultsDir, 'medium');
-    baselineFile = latest.baseline;
-    comparedFile = latest.compared;
-  } else if (positionalArgs.length === 1) {
-    // One arg: size specified, find latest two for that size
-    const size = positionalArgs[0];
+    // No args: find latest two results for specified size
     const latest = await findLatestResults(resultsDir, size);
     baselineFile = latest.baseline;
     comparedFile = latest.compared;
@@ -268,8 +223,14 @@ async function main() {
     comparedFile = path.resolve(positionalArgs[1]);
   } else {
     console.error(
-      'Usage: pnpm compare:perf [size] or pnpm compare:perf <baseline-file> <compared-file>'
+      'Usage: pnpm perf:compare [--size <size>] or pnpm perf:compare <baseline-file> <compared-file>'
     );
+    console.error('Options:');
+    console.error(
+      '  --size <size>  Size to compare (small, medium, large, xlarge). Default: medium'
+    );
+    console.error('  --json         Output as JSON');
+    console.error('  --save         Save markdown output to file');
     process.exit(1);
   }
 
