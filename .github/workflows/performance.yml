@@ -68,7 +68,7 @@ jobs:
 
           # Run performance test using head's script but base's build
           # The script will create results in the head directory's performance-results
-          node ../head/scripts/measure-performance.js --size medium --iterations 3
+          node ../head/scripts/measure-performance.js --size medium --iterations 3 --difit-path ../base/dist/cli/index.js
 
           # Get the latest result file from head directory
           RESULT_FILE=$(ls -t ../head/performance-results/perf-medium-*.json | head -1)

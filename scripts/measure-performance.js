@@ -63,21 +63,19 @@ async function getGitInfo() {
   }
 }
 
-async function startDifitServer(size) {
+async function startDifitServer(size, difitPath) {
   log('Starting difit server...', colors.blue);
 
   let actualPort = config.port;
+
+  // Use provided difit path or default
+  const difitBinaryPath = difitPath || path.join(__dirname, '..', 'dist', 'cli', 'index.js');
 
   // Generate diff and pipe to difit
   const generateDiff = spawn('node', [path.join(__dirname, 'generate-large-diff.js'), size]);
   const difitProcess = spawn(
     'node',
-    [
-      path.join(__dirname, '..', 'dist', 'cli', 'index.js'),
-      '--port',
-      config.port.toString(),
-      '--no-open',
-    ],
+    [difitBinaryPath, '--port', config.port.toString(), '--no-open'],
     {
       env: { ...process.env, NODE_ENV: 'production' },
     }
@@ -229,7 +227,10 @@ async function measurePerformance(size, options = {}) {
   for (let i = 0; i < iterations; i++) {
     log(`\nIteration ${i + 1}/${iterations}`, colors.blue);
 
-    const { process: difitProcess, port: actualPort } = await startDifitServer(size);
+    const { process: difitProcess, port: actualPort } = await startDifitServer(
+      size,
+      options.difitPath
+    );
     const iterationMetrics = {
       iteration: i + 1,
       timestamp: new Date().toISOString(),
@@ -371,7 +372,8 @@ async function main() {
   const positionalArgs = args.filter((arg, index) => {
     if (arg.startsWith('--')) return false;
     // Skip flag values
-    if (index > 0 && ['--size', '--memo', '--iterations'].includes(args[index - 1])) return false;
+    if (index > 0 && ['--size', '--memo', '--iterations', '--difit-path'].includes(args[index - 1]))
+      return false;
     return true;
   });
 
@@ -383,11 +385,17 @@ async function main() {
 
   const memo = args.includes('--memo') ? args[args.indexOf('--memo') + 1] : undefined;
 
+  // Get difit path from --difit-path flag or use default
+  const difitPathIndex = args.indexOf('--difit-path');
+  const difitPath =
+    difitPathIndex !== -1 && args[difitPathIndex + 1] ? args[difitPathIndex + 1] : undefined;
+
   const options = {
     headless: !args.includes('--headed'),
     devtools: args.includes('--devtools'),
     iterations:
       args.includes('--iterations') ? parseInt(args[args.indexOf('--iterations') + 1]) : undefined,
+    difitPath,
   };
 
   if (!config.sizes[size]) {
@@ -400,6 +408,7 @@ async function main() {
     log(`  --iterations <n>     Number of iterations (default: ${config.defaultIterations})`);
     log(`  --memo <text>        Add a memo to the results`);
     log(`  --devtools           Open browser devtools`);
+    log(`  --difit-path <path>  Path to difit CLI (default: dist/cli/index.js)`);
     process.exit(1);
   }
 
