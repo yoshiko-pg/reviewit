@@ -359,19 +359,23 @@ function calculateSummary(results) {
 async function main() {
   const args = process.argv.slice(2);
 
-  // Filter out flags and their values to find the size parameter
-  const positionalArgs = [];
-  for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--')) {
-      // Skip flag and its value if it has one
-      if (['--memo', '--iterations'].includes(args[i]) && i + 1 < args.length) {
-        i++; // Skip the next argument (the flag's value)
-      }
-    } else {
-      positionalArgs.push(args[i]);
-    }
+  // Get size from --size flag
+  const sizeIndex = args.indexOf('--size');
+  const size = sizeIndex !== -1 && args[sizeIndex + 1] ? args[sizeIndex + 1] : 'medium';
+
+  // Check for any positional arguments (which are no longer supported)
+  const positionalArgs = args.filter((arg, index) => {
+    if (arg.startsWith('--')) return false;
+    // Skip flag values
+    if (index > 0 && ['--size', '--memo', '--iterations'].includes(args[index - 1])) return false;
+    return true;
+  });
+
+  if (positionalArgs.length > 0) {
+    log(`Error: Size must be specified with --size flag, not as positional argument`, colors.red);
+    log(`Use: pnpm perf --size ${positionalArgs[0]}`, colors.yellow);
+    process.exit(1);
   }
-  const size = positionalArgs[0] || 'medium';
 
   const memo = args.includes('--memo') ? args[args.indexOf('--memo') + 1] : undefined;
 
@@ -385,6 +389,13 @@ async function main() {
   if (!config.sizes[size]) {
     log(`Invalid size: ${size}`, colors.red);
     log(`Available sizes: ${Object.keys(config.sizes).join(', ')}`);
+    log(`\nUsage: pnpm perf [options]`);
+    log(`Options:`);
+    log(`  --size <size>        Size of diff to test (default: medium)`);
+    log(`  --headed             Run tests in headed mode (show browser)`);
+    log(`  --iterations <n>     Number of iterations (default: ${config.defaultIterations})`);
+    log(`  --memo <text>        Add a memo to the results`);
+    log(`  --devtools           Open browser devtools`);
     process.exit(1);
   }
 
