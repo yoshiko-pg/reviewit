@@ -5,20 +5,39 @@ const commitish = process.argv[2] || 'HEAD';
 const compareWith = process.argv[3];
 const CLI_SERVER_READY_MESSAGE = 'difit server started';
 
+// Check if we should read from stdin
+const shouldReadStdin = !process.stdin.isTTY || commitish === '-';
+
 console.log('🚀 Starting CLI server...');
+if (shouldReadStdin) {
+  console.log('📥 Reading diff from stdin...');
+}
 
 // Start CLI server
-const cliArgs = ['run', 'dev:cli', commitish];
-if (compareWith) {
-  cliArgs.push(compareWith);
+const cliArgs = ['run', 'dev:cli'];
+
+// If not reading from stdin, add commitish and compareWith
+if (!shouldReadStdin) {
+  cliArgs.push(commitish);
+  if (compareWith) {
+    cliArgs.push(compareWith);
+  }
+} else {
+  // For stdin mode, use '-' as the commitish
+  cliArgs.push('-');
 }
 cliArgs.push('--no-open');
 
 const cliProcess = spawn('pnpm', cliArgs, {
-  // Pipe stdout to capture CLI server ready
-  stdio: ['inherit', 'pipe', 'inherit'],
+  // For stdin mode, pipe stdin; otherwise inherit
+  stdio: [shouldReadStdin ? 'pipe' : 'inherit', 'pipe', 'inherit'],
   shell: true,
 });
+
+// If reading from stdin, pipe it to the CLI process
+if (shouldReadStdin) {
+  process.stdin.pipe(cliProcess.stdin);
+}
 
 // Wait for CLI server to be ready, then start Vite
 let cliReady = false;
