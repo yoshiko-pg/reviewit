@@ -6,19 +6,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ANSI color codes
-const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  red: '\x1b[31m',
-  cyan: '\x1b[36m',
-  dim: '\x1b[2m',
-};
-
-function log(message, color = '') {
-  console.log(`${color}${message}${colors.reset}`);
+// Simple logging without colors for CI compatibility
+function log(message) {
+  console.error(message);
 }
 
 async function loadPerformanceResults(filePath) {
@@ -42,11 +32,7 @@ function calculateChange(oldValue, newValue) {
 
 function formatChange(change) {
   const sign = change.absolute >= 0 ? '+' : '';
-  const color =
-    change.improved ? colors.green
-    : change.percent > 10 ? colors.red
-    : colors.yellow;
-  return `${color}${sign}${change.absolute.toFixed(2)}ms (${sign}${change.percent}%)${colors.reset}`;
+  return `${sign}${change.absolute.toFixed(2)}ms (${sign}${change.percent}%)`;
 }
 
 function formatMilliseconds(ms) {
@@ -59,11 +45,11 @@ function generateMarkdownTable(comparison) {
   lines.push('# Performance Comparison Report\n');
 
   const baseline = comparison.baseline;
-  const compared = comparison.compared;
+  const current = comparison.current;
 
   // Summary first
-  const baselineAvg = comparison.metrics.keyboardNavigation.baseline.averageOperationTime;
-  const comparedAvg = comparison.metrics.keyboardNavigation.compared.averageOperationTime;
+  const baselineAvg = comparison.baseline.averageOperationTime;
+  const currentAvg = comparison.current.averageOperationTime;
   const avgChange = comparison.metrics.keyboardNavigation.change;
 
   if (avgChange.improved) {
@@ -78,7 +64,7 @@ function generateMarkdownTable(comparison) {
   lines.push('### Average Operation Time');
   lines.push('```');
   lines.push(`Baseline: ${formatMilliseconds(baselineAvg)}`);
-  lines.push(`Current:  ${formatMilliseconds(comparedAvg)}`);
+  lines.push(`Current:  ${formatMilliseconds(currentAvg)}`);
   lines.push(
     `Change:   ${
       avgChange.improved ? '🟢'
@@ -93,23 +79,23 @@ function generateMarkdownTable(comparison) {
   lines.push(
     `- **Size**: ${baseline.size} (${baseline.totalFiles} files, ${baseline.totalLines} lines)`
   );
-  lines.push(`- **Iterations**: ${baseline.iterations} → ${compared.iterations}\n`);
+  lines.push(`- **Iterations**: ${baseline.iterations} → ${current.iterations}\n`);
 
   // Commit information in a more compact format
   lines.push('### Commits Compared');
   lines.push('| | Baseline | Current |');
   lines.push('|---|----------|---------|');
   lines.push(
-    `| **Commit** | \`${baseline.commitHash.substring(0, 8)}\` | \`${compared.commitHash.substring(0, 8)}\` |`
+    `| **Commit** | \`${baseline.commitHash.substring(0, 8)}\` | \`${current.commitHash.substring(0, 8)}\` |`
   );
-  lines.push(`| **Branch** | ${baseline.branch} | ${compared.branch} |`);
-  if (baseline.isDirty || compared.isDirty) {
+  lines.push(`| **Branch** | ${baseline.branch} | ${current.branch} |`);
+  if (baseline.isDirty || current.isDirty) {
     lines.push(
-      `| **Dirty** | ${baseline.isDirty ? '⚠️ Yes' : '✅ No'} | ${compared.isDirty ? '⚠️ Yes' : '✅ No'} |`
+      `| **Dirty** | ${baseline.isDirty ? '⚠️ Yes' : '✅ No'} | ${current.isDirty ? '⚠️ Yes' : '✅ No'} |`
     );
   }
-  if (baseline.memo || compared.memo) {
-    lines.push(`| **Memo** | ${baseline.memo || '-'} | ${compared.memo || '-'} |`);
+  if (baseline.memo || current.memo) {
+    lines.push(`| **Memo** | ${baseline.memo || '-'} | ${current.memo || '-'} |`);
   }
 
   return lines.join('\n');
@@ -247,9 +233,9 @@ async function main() {
   const outputFormat = args.includes('--json') ? 'json' : 'markdown';
 
   if (outputFormat !== 'json') {
-    log(`${colors.bright}Performance Comparison Tool${colors.reset}`);
+    log('Performance Comparison Tool');
     log('===========================\n');
-    log('Loading performance results...', colors.cyan);
+    log('Loading performance results...');
   }
 
   // Load results
@@ -262,10 +248,7 @@ async function main() {
 
   // Validate same size
   if (baselineResults.size !== comparedResults.size && outputFormat !== 'json') {
-    log(
-      `Warning: Comparing different sizes (${baselineResults.size} vs ${comparedResults.size})`,
-      colors.yellow
-    );
+    log(`Warning: Comparing different sizes (${baselineResults.size} vs ${comparedResults.size})`);
   }
 
   // Generate comparison
@@ -282,12 +265,12 @@ async function main() {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const outputFile = path.join(resultsDir, `comparison-${timestamp}.md`);
       await fs.writeFile(outputFile, markdown);
-      log(`\nComparison saved to: ${outputFile}`, colors.green);
+      log(`\nComparison saved to: ${outputFile}`);
     }
   }
 }
 
 main().catch((error) => {
-  log(`Error: ${error.message}`, colors.red);
+  log(`Error: ${error.message}`);
   process.exit(1);
 });
