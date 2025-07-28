@@ -19,26 +19,7 @@ const config = {
     xlarge: { files: 100, linesPerFile: 2000 },
   },
   port: 3456,
-  iterations: 3,
-  // Currently focused on keyboard navigation, but extensible for other metrics
-  measurementTypes: {
-    keyboardNavigation: {
-      enabled: true,
-      description: 'Keyboard navigation performance',
-    },
-    pageLoad: {
-      enabled: false,
-      description: 'Initial page load and render time',
-    },
-    scrolling: {
-      enabled: false,
-      description: 'Scroll performance',
-    },
-    fileToggle: {
-      enabled: false,
-      description: 'File expand/collapse performance',
-    },
-  },
+  defaultIterations: 2,
 };
 
 // ANSI color codes
@@ -142,12 +123,11 @@ async function measureKeyboardNavigation(page) {
   log('  Testing keyboard navigation performance...', colors.cyan);
 
   // Wait for initial content to be ready
-  // Use simpler wait strategy - just wait for any table row
   try {
     await page.waitForSelector('tr', { timeout: 15000 });
     await page.waitForTimeout(2000); // Give time for React to render all rows
   } catch (error) {
-    log('    Warning: Could not find table rows, proceeding anyway', colors.yellow);
+    throw new Error('Could not find table rows - page did not load properly');
   }
 
   // Measure individual navigation operations
@@ -156,8 +136,8 @@ async function measureKeyboardNavigation(page) {
     { key: 'k', count: 10, description: 'Previous line (k)' },
     { key: 'n', count: 5, description: 'Next chunk (n)' },
     { key: 'p', count: 3, description: 'Previous chunk (p)' },
-    { key: 'f', count: 3, description: 'Next file (f)' },
-    { key: 'F', count: 2, description: 'Previous file (F)' },
+    { key: ']', count: 3, description: 'Next file (])' },
+    { key: '[', count: 2, description: 'Previous file ([)' },
   ];
 
   for (const test of navigationTests) {
@@ -235,8 +215,10 @@ async function measurePerformance(size, options = {}) {
     devtools: options.devtools === true,
   });
 
-  for (let i = 0; i < config.iterations; i++) {
-    log(`\nIteration ${i + 1}/${config.iterations}`, colors.blue);
+  const iterations = options.iterations || config.defaultIterations;
+
+  for (let i = 0; i < iterations; i++) {
+    log(`\nIteration ${i + 1}/${iterations}`, colors.blue);
 
     const { process: difitProcess, port: actualPort } = await startDifitServer(size);
     const iterationMetrics = {
@@ -282,17 +264,8 @@ async function measurePerformance(size, options = {}) {
       // Wait for initial render - wait for the main container
       await page.waitForSelector('.bg-github-bg-primary', { timeout: 30000 });
 
-      if (config.measurementTypes.pageLoad.enabled) {
-        iterationMetrics.pageLoad = {
-          domContentLoaded: Date.now() - loadStartTime,
-          initialRender: Date.now() - loadStartTime,
-        };
-      }
-
-      // Run enabled measurements
-      if (config.measurementTypes.keyboardNavigation.enabled) {
-        iterationMetrics.keyboardNavigation = await measureKeyboardNavigation(page);
-      }
+      // Run keyboard navigation measurement
+      iterationMetrics.keyboardNavigation = await measureKeyboardNavigation(page);
 
       // Collect performance marks and measures
       const perfData = await page.evaluate(() => ({
@@ -337,10 +310,7 @@ async function measurePerformance(size, options = {}) {
     size,
     stats: { files, linesPerFile, totalLines },
     config: {
-      iterations: config.iterations,
-      enabledMeasurements: Object.entries(config.measurementTypes)
-        .filter(([_, config]) => config.enabled)
-        .map(([type, config]) => ({ type, ...config })),
+      iterations: iterations,
     },
     results,
     summary: calculateSummary(results),
@@ -405,6 +375,8 @@ async function main() {
   const options = {
     headless: !args.includes('--headed'),
     devtools: args.includes('--devtools'),
+    iterations:
+      args.includes('--iterations') ? parseInt(args[args.indexOf('--iterations') + 1]) : undefined,
   };
 
   if (!config.sizes[size]) {
