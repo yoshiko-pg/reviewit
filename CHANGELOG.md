@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.1] - 2025-07-28
+
+### Added
+
+- Keyboard shortcuts help to footer
+- Added screenshot to all README
+- Added protobuf support to README
+
+### Changed
+
+- Changed Reload button to Refresh with updated icon
+
 ## [2.1.0] - 2025-07-28
 
 ### Added
@@ -484,7 +496,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/yoshiko-pg/difit/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...v2.1.0
 [2.0.11]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...v2.0.11
 [2.0.10]: https://github.com/yoshiko-pg/difit/compare/v2.0.9...v2.0.10
