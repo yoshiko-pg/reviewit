@@ -117,10 +117,10 @@ export function useDiffComments(
 
       const lineInfo =
         typeof comment.position.line === 'number' ?
-          `line ${comment.position.line}`
-        : `lines ${comment.position.line.start}-${comment.position.line.end}`;
+          `L${comment.position.line}`
+        : `L${comment.position.line.start}-L${comment.position.line.end}`;
 
-      return `${comment.filePath} (${lineInfo})\n${comment.body}`;
+      return `${comment.filePath}:${lineInfo}\n${comment.body}`;
     },
     [comments]
   );
@@ -132,12 +132,12 @@ export function useDiffComments(
       .map((comment) => {
         const lineInfo =
           typeof comment.position.line === 'number' ?
-            `line ${comment.position.line}`
-          : `lines ${comment.position.line.start}-${comment.position.line.end}`;
+            `L${comment.position.line}`
+          : `L${comment.position.line.start}-L${comment.position.line.end}`;
 
-        return `${comment.filePath} (${lineInfo})\n${comment.body}`;
+        return `${comment.filePath}:${lineInfo}\n${comment.body}`;
       })
-      .join('\n\n');
+      .join('\n=====\n');
   }, [comments]);
 
   return {
