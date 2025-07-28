@@ -160,13 +160,17 @@ async function measureKeyboardNavigation(page) {
       // Wait for navigation to complete and measure
       const duration = await page.evaluate(() => {
         return new Promise((resolve) => {
-          // Use requestAnimationFrame to ensure rendering is complete
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              const duration = performance.now() - window.__navStart;
-              resolve(duration);
-            });
-          });
+          const measureComplete = () => {
+            const duration = performance.now() - window.__navStart;
+            resolve(duration);
+          };
+
+          // Wait for React to finish rendering
+          // Use setTimeout to allow React's concurrent features to complete
+          setTimeout(() => {
+            // Then wait for the next animation frame
+            requestAnimationFrame(measureComplete);
+          }, 0);
         });
       });
 
