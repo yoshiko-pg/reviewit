@@ -12,6 +12,16 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.10.0
+
       - name: Checkout head branch
         uses: actions/checkout@v4
         with:
@@ -23,49 +33,18 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           path: base
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '21'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.10.0
-
-      - name: Install dependencies for base
-        working-directory: base
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-          npx playwright install chromium
-
-      - name: Install dependencies for head
+      - name: Setup head branch
         working-directory: head
         run: |
           pnpm install --frozen-lockfile
           pnpm build
           npx playwright install chromium
 
-      - name: Check if performance scripts exist in base
-        id: check-base
+      - name: Setup base branch
         working-directory: base
         run: |
-          if [[ -f "scripts/measure-performance.js" ]]; then
-            echo "has_perf_script=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_perf_script=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run performance test on base branch
-        id: base-perf
-        if: steps.check-base.outputs.has_perf_script == 'true'
-        working-directory: base
-        run: |
-          pnpm perf --size medium --iterations 3
-          # Get the latest result file
-          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
-          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
+          pnpm install --frozen-lockfile
+          pnpm build
 
       - name: Run performance test on head branch
         id: head-perf
@@ -76,14 +55,36 @@ jobs:
           RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
           echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
 
-      - name: Compare performance
-        id: compare
-        if: steps.check-base.outputs.has_perf_script == 'true'
+      - name: Run performance test on base branch
+        id: base-perf
         working-directory: head
         run: |
-          # Copy base result to head directory for comparison
-          cp ../base/${{ steps.base-perf.outputs.result_file }} performance-results/base-result.json
+          # Run the performance test script from head branch on base branch build
+          cd ../base
 
+          # Create performance-results directory if it doesn't exist
+          mkdir -p performance-results
+
+          # Run performance test using head's script but base's build
+          node ../head/scripts/measure-performance.js --size medium --iterations 3 || {
+            echo "::notice::Performance test failed on base branch. This might be expected if the base branch has incompatible changes."
+            echo "has_baseline=false" >> $GITHUB_OUTPUT
+            exit 0
+          }
+
+          # Get the latest result file
+          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
+          echo "result_file=performance-results/$(basename $RESULT_FILE)" >> $GITHUB_OUTPUT
+          echo "has_baseline=true" >> $GITHUB_OUTPUT
+
+          # Copy the result back to head directory for comparison
+          cp "$RESULT_FILE" ../head/performance-results/base-result.json
+
+      - name: Compare performance
+        id: compare
+        if: steps.base-perf.outputs.has_baseline == 'true'
+        working-directory: head
+        run: |
           # Run comparison script with JSON output
           COMPARISON_JSON=$(pnpm perf:compare --size medium performance-results/base-result.json ${{ steps.head-perf.outputs.result_file }} --json)
 
@@ -97,6 +98,17 @@ jobs:
           echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
           echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
           echo "diff=$DIFF" >> $GITHUB_OUTPUT
+
+          # Format numbers for display
+          BASE_TIME_FMT=$(printf "%.2f" $BASE_TIME)
+          HEAD_TIME_FMT=$(printf "%.2f" $HEAD_TIME)
+          DIFF_FMT=$(printf "%.2f" $DIFF)
+          CHANGE_PERCENT_FMT=$(printf "%.1f" $CHANGE_PERCENT)
+
+          echo "base_time_fmt=$BASE_TIME_FMT" >> $GITHUB_OUTPUT
+          echo "head_time_fmt=$HEAD_TIME_FMT" >> $GITHUB_OUTPUT
+          echo "diff_fmt=$DIFF_FMT" >> $GITHUB_OUTPUT
+          echo "change_percent_fmt=$CHANGE_PERCENT_FMT" >> $GITHUB_OUTPUT
 
           # Determine status based on percentage change
           if (( $(echo "$CHANGE_PERCENT > 10" | bc -l) )); then
@@ -112,14 +124,20 @@ jobs:
 
       - name: Handle missing baseline
         id: compare-fallback
-        if: steps.check-base.outputs.has_perf_script == 'false'
+        if: steps.base-perf.outputs.has_baseline != 'true'
         working-directory: head
         run: |
           HEAD_RESULT=$(jq -r '.summary.keyboardNavigation.averageOperationTime' ${{ steps.head-perf.outputs.result_file }})
+          HEAD_RESULT_FMT=$(printf "%.2f" $HEAD_RESULT)
+
           echo "base_time=N/A" >> $GITHUB_OUTPUT
           echo "head_time=$HEAD_RESULT" >> $GITHUB_OUTPUT
+          echo "base_time_fmt=N/A" >> $GITHUB_OUTPUT
+          echo "head_time_fmt=$HEAD_RESULT_FMT" >> $GITHUB_OUTPUT
           echo "change_percent=N/A" >> $GITHUB_OUTPUT
+          echo "change_percent_fmt=N/A" >> $GITHUB_OUTPUT
           echo "diff=N/A" >> $GITHUB_OUTPUT
+          echo "diff_fmt=N/A" >> $GITHUB_OUTPUT
           echo "status=no-baseline" >> $GITHUB_OUTPUT
           echo "emoji=ℹ️" >> $GITHUB_OUTPUT
 
@@ -128,10 +146,10 @@ jobs:
           # Use outputs from either compare or compare-fallback
           STATUS="${{ steps.compare.outputs.status || steps.compare-fallback.outputs.status }}"
           EMOJI="${{ steps.compare.outputs.emoji || steps.compare-fallback.outputs.emoji }}"
-          BASE_TIME="${{ steps.compare.outputs.base_time || steps.compare-fallback.outputs.base_time }}"
-          HEAD_TIME="${{ steps.compare.outputs.head_time || steps.compare-fallback.outputs.head_time }}"
-          DIFF="${{ steps.compare.outputs.diff || steps.compare-fallback.outputs.diff }}"
-          CHANGE_PERCENT="${{ steps.compare.outputs.change_percent || steps.compare-fallback.outputs.change_percent }}"
+          BASE_TIME="${{ steps.compare.outputs.base_time_fmt || steps.compare-fallback.outputs.base_time_fmt }}"
+          HEAD_TIME="${{ steps.compare.outputs.head_time_fmt || steps.compare-fallback.outputs.head_time_fmt }}"
+          DIFF="${{ steps.compare.outputs.diff_fmt || steps.compare-fallback.outputs.diff_fmt }}"
+          CHANGE_PERCENT="${{ steps.compare.outputs.change_percent_fmt || steps.compare-fallback.outputs.change_percent_fmt }}"
 
           cat >> $GITHUB_STEP_SUMMARY << EOF
           # Performance Test Results
@@ -157,7 +175,7 @@ jobs:
             echo "Great job! Performance has improved by more than 5%." >> $GITHUB_STEP_SUMMARY
           elif [[ "$STATUS" == "no-baseline" ]]; then
             echo "### ℹ️ No Baseline Available" >> $GITHUB_STEP_SUMMARY
-            echo "Performance test script not found in base branch. Cannot compare performance." >> $GITHUB_STEP_SUMMARY
+            echo "Could not run performance test on base branch. Showing head branch results only." >> $GITHUB_STEP_SUMMARY
           else
             echo "### ℹ️ Performance Neutral" >> $GITHUB_STEP_SUMMARY
             echo "No significant performance change detected." >> $GITHUB_STEP_SUMMARY
@@ -181,10 +199,10 @@ jobs:
 
             const status = '${{ steps.compare.outputs.status || steps.compare-fallback.outputs.status }}';
             const emoji = '${{ steps.compare.outputs.emoji || steps.compare-fallback.outputs.emoji }}';
-            const baseTime = '${{ steps.compare.outputs.base_time || steps.compare-fallback.outputs.base_time }}';
-            const headTime = '${{ steps.compare.outputs.head_time || steps.compare-fallback.outputs.head_time }}';
-            const changePercent = '${{ steps.compare.outputs.change_percent || steps.compare-fallback.outputs.change_percent }}';
-            const diff = '${{ steps.compare.outputs.diff || steps.compare-fallback.outputs.diff }}';
+            const baseTime = '${{ steps.compare.outputs.base_time_fmt || steps.compare-fallback.outputs.base_time_fmt }}';
+            const headTime = '${{ steps.compare.outputs.head_time_fmt || steps.compare-fallback.outputs.head_time_fmt }}';
+            const changePercent = '${{ steps.compare.outputs.change_percent_fmt || steps.compare-fallback.outputs.change_percent_fmt }}';
+            const diff = '${{ steps.compare.outputs.diff_fmt || steps.compare-fallback.outputs.diff_fmt }}';
 
             let statusMessage = '';
             if (status === 'degraded') {
@@ -192,7 +210,7 @@ jobs:
             } else if (status === 'improved') {
               statusMessage = '### ✅ Performance improved!\nGreat job! Performance has improved by more than 5%.';
             } else if (status === 'no-baseline') {
-              statusMessage = '### ℹ️ No baseline available\nPerformance test script not found in base branch. Showing head branch results only.';
+              statusMessage = '### ℹ️ No baseline available\nCould not run performance test on base branch. Showing head branch results only.';
             }
 
             const body = `## Performance Test Results
@@ -233,5 +251,5 @@ jobs:
       - name: Check performance degradation
         if: steps.compare.outputs.status == 'degraded'
         run: |
-          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent }}%"
+          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent_fmt }}%"
           exit 1
