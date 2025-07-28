@@ -56,11 +56,8 @@ jobs:
 
       - name: Run performance test on base branch
         id: base-perf
-        working-directory: head
+        working-directory: base
         run: |
-          # Run the performance test script from head branch on base branch build
-          cd ../base
-
           # Create performance-results directory if it doesn't exist
           mkdir -p performance-results
 
@@ -73,18 +70,19 @@ jobs:
           fi
 
           # Run performance test using head's script but base's build
+          # The script will create results in the current directory's performance-results
           node ../head/scripts/measure-performance.js --size medium --iterations 3 || {
             echo "::notice::Performance test failed on base branch. This might be expected if the base branch has incompatible changes."
             echo "has_baseline=false" >> $GITHUB_OUTPUT
             exit 0
           }
 
-          # Get the latest result file
+          # Get the latest result file from the current directory
           RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
-          echo "result_file=performance-results/$(basename $RESULT_FILE)" >> $GITHUB_OUTPUT
+          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
           echo "has_baseline=true" >> $GITHUB_OUTPUT
 
-          # Copy the result back to head directory for comparison
+          # Copy the result to head directory for comparison
           cp "$RESULT_FILE" ../head/performance-results/base-result.json
 
       - name: Compare performance
