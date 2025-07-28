@@ -275,22 +275,6 @@ async function measurePerformance(size, options = {}) {
 
       iterationMetrics.performanceData = perfData;
 
-      // Get memory usage if available
-      const memoryUsage = await page.evaluate(() => {
-        if ('memory' in performance) {
-          return {
-            usedJSHeapSize: performance.memory.usedJSHeapSize,
-            totalJSHeapSize: performance.memory.totalJSHeapSize,
-            jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-          };
-        }
-        return null;
-      });
-
-      if (memoryUsage) {
-        iterationMetrics.memory = memoryUsage;
-      }
-
       await context.close();
       results.push(iterationMetrics);
     } catch (error) {
