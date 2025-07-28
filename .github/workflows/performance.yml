@@ -67,9 +67,9 @@ jobs:
 
           # Install playwright in base directory if needed
           # This ensures the test can run even if base branch doesn't have playwright
-          if ! npm list playwright >/dev/null 2>&1; then
+          if ! pnpm list playwright >/dev/null 2>&1; then
             echo "Installing playwright for base branch testing..."
-            npm install --no-save playwright
+            pnpm add -D playwright || npm install --no-save playwright
             npx playwright install chromium
           fi
 
