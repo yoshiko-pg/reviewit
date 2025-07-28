@@ -37,7 +37,6 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
-          npx playwright install chromium
 
       - name: Setup base branch
         working-directory: base

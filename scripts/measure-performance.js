@@ -415,13 +415,6 @@ async function main() {
   log(`${colors.bright}Difit Performance Test${colors.reset}`);
   log('======================\n');
 
-  // Install playwright browsers if needed
-  try {
-    await execAsync('npx playwright install chromium');
-  } catch (error) {
-    log('Note: Playwright browsers may need to be installed', colors.yellow);
-  }
-
   // Get git information
   const gitInfo = await getGitInfo();
 
