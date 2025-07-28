@@ -358,7 +358,21 @@ function calculateSummary(results) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const size = args[0] || 'medium';
+
+  // Filter out flags and their values to find the size parameter
+  const positionalArgs = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--')) {
+      // Skip flag and its value if it has one
+      if (['--memo', '--iterations'].includes(args[i]) && i + 1 < args.length) {
+        i++; // Skip the next argument (the flag's value)
+      }
+    } else {
+      positionalArgs.push(args[i]);
+    }
+  }
+  const size = positionalArgs[0] || 'medium';
+
   const memo = args.includes('--memo') ? args[args.indexOf('--memo') + 1] : undefined;
 
   const options = {
