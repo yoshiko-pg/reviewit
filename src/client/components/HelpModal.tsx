@@ -168,41 +168,21 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </section>
 
           <section>
-            <h3 className="text-sm font-semibold text-github-text-primary mb-2">Actions</h3>
+            <h3 className="text-sm font-semibold text-github-text-primary mb-2">
+              Comment Management
+            </h3>
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
-                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
-                  r
-                </kbd>
-                <span className="text-github-text-secondary">
-                  Toggle review state of current file
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
-                  c
-                </kbd>
-                <span className="text-github-text-secondary">Add comment at current line</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1">
                   <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                     Shift
                   </kbd>
-                  <span className="text-github-text-secondary">+</span>
+                  <span className="text-github-text-muted">+</span>
                   <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                     L
                   </kbd>
                 </div>
                 <span className="text-github-text-secondary">View all comments list</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
-                  .
-                </kbd>
-                <span className="text-github-text-secondary">
-                  Move cursor to center of viewport
-                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <div className="flex items-center gap-1">
@@ -227,6 +207,34 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </kbd>
                 </div>
                 <span className="text-github-text-secondary">Delete all comments</span>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold text-github-text-primary mb-2">Actions</h3>
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                  r
+                </kbd>
+                <span className="text-github-text-secondary">
+                  Toggle review state of current file
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                  c
+                </kbd>
+                <span className="text-github-text-secondary">Add comment at current line</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                  .
+                </kbd>
+                <span className="text-github-text-secondary">
+                  Move cursor to center of viewport
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
