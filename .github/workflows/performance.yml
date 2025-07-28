@@ -66,16 +66,6 @@ jobs:
           # Get the latest result file
           RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
           echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
-          # Extract average operation time
-          AVG_TIME=$(jq -r '.summary.keyboardNavigation.averageOperationTime' "$RESULT_FILE")
-          echo "avg_time=$AVG_TIME" >> $GITHUB_OUTPUT
-
-      - name: Set baseline for missing script
-        id: base-perf-fallback
-        if: steps.check-base.outputs.has_perf_script == 'false'
-        run: |
-          echo "avg_time=0" >> $GITHUB_OUTPUT
-          echo "::notice::Performance test script not found in base branch. Skipping baseline measurement."
 
       - name: Run performance test on head branch
         id: head-perf
@@ -85,41 +75,34 @@ jobs:
           # Get the latest result file
           RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
           echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
-          # Extract average operation time
-          AVG_TIME=$(jq -r '.summary.keyboardNavigation.averageOperationTime' "$RESULT_FILE")
-          echo "avg_time=$AVG_TIME" >> $GITHUB_OUTPUT
 
       - name: Compare performance
         id: compare
+        if: steps.check-base.outputs.has_perf_script == 'true'
+        working-directory: head
         run: |
-          BASE_TIME=${{ steps.base-perf.outputs.avg_time || steps.base-perf-fallback.outputs.avg_time }}
-          HEAD_TIME=${{ steps.head-perf.outputs.avg_time }}
+          # Copy base result to head directory for comparison
+          cp ../base/${{ steps.base-perf.outputs.result_file }} performance-results/base-result.json
 
-          # Skip comparison if no baseline
-          if [[ "$BASE_TIME" == "0" ]]; then
-            echo "base_time=N/A" >> $GITHUB_OUTPUT
-            echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
-            echo "change_percent=N/A" >> $GITHUB_OUTPUT
-            echo "diff=N/A" >> $GITHUB_OUTPUT
-            echo "status=no-baseline" >> $GITHUB_OUTPUT
-            echo "emoji=ℹ️" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          # Run comparison script with JSON output
+          COMPARISON_JSON=$(pnpm perf:compare --size medium performance-results/base-result.json ${{ steps.head-perf.outputs.result_file }} --json)
 
-          # Calculate percentage change
-          CHANGE=$(echo "scale=2; (($HEAD_TIME - $BASE_TIME) / $BASE_TIME) * 100" | bc)
-          DIFF=$(echo "scale=2; $HEAD_TIME - $BASE_TIME" | bc)
+          # Extract values from comparison output
+          BASE_TIME=$(echo "$COMPARISON_JSON" | jq -r '.baseline.averageOperationTime')
+          HEAD_TIME=$(echo "$COMPARISON_JSON" | jq -r '.current.averageOperationTime')
+          CHANGE_PERCENT=$(echo "$COMPARISON_JSON" | jq -r '.changePercent')
+          DIFF=$(echo "$COMPARISON_JSON" | jq -r '.difference')
 
           echo "base_time=$BASE_TIME" >> $GITHUB_OUTPUT
           echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
-          echo "change_percent=$CHANGE" >> $GITHUB_OUTPUT
+          echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
           echo "diff=$DIFF" >> $GITHUB_OUTPUT
 
-          # Check if performance degraded by more than 10%
-          if (( $(echo "$CHANGE > 10" | bc -l) )); then
+          # Determine status based on percentage change
+          if (( $(echo "$CHANGE_PERCENT > 10" | bc -l) )); then
             echo "status=degraded" >> $GITHUB_OUTPUT
             echo "emoji=🔴" >> $GITHUB_OUTPUT
-          elif (( $(echo "$CHANGE < -5" | bc -l) )); then
+          elif (( $(echo "$CHANGE_PERCENT < -5" | bc -l) )); then
             echo "status=improved" >> $GITHUB_OUTPUT
             echo "emoji=🟢" >> $GITHUB_OUTPUT
           else
@@ -127,16 +110,37 @@ jobs:
             echo "emoji=🟡" >> $GITHUB_OUTPUT
           fi
 
+      - name: Handle missing baseline
+        id: compare-fallback
+        if: steps.check-base.outputs.has_perf_script == 'false'
+        working-directory: head
+        run: |
+          HEAD_RESULT=$(jq -r '.summary.keyboardNavigation.averageOperationTime' ${{ steps.head-perf.outputs.result_file }})
+          echo "base_time=N/A" >> $GITHUB_OUTPUT
+          echo "head_time=$HEAD_RESULT" >> $GITHUB_OUTPUT
+          echo "change_percent=N/A" >> $GITHUB_OUTPUT
+          echo "diff=N/A" >> $GITHUB_OUTPUT
+          echo "status=no-baseline" >> $GITHUB_OUTPUT
+          echo "emoji=ℹ️" >> $GITHUB_OUTPUT
+
       - name: Generate Job Summary
         run: |
+          # Use outputs from either compare or compare-fallback
+          STATUS="${{ steps.compare.outputs.status || steps.compare-fallback.outputs.status }}"
+          EMOJI="${{ steps.compare.outputs.emoji || steps.compare-fallback.outputs.emoji }}"
+          BASE_TIME="${{ steps.compare.outputs.base_time || steps.compare-fallback.outputs.base_time }}"
+          HEAD_TIME="${{ steps.compare.outputs.head_time || steps.compare-fallback.outputs.head_time }}"
+          DIFF="${{ steps.compare.outputs.diff || steps.compare-fallback.outputs.diff }}"
+          CHANGE_PERCENT="${{ steps.compare.outputs.change_percent || steps.compare-fallback.outputs.change_percent }}"
+
           cat >> $GITHUB_STEP_SUMMARY << EOF
           # Performance Test Results
 
-          ## ${{ steps.compare.outputs.emoji }} Keyboard Navigation Performance
+          ## $EMOJI Keyboard Navigation Performance
 
           | Metric | Base Branch | Head Branch | Change |
           |--------|-------------|-------------|--------|
-          | Average Operation Time | ${{ steps.compare.outputs.base_time }}ms | ${{ steps.compare.outputs.head_time }}ms | ${{ steps.compare.outputs.diff }}ms (${{ steps.compare.outputs.change_percent }}%) |
+          | Average Operation Time | ${BASE_TIME}ms | ${HEAD_TIME}ms | ${DIFF}ms (${CHANGE_PERCENT}%) |
 
           ### Test Configuration
           - **Size**: Medium (20 files, 10,000 lines)
@@ -145,13 +149,13 @@ jobs:
 
           EOF
 
-          if [[ "${{ steps.compare.outputs.status }}" == "degraded" ]]; then
+          if [[ "$STATUS" == "degraded" ]]; then
             echo "### ⚠️ Performance Degradation Detected" >> $GITHUB_STEP_SUMMARY
             echo "Performance has degraded by more than 10%. Please investigate before merging." >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ steps.compare.outputs.status }}" == "improved" ]]; then
+          elif [[ "$STATUS" == "improved" ]]; then
             echo "### ✅ Performance Improved" >> $GITHUB_STEP_SUMMARY
             echo "Great job! Performance has improved by more than 5%." >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ steps.compare.outputs.status }}" == "no-baseline" ]]; then
+          elif [[ "$STATUS" == "no-baseline" ]]; then
             echo "### ℹ️ No Baseline Available" >> $GITHUB_STEP_SUMMARY
             echo "Performance test script not found in base branch. Cannot compare performance." >> $GITHUB_STEP_SUMMARY
           else
@@ -175,12 +179,12 @@ jobs:
               comment.body.includes('## Performance Test Results')
             );
 
-            const status = '${{ steps.compare.outputs.status }}';
-            const emoji = '${{ steps.compare.outputs.emoji }}';
-            const baseTime = '${{ steps.compare.outputs.base_time }}';
-            const headTime = '${{ steps.compare.outputs.head_time }}';
-            const changePercent = '${{ steps.compare.outputs.change_percent }}';
-            const diff = '${{ steps.compare.outputs.diff }}';
+            const status = '${{ steps.compare.outputs.status || steps.compare-fallback.outputs.status }}';
+            const emoji = '${{ steps.compare.outputs.emoji || steps.compare-fallback.outputs.emoji }}';
+            const baseTime = '${{ steps.compare.outputs.base_time || steps.compare-fallback.outputs.base_time }}';
+            const headTime = '${{ steps.compare.outputs.head_time || steps.compare-fallback.outputs.head_time }}';
+            const changePercent = '${{ steps.compare.outputs.change_percent || steps.compare-fallback.outputs.change_percent }}';
+            const diff = '${{ steps.compare.outputs.diff || steps.compare-fallback.outputs.diff }}';
 
             let statusMessage = '';
             if (status === 'degraded') {

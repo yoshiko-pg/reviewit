@@ -116,6 +116,11 @@ function generateMarkdownTable(comparison) {
 }
 
 function generateComparison(baselineResults, comparedResults) {
+  const baselineAvg = baselineResults.summary.keyboardNavigation.averageOperationTime;
+  const comparedAvg = comparedResults.summary.keyboardNavigation.averageOperationTime;
+  const difference = comparedAvg - baselineAvg;
+  const changePercent = (difference / baselineAvg) * 100;
+
   const comparison = {
     baseline: {
       file: baselineResults.file,
@@ -129,8 +134,9 @@ function generateComparison(baselineResults, comparedResults) {
       totalFiles: baselineResults.stats.files,
       totalLines: baselineResults.stats.totalLines,
       iterations: baselineResults.config.iterations,
+      averageOperationTime: baselineAvg,
     },
-    compared: {
+    current: {
       file: comparedResults.file,
       commitHash: comparedResults.metadata.gitInfo?.commitHash || 'unknown',
       branch: comparedResults.metadata.gitInfo?.branch || 'unknown',
@@ -142,7 +148,10 @@ function generateComparison(baselineResults, comparedResults) {
       totalFiles: comparedResults.stats.files,
       totalLines: comparedResults.stats.totalLines,
       iterations: comparedResults.config.iterations,
+      averageOperationTime: comparedAvg,
     },
+    difference,
+    changePercent,
     metrics: {
       keyboardNavigation: {
         baseline: baselineResults.summary.keyboardNavigation,
