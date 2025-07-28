@@ -43,3 +43,6 @@ temp/
 
 # kiro
 .kiro
+
+# Performance test results
+performance-results/
