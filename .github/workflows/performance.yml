@@ -58,9 +58,6 @@ jobs:
         id: base-perf
         working-directory: base
         run: |
-          # Create performance-results directory if it doesn't exist
-          mkdir -p performance-results
-
           # Install playwright in base directory if needed
           # This ensures the test can run even if base branch doesn't have playwright
           if ! pnpm list playwright >/dev/null 2>&1; then
@@ -70,124 +67,40 @@ jobs:
           fi
 
           # Run performance test using head's script but base's build
-          # The script will create results in the current directory's performance-results
-          node ../head/scripts/measure-performance.js --size medium --iterations 3 || {
-            echo "::notice::Performance test failed on base branch. This might be expected if the base branch has incompatible changes."
-            echo "has_baseline=false" >> $GITHUB_OUTPUT
-            exit 0
-          }
+          # The script will create results in the head directory's performance-results
+          node ../head/scripts/measure-performance.js --size medium --iterations 3
 
-          # Get the latest result file from the current directory
-          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
+          # Get the latest result file from head directory
+          RESULT_FILE=$(ls -t ../head/performance-results/perf-medium-*.json | head -1)
           echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
-          echo "has_baseline=true" >> $GITHUB_OUTPUT
-
-          # Copy the result to head directory for comparison
-          cp "$RESULT_FILE" ../head/performance-results/base-result.json
 
       - name: Compare performance
         id: compare
-        if: steps.base-perf.outputs.has_baseline == 'true'
         working-directory: head
         run: |
-          # Run comparison script with JSON output
-          COMPARISON_JSON=$(pnpm perf:compare --size medium performance-results/base-result.json ${{ steps.head-perf.outputs.result_file }} --json)
+          # Run comparison script and output markdown directly to GitHub Step Summary
+          node scripts/compare-performance.js ${{ steps.base-perf.outputs.result_file }} ${{ steps.head-perf.outputs.result_file }} >> $GITHUB_STEP_SUMMARY
 
-          # Extract values from comparison output
-          BASE_TIME=$(echo "$COMPARISON_JSON" | jq -r '.baseline.averageOperationTime')
-          HEAD_TIME=$(echo "$COMPARISON_JSON" | jq -r '.current.averageOperationTime')
+          # Also get JSON output for status check
+          COMPARISON_JSON=$(node scripts/compare-performance.js ${{ steps.base-perf.outputs.result_file }} ${{ steps.head-perf.outputs.result_file }} --json)
+
+          # Extract change percentage for status check
           CHANGE_PERCENT=$(echo "$COMPARISON_JSON" | jq -r '.changePercent')
-          DIFF=$(echo "$COMPARISON_JSON" | jq -r '.difference')
-
-          echo "base_time=$BASE_TIME" >> $GITHUB_OUTPUT
-          echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
-          echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
-          echo "diff=$DIFF" >> $GITHUB_OUTPUT
-
-          # Format numbers for display
-          BASE_TIME_FMT=$(printf "%.2f" $BASE_TIME)
-          HEAD_TIME_FMT=$(printf "%.2f" $HEAD_TIME)
-          DIFF_FMT=$(printf "%.2f" $DIFF)
-          CHANGE_PERCENT_FMT=$(printf "%.1f" $CHANGE_PERCENT)
-
-          echo "base_time_fmt=$BASE_TIME_FMT" >> $GITHUB_OUTPUT
-          echo "head_time_fmt=$HEAD_TIME_FMT" >> $GITHUB_OUTPUT
-          echo "diff_fmt=$DIFF_FMT" >> $GITHUB_OUTPUT
-          echo "change_percent_fmt=$CHANGE_PERCENT_FMT" >> $GITHUB_OUTPUT
 
           # Determine status based on percentage change
           if (( $(echo "$CHANGE_PERCENT > 10" | bc -l) )); then
             echo "status=degraded" >> $GITHUB_OUTPUT
-            echo "emoji=🔴" >> $GITHUB_OUTPUT
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
           elif (( $(echo "$CHANGE_PERCENT < -5" | bc -l) )); then
             echo "status=improved" >> $GITHUB_OUTPUT
-            echo "emoji=🟢" >> $GITHUB_OUTPUT
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
           else
             echo "status=neutral" >> $GITHUB_OUTPUT
-            echo "emoji=🟡" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Handle missing baseline
-        id: compare-fallback
-        if: steps.base-perf.outputs.has_baseline != 'true'
-        working-directory: head
-        run: |
-          HEAD_RESULT=$(jq -r '.summary.keyboardNavigation.averageOperationTime' ${{ steps.head-perf.outputs.result_file }})
-          HEAD_RESULT_FMT=$(printf "%.2f" $HEAD_RESULT)
-
-          echo "base_time=N/A" >> $GITHUB_OUTPUT
-          echo "head_time=$HEAD_RESULT" >> $GITHUB_OUTPUT
-          echo "base_time_fmt=N/A" >> $GITHUB_OUTPUT
-          echo "head_time_fmt=$HEAD_RESULT_FMT" >> $GITHUB_OUTPUT
-          echo "change_percent=N/A" >> $GITHUB_OUTPUT
-          echo "change_percent_fmt=N/A" >> $GITHUB_OUTPUT
-          echo "diff=N/A" >> $GITHUB_OUTPUT
-          echo "diff_fmt=N/A" >> $GITHUB_OUTPUT
-          echo "status=no-baseline" >> $GITHUB_OUTPUT
-          echo "emoji=ℹ️" >> $GITHUB_OUTPUT
-
-      - name: Generate Job Summary
-        run: |
-          # Use outputs from either compare or compare-fallback
-          STATUS="${{ steps.compare.outputs.status || steps.compare-fallback.outputs.status }}"
-          EMOJI="${{ steps.compare.outputs.emoji || steps.compare-fallback.outputs.emoji }}"
-          BASE_TIME="${{ steps.compare.outputs.base_time_fmt || steps.compare-fallback.outputs.base_time_fmt }}"
-          HEAD_TIME="${{ steps.compare.outputs.head_time_fmt || steps.compare-fallback.outputs.head_time_fmt }}"
-          DIFF="${{ steps.compare.outputs.diff_fmt || steps.compare-fallback.outputs.diff_fmt }}"
-          CHANGE_PERCENT="${{ steps.compare.outputs.change_percent_fmt || steps.compare-fallback.outputs.change_percent_fmt }}"
-
-          cat >> $GITHUB_STEP_SUMMARY << EOF
-          # Performance Test Results
-
-          ## $EMOJI Keyboard Navigation Performance
-
-          | Metric | Base Branch | Head Branch | Change |
-          |--------|-------------|-------------|--------|
-          | Average Operation Time | ${BASE_TIME}ms | ${HEAD_TIME}ms | ${DIFF}ms (${CHANGE_PERCENT}%) |
-
-          ### Test Configuration
-          - **Size**: Medium (20 files, 10,000 lines)
-          - **Iterations**: 3
-          - **Operations**: Line navigation (j/k), chunk navigation (n/p), file navigation ([/])
-
-          EOF
-
-          if [[ "$STATUS" == "degraded" ]]; then
-            echo "### ⚠️ Performance Degradation Detected" >> $GITHUB_STEP_SUMMARY
-            echo "Performance has degraded by more than 10%. Please investigate before merging." >> $GITHUB_STEP_SUMMARY
-          elif [[ "$STATUS" == "improved" ]]; then
-            echo "### ✅ Performance Improved" >> $GITHUB_STEP_SUMMARY
-            echo "Great job! Performance has improved by more than 5%." >> $GITHUB_STEP_SUMMARY
-          elif [[ "$STATUS" == "no-baseline" ]]; then
-            echo "### ℹ️ No Baseline Available" >> $GITHUB_STEP_SUMMARY
-            echo "Could not run performance test on base branch. Showing head branch results only." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ℹ️ Performance Neutral" >> $GITHUB_STEP_SUMMARY
-            echo "No significant performance change detected." >> $GITHUB_STEP_SUMMARY
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
           fi
 
       - name: Check performance degradation
         if: steps.compare.outputs.status == 'degraded'
         run: |
-          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent_fmt }}%"
+          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent }}%"
           exit 1
