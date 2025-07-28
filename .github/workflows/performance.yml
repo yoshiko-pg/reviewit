@@ -32,11 +32,31 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           path: base
 
+      - name: Get Playwright version
+        id: playwright-version
+        working-directory: head
+        run: |
+          PLAYWRIGHT_VERSION=$(cat package.json | jq -r '.devDependencies.playwright // empty')
+          echo "version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ steps.playwright-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            playwright-browsers-${{ steps.playwright-version.outputs.version }}-
+            playwright-browsers-
+
       - name: Setup head branch
         working-directory: head
         run: |
           pnpm install --frozen-lockfile
           pnpm build
+
+      - name: Install Playwright browsers
+        working-directory: head
+        run: pnpm exec playwright install chromium
 
       - name: Setup base branch
         working-directory: base
