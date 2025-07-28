@@ -1,5 +1,5 @@
-import { Highlight, type Token } from 'prism-react-renderer';
-import React from 'react';
+import { Highlight, type Token, type RenderProps } from 'prism-react-renderer';
+import React, { useCallback } from 'react';
 
 import { getFileExtension, getFileName } from '../../utils/fileUtils';
 import { useHighlightedCode } from '../hooks/useHighlightedCode';
@@ -98,7 +98,7 @@ export function setCurrentFilename(filename: string) {
   currentFilename = filename;
 }
 
-export function PrismSyntaxHighlighter({
+export const PrismSyntaxHighlighter = React.memo(function PrismSyntaxHighlighter({
   code,
   language,
   className,
@@ -111,26 +111,32 @@ export function PrismSyntaxHighlighter({
   const { actualLang } = useHighlightedCode(code, detectedLang);
   const theme = getSyntaxTheme(syntaxTheme);
 
+  // Memoize the render function to prevent recreation on every render
+  const renderHighlight = useCallback(
+    ({ style, tokens, getLineProps, getTokenProps }: RenderProps) => (
+      <span
+        className={className}
+        style={{ ...style, background: 'transparent', backgroundColor: 'transparent' }}
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+      >
+        {tokens.map((line, i) => (
+          <span key={i} {...getLineProps({ line })}>
+            {line.map((token, key) =>
+              renderToken ?
+                renderToken(token, key, getTokenProps)
+              : <span key={key} {...getTokenProps({ token })} />
+            )}
+          </span>
+        ))}
+      </span>
+    ),
+    [className, onMouseOver, onMouseOut, renderToken]
+  );
+
   return (
     <Highlight code={code} language={actualLang} theme={theme} prism={Prism}>
-      {({ style, tokens, getLineProps, getTokenProps }) => (
-        <span
-          className={className}
-          style={{ ...style, background: 'transparent', backgroundColor: 'transparent' }}
-          onMouseOver={onMouseOver}
-          onMouseOut={onMouseOut}
-        >
-          {tokens.map((line, i) => (
-            <span key={i} {...getLineProps({ line })}>
-              {line.map((token, key) =>
-                renderToken ?
-                  renderToken(token, key, getTokenProps)
-                : <span key={key} {...getTokenProps({ token })} />
-              )}
-            </span>
-          ))}
-        </span>
-      )}
+      {renderHighlight}
     </Highlight>
   );
-}
+});
