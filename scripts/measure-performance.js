@@ -45,12 +45,17 @@ async function getGitInfo() {
     const { stdout: author } = await execAsync('git log -1 --pretty=%an');
     const { stdout: date } = await execAsync('git log -1 --pretty=%aI');
 
+    // Check if working directory is dirty
+    const { stdout: status } = await execAsync('git status --porcelain');
+    const isDirty = status.trim().length > 0;
+
     return {
       commitHash: hash.trim(),
       branch: branch.trim(),
       commitMessage: message.trim(),
       author: author.trim(),
       date: date.trim(),
+      isDirty,
     };
   } catch (error) {
     log('Warning: Could not retrieve git information', colors.yellow);
@@ -437,6 +442,9 @@ async function main() {
     log(
       `\nCommit: ${gitInfo.commitHash.substring(0, 8)} - ${gitInfo.commitMessage.split('\n')[0]}`
     );
+    if (gitInfo.isDirty) {
+      log(`Working directory: DIRTY (uncommitted changes)`, colors.yellow);
+    }
   }
 
   if (memo) {
