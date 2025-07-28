@@ -1,4 +1,4 @@
-import { RotateCcw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface ReloadButtonProps {
   shouldReload: boolean;
@@ -37,17 +37,17 @@ export function ReloadButton({
       onClick={onReload}
       disabled={isReloading}
       className={`
-        flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-200 ${className}
+        flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border ${className}
         ${
           isReloading ?
-            'bg-orange-700 text-white border-orange-800 cursor-not-allowed'
-          : 'bg-orange-700 text-white border-orange-800 hover:bg-orange-800 hover:border-orange-900'
+            'bg-github-text-primary text-github-bg-primary border-github-text-primary cursor-not-allowed'
+          : 'bg-github-text-primary text-github-bg-primary border-github-text-primary'
         }
       `}
-      title={isReloading ? 'Reloading...' : `${getChangeMessage()} - Click to reload`}
+      title={`${getChangeMessage()} - Click to refresh`}
     >
-      <RotateCcw size={12} className={`${isReloading ? 'animate-spin' : ''}`} />
-      {isReloading ? 'Reloading...' : 'Reload'}
+      <RefreshCw size={12} className={`${isReloading ? 'animate-spin' : ''}`} />
+      Refresh
     </button>
   );
 }

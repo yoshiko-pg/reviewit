@@ -5,9 +5,9 @@ import { ReloadButton } from './ReloadButton';
 
 // Mock lucide-react
 vi.mock('lucide-react', () => ({
-  RotateCcw: ({ size, className }: { size: number; className: string }) => (
+  RefreshCw: ({ size, className }: { size: number; className: string }) => (
     <div data-testid="rotate-icon" data-size={size} className={className}>
-      RotateCcw
+      RefreshCw
     </div>
   ),
 }));
@@ -44,7 +44,7 @@ describe('ReloadButton', () => {
 
       const button = screen.getByRole('button');
       expect(button).toBeEnabled();
-      expect(button).toHaveTextContent('Reload');
+      expect(button).toHaveTextContent('Refresh');
     });
 
     it('should render disabled button when reloading', () => {
@@ -52,7 +52,7 @@ describe('ReloadButton', () => {
 
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
-      expect(button).toHaveTextContent('Reloading...');
+      expect(button).toHaveTextContent('Refresh');
     });
 
     it('should apply correct CSS classes when reloading', () => {
@@ -66,7 +66,7 @@ describe('ReloadButton', () => {
       render(<ReloadButton {...defaultProps} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('hover:bg-orange-800');
+      expect(button).toHaveClass('bg-github-text-primary');
     });
   });
 
@@ -98,42 +98,42 @@ describe('ReloadButton', () => {
       render(<ReloadButton {...defaultProps} changeType="file" />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'File changes detected - Click to reload');
+      expect(button).toHaveAttribute('title', 'File changes detected - Click to refresh');
     });
 
     it('should show correct message for commit changes', () => {
       render(<ReloadButton {...defaultProps} changeType="commit" />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'New commits available - Click to reload');
+      expect(button).toHaveAttribute('title', 'New commits available - Click to refresh');
     });
 
     it('should show correct message for staging changes', () => {
       render(<ReloadButton {...defaultProps} changeType="staging" />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'Staging changes detected - Click to reload');
+      expect(button).toHaveAttribute('title', 'Staging changes detected - Click to refresh');
     });
 
     it('should show default message for unknown change type', () => {
       render(<ReloadButton {...defaultProps} changeType={null} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'Changes detected - Click to reload');
+      expect(button).toHaveAttribute('title', 'Changes detected - Click to refresh');
     });
 
     it('should show default message when change type is undefined', () => {
       render(<ReloadButton {...defaultProps} changeType={undefined} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'Changes detected - Click to reload');
+      expect(button).toHaveAttribute('title', 'Changes detected - Click to refresh');
     });
 
     it('should show reloading message when reloading', () => {
       render(<ReloadButton {...defaultProps} isReloading={true} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('title', 'Reloading...');
+      expect(button).toHaveAttribute('title', 'File changes detected - Click to refresh');
     });
   });
 
@@ -245,11 +245,8 @@ describe('ReloadButton', () => {
         'px-3',
         'py-1.5',
         'text-xs',
-        'font-medium',
         'rounded-md',
-        'border',
-        'transition-all',
-        'duration-200'
+        'border'
       );
     });
 
@@ -257,14 +254,18 @@ describe('ReloadButton', () => {
       render(<ReloadButton {...defaultProps} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-orange-700', 'text-white', 'border-orange-800');
+      expect(button).toHaveClass(
+        'bg-github-text-primary',
+        'text-github-bg-primary',
+        'border-github-text-primary'
+      );
     });
 
     it('should have proper hover states when not reloading', () => {
       render(<ReloadButton {...defaultProps} />);
 
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('hover:bg-orange-800', 'hover:border-orange-900');
+      expect(button).toHaveClass('bg-github-text-primary', 'border-github-text-primary');
     });
   });
 });
