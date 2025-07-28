@@ -36,7 +36,8 @@
     "perf:small": "node scripts/measure-performance.js small",
     "perf:medium": "node scripts/measure-performance.js medium",
     "perf:large": "node scripts/measure-performance.js large",
-    "perf:xlarge": "node scripts/measure-performance.js xlarge"
+    "perf:xlarge": "node scripts/measure-performance.js xlarge",
+    "compare:perf": "node scripts/compare-performance.js"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
