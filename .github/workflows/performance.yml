@@ -1,0 +1,233 @@
+name: Performance Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout head branch
+        uses: actions/checkout@v4
+        with:
+          path: head
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.10.0
+
+      - name: Install dependencies for base
+        working-directory: base
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          npx playwright install chromium
+
+      - name: Install dependencies for head
+        working-directory: head
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          npx playwright install chromium
+
+      - name: Check if performance scripts exist in base
+        id: check-base
+        working-directory: base
+        run: |
+          if [[ -f "scripts/measure-performance.js" ]]; then
+            echo "has_perf_script=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_perf_script=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run performance test on base branch
+        id: base-perf
+        if: steps.check-base.outputs.has_perf_script == 'true'
+        working-directory: base
+        run: |
+          pnpm perf --size medium --iterations 3
+          # Get the latest result file
+          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
+          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
+          # Extract average operation time
+          AVG_TIME=$(jq -r '.summary.keyboardNavigation.averageOperationTime' "$RESULT_FILE")
+          echo "avg_time=$AVG_TIME" >> $GITHUB_OUTPUT
+
+      - name: Set baseline for missing script
+        id: base-perf-fallback
+        if: steps.check-base.outputs.has_perf_script == 'false'
+        run: |
+          echo "avg_time=0" >> $GITHUB_OUTPUT
+          echo "::notice::Performance test script not found in base branch. Skipping baseline measurement."
+
+      - name: Run performance test on head branch
+        id: head-perf
+        working-directory: head
+        run: |
+          pnpm perf --size medium --iterations 3
+          # Get the latest result file
+          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
+          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
+          # Extract average operation time
+          AVG_TIME=$(jq -r '.summary.keyboardNavigation.averageOperationTime' "$RESULT_FILE")
+          echo "avg_time=$AVG_TIME" >> $GITHUB_OUTPUT
+
+      - name: Compare performance
+        id: compare
+        run: |
+          BASE_TIME=${{ steps.base-perf.outputs.avg_time || steps.base-perf-fallback.outputs.avg_time }}
+          HEAD_TIME=${{ steps.head-perf.outputs.avg_time }}
+
+          # Skip comparison if no baseline
+          if [[ "$BASE_TIME" == "0" ]]; then
+            echo "base_time=N/A" >> $GITHUB_OUTPUT
+            echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
+            echo "change_percent=N/A" >> $GITHUB_OUTPUT
+            echo "diff=N/A" >> $GITHUB_OUTPUT
+            echo "status=no-baseline" >> $GITHUB_OUTPUT
+            echo "emoji=ℹ️" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Calculate percentage change
+          CHANGE=$(echo "scale=2; (($HEAD_TIME - $BASE_TIME) / $BASE_TIME) * 100" | bc)
+          DIFF=$(echo "scale=2; $HEAD_TIME - $BASE_TIME" | bc)
+
+          echo "base_time=$BASE_TIME" >> $GITHUB_OUTPUT
+          echo "head_time=$HEAD_TIME" >> $GITHUB_OUTPUT
+          echo "change_percent=$CHANGE" >> $GITHUB_OUTPUT
+          echo "diff=$DIFF" >> $GITHUB_OUTPUT
+
+          # Check if performance degraded by more than 10%
+          if (( $(echo "$CHANGE > 10" | bc -l) )); then
+            echo "status=degraded" >> $GITHUB_OUTPUT
+            echo "emoji=🔴" >> $GITHUB_OUTPUT
+          elif (( $(echo "$CHANGE < -5" | bc -l) )); then
+            echo "status=improved" >> $GITHUB_OUTPUT
+            echo "emoji=🟢" >> $GITHUB_OUTPUT
+          else
+            echo "status=neutral" >> $GITHUB_OUTPUT
+            echo "emoji=🟡" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Job Summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Performance Test Results
+
+          ## ${{ steps.compare.outputs.emoji }} Keyboard Navigation Performance
+
+          | Metric | Base Branch | Head Branch | Change |
+          |--------|-------------|-------------|--------|
+          | Average Operation Time | ${{ steps.compare.outputs.base_time }}ms | ${{ steps.compare.outputs.head_time }}ms | ${{ steps.compare.outputs.diff }}ms (${{ steps.compare.outputs.change_percent }}%) |
+
+          ### Test Configuration
+          - **Size**: Medium (20 files, 10,000 lines)
+          - **Iterations**: 3
+          - **Operations**: Line navigation (j/k), chunk navigation (n/p), file navigation ([/])
+
+          EOF
+
+          if [[ "${{ steps.compare.outputs.status }}" == "degraded" ]]; then
+            echo "### ⚠️ Performance Degradation Detected" >> $GITHUB_STEP_SUMMARY
+            echo "Performance has degraded by more than 10%. Please investigate before merging." >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ steps.compare.outputs.status }}" == "improved" ]]; then
+            echo "### ✅ Performance Improved" >> $GITHUB_STEP_SUMMARY
+            echo "Great job! Performance has improved by more than 5%." >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ steps.compare.outputs.status }}" == "no-baseline" ]]; then
+            echo "### ℹ️ No Baseline Available" >> $GITHUB_STEP_SUMMARY
+            echo "Performance test script not found in base branch. Cannot compare performance." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Performance Neutral" >> $GITHUB_STEP_SUMMARY
+            echo "No significant performance change detected." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## Performance Test Results')
+            );
+
+            const status = '${{ steps.compare.outputs.status }}';
+            const emoji = '${{ steps.compare.outputs.emoji }}';
+            const baseTime = '${{ steps.compare.outputs.base_time }}';
+            const headTime = '${{ steps.compare.outputs.head_time }}';
+            const changePercent = '${{ steps.compare.outputs.change_percent }}';
+            const diff = '${{ steps.compare.outputs.diff }}';
+
+            let statusMessage = '';
+            if (status === 'degraded') {
+              statusMessage = '### ⚠️ Performance degradation detected!\nPerformance has degraded by more than 10%. Please investigate before merging.';
+            } else if (status === 'improved') {
+              statusMessage = '### ✅ Performance improved!\nGreat job! Performance has improved by more than 5%.';
+            } else if (status === 'no-baseline') {
+              statusMessage = '### ℹ️ No baseline available\nPerformance test script not found in base branch. Showing head branch results only.';
+            }
+
+            const body = `## Performance Test Results
+
+            ${emoji} **Keyboard Navigation Performance**
+
+            | Metric | Base Branch | Head Branch | Change |
+            |--------|-------------|-------------|--------|
+            | Average Operation Time | ${baseTime}ms | ${headTime}ms | ${diff}ms (${changePercent}%) |
+
+            ${statusMessage}
+
+            <details>
+            <summary>Test Configuration</summary>
+
+            - **Size**: Medium (20 files, 10,000 lines)
+            - **Iterations**: 3
+            - **Operations**: Line navigation (j/k), chunk navigation (n/p), file navigation ([/])
+
+            </details>`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Check performance degradation
+        if: steps.compare.outputs.status == 'degraded'
+        run: |
+          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent }}%"
+          exit 1
