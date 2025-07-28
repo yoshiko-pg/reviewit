@@ -139,7 +139,7 @@ This section is unnecessary
 - **Backend Languages**: PHP, SQL, Ruby, Java, Scala
 - **Systems Languages**: C, C++, C#, Rust, Go
 - **Mobile Languages**: Swift, Kotlin, Dart
-- **Others**: Python, YAML, Solidity, Vim script
+- **Others**: Python, Protobuf, YAML, Solidity, Vim script
 
 ## 🛠️ Development
 

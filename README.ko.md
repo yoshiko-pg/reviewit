@@ -139,7 +139,7 @@ src/components/Button.tsx:L42-L48   # 이 줄은 자동으로 추가됩니다
 - **백엔드 언어**: PHP, SQL, Ruby, Java, Scala
 - **시스템 언어**: C, C++, C#, Rust, Go
 - **모바일 언어**: Swift, Kotlin, Dart
-- **기타**: Python, YAML, Solidity, Vim 스크립트
+- **기타**: Python, Protobuf, YAML, Solidity, Vim 스크립트
 
 ## 🛠️ 개발
 

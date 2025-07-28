@@ -133,13 +133,13 @@ src/components/Button.tsx:L42-L48   # 此行自动添加
 
 ## 🎨 语法高亮语言
 
-- **JavaScript/TypeScript**：`.js`、`.jsx`、`.ts`、`.tsx`
-- **Web 技术**：HTML、CSS、JSON、XML、Markdown
-- **Shell 脚本**：`.sh`、`.bash`、`.zsh`、`.fish`
-- **后端语言**：PHP、SQL、Ruby、Java、Scala
-- **系统语言**：C、C++、C#、Rust、Go
-- **移动语言**：Swift、Kotlin、Dart
-- **其他**：Python、YAML、Solidity、Vim 脚本
+- **JavaScript/TypeScript**：`.js`, `.jsx`, `.ts`, `.tsx`
+- **Web 技术**：HTML, CSS, JSON, XML, Markdown
+- **Shell 脚本**：`.sh`, `.bash`, `.zsh`, `.fish`
+- **后端语言**：PHP, SQL, Ruby, Java, Scala
+- **系统语言**：C, C++, C#, Rust, Go
+- **移动语言**：Swift, Kotlin, Dart
+- **其他**：Python, Protobuf, YAML, Solidity, Vim Script
 
 ## 🛠️ 开发
 

@@ -133,13 +133,13 @@ src/components/Button.tsx:L42-L48   # この行が自動的に追加されます
 
 ## 🎨 シンタックスハイライト対応言語
 
-- **JavaScript/TypeScript**：`.js`、`.jsx`、`.ts`、`.tsx`
-- **Web技術**：HTML、CSS、JSON、XML、Markdown
-- **シェルスクリプト**：`.sh`、`.bash`、`.zsh`、`.fish`
-- **バックエンド言語**：PHP、SQL、Ruby、Java、Scala
-- **システム言語**：C、C++、C#、Rust、Go
-- **モバイル言語**：Swift、Kotlin、Dart
-- **その他**：Python、YAML、Solidity、Vimスクリプト
+- **JavaScript/TypeScript**：`.js`, `.jsx`, `.ts`, `.tsx`
+- **Web技術**：HTML, CSS, JSON, XML, Markdown
+- **シェルスクリプト**：`.sh`, `.bash`, `.zsh`, `.fish`
+- **バックエンド言語**：PHP, SQL, Ruby, Java, Scala
+- **システム言語**：C, C++, C#, Rust, Go
+- **モバイル言語**：Swift, Kotlin, Dart
+- **その他**：Python, Protobuf, YAML, Solidity, Vim Script
 
 ## 🛠️ 開発
 
