@@ -24,7 +24,8 @@ function isSpecialArg(arg: string): arg is SpecialArg {
 
 function determineDiffMode(targetCommitish: string, compareWith?: string): DiffMode {
   // If comparing specific commits/branches (not involving HEAD), no watching needed
-  if (compareWith && targetCommitish !== 'HEAD') {
+  // Exception: allow watching when targetCommitish is '.' even with compareWith
+  if (compareWith && targetCommitish !== 'HEAD' && targetCommitish !== '.') {
     return DiffMode.SPECIFIC;
   }
 
