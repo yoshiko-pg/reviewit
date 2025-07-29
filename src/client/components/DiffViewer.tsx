@@ -198,6 +198,7 @@ export function DiffViewer({
                     fileIndex={fileIndex}
                     commentTrigger={commentTrigger?.chunkIndex === index ? commentTrigger : null}
                     onCommentTriggerHandled={onCommentTriggerHandled}
+                    filename={file.path}
                   />
                 </div>
               );

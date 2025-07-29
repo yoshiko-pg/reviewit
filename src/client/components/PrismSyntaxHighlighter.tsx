@@ -13,6 +13,7 @@ export interface PrismSyntaxHighlighterProps {
   language?: string;
   className?: string;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  filename?: string;
   renderToken?: (
     token: Token,
     key: number,
@@ -103,11 +104,13 @@ export const PrismSyntaxHighlighter = React.memo(function PrismSyntaxHighlighter
   language,
   className,
   syntaxTheme = 'vsDark',
+  filename = '',
   renderToken,
   onMouseOver,
   onMouseOut,
 }: PrismSyntaxHighlighterProps) {
-  const detectedLang = language || detectLanguage(currentFilename);
+  const detectedLang =
+    language || (filename ? detectLanguage(filename) : detectLanguage(currentFilename));
   const { actualLang } = useHighlightedCode(code, detectedLang);
   const theme = getSyntaxTheme(syntaxTheme);
 
