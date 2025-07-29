@@ -17,7 +17,6 @@ import { isImageFile } from '../utils/imageUtils';
 
 import { DiffChunk } from './DiffChunk';
 import { ImageDiffChunk } from './ImageDiffChunk';
-import { setCurrentFilename } from './PrismSyntaxHighlighter';
 import type { AppearanceSettings } from './SettingsModal';
 
 interface DiffViewerProps {
@@ -64,9 +63,6 @@ export function DiffViewer({
 }: DiffViewerProps) {
   const isCollapsed = reviewedFiles.has(file.path);
   const [isCopied, setIsCopied] = useState(false);
-
-  // Set filename for syntax highlighter immediately
-  setCurrentFilename(file.path);
 
   const getFileIcon = (status: DiffFile['status']) => {
     switch (status) {
