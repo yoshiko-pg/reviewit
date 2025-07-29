@@ -1,0 +1,125 @@
+name: Performance Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.10.0
+
+      - name: Checkout head branch
+        uses: actions/checkout@v4
+        with:
+          path: head
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Get Playwright version
+        id: playwright-version
+        working-directory: head
+        run: |
+          PLAYWRIGHT_VERSION=$(cat package.json | jq -r '.devDependencies.playwright // empty')
+          echo "version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ steps.playwright-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            playwright-browsers-${{ steps.playwright-version.outputs.version }}-
+            playwright-browsers-
+
+      - name: Setup head branch
+        working-directory: head
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Install Playwright browsers
+        working-directory: head
+        run: pnpm exec playwright install chromium
+
+      - name: Setup base branch
+        working-directory: base
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Run performance test on head branch
+        id: head-perf
+        working-directory: head
+        run: |
+          pnpm perf --size medium --iterations 3
+          # Get the latest result file
+          RESULT_FILE=$(ls -t performance-results/perf-medium-*.json | head -1)
+          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
+
+      - name: Run performance test on base branch
+        id: base-perf
+        working-directory: base
+        run: |
+          # Install playwright in base directory if needed
+          # This ensures the test can run even if base branch doesn't have playwright
+          if ! pnpm list playwright >/dev/null 2>&1; then
+            echo "Installing playwright for base branch testing..."
+            pnpm add -D playwright
+            pnpm exec playwright install chromium
+          fi
+
+          # Run performance test using head's script but base's build
+          # The script will create results in the head directory's performance-results
+          node ../head/scripts/measure-performance.js --size medium --iterations 3 --difit-path ../base/dist/cli/index.js
+
+          # Get the latest result file from head directory
+          RESULT_FILE=$(ls -t ../head/performance-results/perf-medium-*.json | head -1)
+          echo "result_file=$RESULT_FILE" >> $GITHUB_OUTPUT
+
+      - name: Compare performance
+        id: compare
+        working-directory: head
+        run: |
+          # Run comparison script and output markdown directly to GitHub Step Summary
+          node scripts/compare-performance.js ${{ steps.base-perf.outputs.result_file }} ${{ steps.head-perf.outputs.result_file }} >> $GITHUB_STEP_SUMMARY
+
+          # Also get JSON output for status check
+          COMPARISON_JSON=$(node scripts/compare-performance.js ${{ steps.base-perf.outputs.result_file }} ${{ steps.head-perf.outputs.result_file }} --json)
+
+          # Extract change percentage for status check
+          CHANGE_PERCENT=$(echo "$COMPARISON_JSON" | jq -r '.changePercent')
+
+          # Determine status based on percentage change
+          if (( $(echo "$CHANGE_PERCENT > 10" | bc -l) )); then
+            echo "status=degraded" >> $GITHUB_OUTPUT
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
+          elif (( $(echo "$CHANGE_PERCENT < -5" | bc -l) )); then
+            echo "status=improved" >> $GITHUB_OUTPUT
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
+          else
+            echo "status=neutral" >> $GITHUB_OUTPUT
+            echo "change_percent=$CHANGE_PERCENT" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check performance degradation
+        if: steps.compare.outputs.status == 'degraded'
+        run: |
+          echo "::warning::Performance has degraded by ${{ steps.compare.outputs.change_percent }}%"
+          exit 1

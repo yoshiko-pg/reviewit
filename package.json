@@ -31,7 +31,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install",
-    "prepublishOnly": "NODE_ENV=production pnpm run build"
+    "prepublishOnly": "NODE_ENV=production pnpm run build",
+    "perf": "node scripts/measure-performance.js",
+    "perf:small": "node scripts/measure-performance.js --size small",
+    "perf:medium": "node scripts/measure-performance.js --size medium",
+    "perf:large": "node scripts/measure-performance.js --size large",
+    "perf:xlarge": "node scripts/measure-performance.js --size xlarge",
+    "perf:compare": "node scripts/compare-performance.js"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
@@ -78,6 +84,7 @@
     "globals": "^16.3.0",
     "happy-dom": "^18.0.1",
     "lefthook": "^1.11.14",
+    "playwright": "^1.54.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.11",
