@@ -266,11 +266,9 @@ export function DiffChunk({
                   syntaxTheme={syntaxTheme}
                   filename={filename}
                   onClick={() => {
-                    if (onLineClick) {
-                      // Determine the side based on line type for inline mode
-                      const side = line.type === 'delete' ? 'left' : 'right';
-                      onLineClick(fileIndex, chunkIndex, index, side);
-                    }
+                    // Determine the side based on line type for inline mode
+                    const side = line.type === 'delete' ? 'left' : 'right';
+                    onLineClick?.(fileIndex, chunkIndex, index, side);
                   }}
                 />
 

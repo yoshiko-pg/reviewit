@@ -281,7 +281,11 @@ export function useKeyboardNavigation({
 
   // Set cursor position from external source (e.g., mouse click)
   const setCursorPosition = useCallback(
-    (position: CursorPosition) => {
+    (position: CursorPosition | null) => {
+      if (!position) {
+        setCursor(null);
+        return;
+      }
       // Fix the side if necessary
       const fixedPosition = fixSide(position, files);
       setCursor(fixedPosition);

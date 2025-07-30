@@ -330,7 +330,7 @@ export function SideBySideDiffChunk({
                 <tr
                   className="group cursor-pointer"
                   onClick={(e) => {
-                    if (onLineClick && !isDragging) {
+                    if (!isDragging) {
                       const target = e.target as HTMLElement;
                       const isInOldSide =
                         target.closest('td:nth-child(1)') || target.closest('td:nth-child(2)');
@@ -338,9 +338,9 @@ export function SideBySideDiffChunk({
                         target.closest('td:nth-child(3)') || target.closest('td:nth-child(4)');
 
                       if (isInOldSide && oldLineOriginalIndex >= 0) {
-                        onLineClick(fileIndex, chunkIndex, oldLineOriginalIndex, 'left');
+                        onLineClick?.(fileIndex, chunkIndex, oldLineOriginalIndex, 'left');
                       } else if (isInNewSide && newLineOriginalIndex >= 0) {
-                        onLineClick(fileIndex, chunkIndex, newLineOriginalIndex, 'right');
+                        onLineClick?.(fileIndex, chunkIndex, newLineOriginalIndex, 'right');
                       }
                     }
                   }}
