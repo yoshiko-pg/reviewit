@@ -303,7 +303,7 @@ export function DiffChunk({
                     (Array.isArray(commentingLine) &&
                       commentingLine[1] === (line.newLineNumber || line.oldLineNumber))) && (
                     <tr className="bg-[var(--bg-secondary)]">
-                      <td colSpan={3} className="p-0 border-t border-[var(--border-muted)]">
+                      <td colSpan={3} className="p-0">
                         <div
                           className={`flex ${
                             getCommentLayout(line) === 'left' ? 'justify-start'

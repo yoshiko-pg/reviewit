@@ -569,7 +569,7 @@ export function SideBySideDiffChunk({
                         (commentingLine.side === 'old' &&
                           commentingLine.lineNumber[1] === sideLine.oldLineNumber)))) && (
                     <tr className="bg-github-bg-secondary">
-                      <td colSpan={4} className="p-0 border-t border-github-border">
+                      <td colSpan={4} className="p-0">
                         <div
                           className={`flex ${
                             getCommentLayout(sideLine) === 'left' ? 'justify-start'
