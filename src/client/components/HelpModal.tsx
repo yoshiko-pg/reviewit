@@ -216,10 +216,18 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
+                  v
+                </kbd>
+                <span className="text-github-text-secondary">
+                  Toggle viewed state of current file
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <kbd className="px-2 py-1 bg-github-bg-tertiary border border-github-border rounded text-github-text-primary font-mono">
                   r
                 </kbd>
                 <span className="text-github-text-secondary">
-                  Toggle review state of current file
+                  Refresh diff when changes detected
                 </span>
               </div>
               <div className="flex justify-between text-sm">

@@ -32,6 +32,7 @@ export function useKeyboardNavigation({
   onCopyAllComments,
   onDeleteAllComments,
   onShowCommentsList,
+  onRefresh,
 }: UseKeyboardNavigationProps): UseKeyboardNavigationReturn {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -337,7 +338,7 @@ export function useKeyboardNavigation({
 
   // File review toggle
   useHotkeys(
-    'r',
+    'v',
     () => {
       if (cursor) {
         const file = files[cursor.fileIndex];
@@ -348,6 +349,18 @@ export function useKeyboardNavigation({
     },
     hotkeyOptions,
     [cursor, files, onToggleReviewed]
+  );
+
+  // Refresh
+  useHotkeys(
+    'r',
+    () => {
+      if (onRefresh) {
+        onRefresh();
+      }
+    },
+    hotkeyOptions,
+    [onRefresh]
   );
 
   // Comment creation

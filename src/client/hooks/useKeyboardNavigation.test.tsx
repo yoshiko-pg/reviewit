@@ -454,8 +454,8 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
-  describe('Review Toggle (r)', () => {
-    it('should toggle reviewed state with r key', async () => {
+  describe('Review Toggle (v)', () => {
+    it('should toggle reviewed state with v key', async () => {
       const user = userEvent.setup();
       const onToggleReviewed = vi.fn();
 
@@ -481,7 +481,7 @@ describe('useKeyboardNavigation', () => {
         });
       });
 
-      await user.keyboard('r');
+      await user.keyboard('v');
 
       expect(onToggleReviewed).toHaveBeenCalledWith('file1.js');
     });
@@ -502,9 +502,52 @@ describe('useKeyboardNavigation', () => {
         { wrapper }
       );
 
-      await user.keyboard('r');
+      await user.keyboard('v');
 
       expect(onToggleReviewed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Refresh (r)', () => {
+    it('should trigger refresh with r key', async () => {
+      const user = userEvent.setup();
+      const onRefresh = vi.fn();
+
+      renderHook(
+        () =>
+          useKeyboardNavigation({
+            files: mockFiles,
+            comments: [],
+            viewMode: 'inline',
+            onToggleReviewed: vi.fn(),
+            reviewedFiles: new Set<string>(),
+            onRefresh,
+          }),
+        { wrapper }
+      );
+
+      await user.keyboard('r');
+
+      expect(onRefresh).toHaveBeenCalled();
+    });
+
+    it('should not trigger refresh when onRefresh is not provided', async () => {
+      const user = userEvent.setup();
+
+      renderHook(
+        () =>
+          useKeyboardNavigation({
+            files: mockFiles,
+            comments: [],
+            viewMode: 'inline',
+            onToggleReviewed: vi.fn(),
+            reviewedFiles: new Set<string>(),
+          }),
+        { wrapper }
+      );
+
+      // Should not throw error
+      await expect(user.keyboard('r')).resolves.not.toThrow();
     });
   });
 

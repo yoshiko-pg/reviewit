@@ -111,6 +111,9 @@ function App() {
     onShowCommentsList: () => {
       setIsCommentsListOpen(true);
     },
+    onRefresh: () => {
+      reload();
+    },
   });
 
   const handleMouseDown = (e: React.MouseEvent) => {
