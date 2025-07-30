@@ -28,6 +28,7 @@ interface DiffChunkProps {
   fileIndex?: number;
   commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
   onCommentTriggerHandled?: () => void;
+  filename?: string;
 }
 
 export function DiffChunk({
@@ -44,6 +45,7 @@ export function DiffChunk({
   fileIndex = 0,
   commentTrigger,
   onCommentTriggerHandled,
+  filename,
 }: DiffChunkProps) {
   const [startLine, setStartLine] = useState<number | null>(null);
   const [endLine, setEndLine] = useState<number | null>(null);
@@ -179,6 +181,7 @@ export function DiffChunk({
         syntaxTheme={syntaxTheme}
         cursor={cursor}
         fileIndex={fileIndex}
+        filename={filename}
         commentTrigger={commentTrigger}
         onCommentTriggerHandled={onCommentTriggerHandled}
       />
@@ -253,6 +256,7 @@ export function DiffChunk({
                     setEndLine(null);
                   }}
                   syntaxTheme={syntaxTheme}
+                  filename={filename}
                 />
 
                 {lineComments.map((comment) => {

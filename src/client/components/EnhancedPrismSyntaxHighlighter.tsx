@@ -88,6 +88,3 @@ export const EnhancedPrismSyntaxHighlighter = React.memo(function EnhancedPrismS
     />
   );
 });
-
-// Re-export setCurrentFilename from PrismSyntaxHighlighter
-export { setCurrentFilename } from './PrismSyntaxHighlighter';

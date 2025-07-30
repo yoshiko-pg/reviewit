@@ -28,6 +28,7 @@ interface SideBySideDiffChunkProps {
   fileIndex?: number;
   commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
   onCommentTriggerHandled?: () => void;
+  filename?: string;
 }
 
 interface SideBySideLine {
@@ -52,6 +53,7 @@ export function SideBySideDiffChunk({
   fileIndex = 0,
   commentTrigger,
   onCommentTriggerHandled,
+  filename,
 }: SideBySideDiffChunkProps) {
   const [startLine, setStartLine] = useState<LineSelection | null>(null);
   const [endLine, setEndLine] = useState<LineSelection | null>(null);
@@ -429,6 +431,7 @@ export function SideBySideDiffChunk({
                           code={sideLine.oldLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
+                          filename={filename}
                         />
                       </div>
                     )}
@@ -495,6 +498,7 @@ export function SideBySideDiffChunk({
                           code={sideLine.newLine.content}
                           className="flex-1 text-github-text-primary whitespace-pre-wrap break-all overflow-wrap-break-word select-text [&_pre]:m-0 [&_pre]:p-0 [&_pre]:!bg-transparent [&_pre]:font-inherit [&_pre]:text-inherit [&_pre]:leading-inherit [&_code]:!bg-transparent [&_code]:font-inherit [&_code]:text-inherit [&_code]:leading-inherit"
                           syntaxTheme={syntaxTheme}
+                          filename={filename}
                         />
                       </div>
                     )}
