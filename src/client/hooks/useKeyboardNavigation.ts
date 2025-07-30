@@ -322,6 +322,65 @@ export function useKeyboardNavigation({
     navigateToFile,
   ]);
 
+  // Jump to first/last file
+  useHotkeys(
+    '{',
+    () => {
+      if (files.length > 0) {
+        setCursor({
+          fileIndex: 0,
+          chunkIndex: 0,
+          lineIndex: 0,
+          side: viewMode === 'side-by-side' ? 'left' : 'right',
+        });
+        scrollToElement(
+          getElementId(
+            {
+              fileIndex: 0,
+              chunkIndex: 0,
+              lineIndex: 0,
+              side: viewMode === 'side-by-side' ? 'left' : 'right',
+            },
+            viewMode
+          )
+        );
+      }
+    },
+    { ...hotkeyOptions, useKey: true },
+    [files, viewMode, scrollToElement]
+  );
+
+  useHotkeys(
+    '}',
+    () => {
+      if (files.length > 0) {
+        const lastFileIndex = files.length - 1;
+        const lastFile = files[lastFileIndex];
+        if (lastFile && lastFile.chunks.length > 0) {
+          setCursor({
+            fileIndex: lastFileIndex,
+            chunkIndex: 0,
+            lineIndex: 0,
+            side: viewMode === 'side-by-side' ? 'left' : 'right',
+          });
+          scrollToElement(
+            getElementId(
+              {
+                fileIndex: lastFileIndex,
+                chunkIndex: 0,
+                lineIndex: 0,
+                side: viewMode === 'side-by-side' ? 'left' : 'right',
+              },
+              viewMode
+            )
+          );
+        }
+      }
+    },
+    { ...hotkeyOptions, useKey: true },
+    [files, viewMode, scrollToElement]
+  );
+
   // Side switching (side-by-side mode only)
   useHotkeys(
     'h, left',
