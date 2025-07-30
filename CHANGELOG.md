@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.2] - 2025-07-30
+
+### Added
+
+- Highlight selected file in the file list when a line is selected in diff view
+- Keyboard shortcuts to jump to first/last file with `{` (`Shift+[`) and `}` (`Shift+]`)
+- Performance testing infrastructure with GitHub Actions workflow
+
+### Changed
+
+- Restored row selection on mouse click functionality
+- Automatic row deselection when clicking outside selected row
+- Automatic close of empty comment forms when clicking outside
+- Keyboard shortcut 'v' for toggling viewed state (previously 'r')
+- Keyboard shortcut 'r' for refresh when changes are detected
+
+### Fixed
+
+- Enable watch mode for dot argument with comparison
+- Support for stdin in dev.js script
+- Syntax highlighting disappearing on hover by passing filename prop
+- Performance degradation with large diffs (81.7% reduction in keyboard navigation latency)
+
+### Thanks
+
+- [@haya14busa](https://github.com/haya14busa) for performance improvements #72, syntax highlighting fix #74, and watch mode fix #73
+
 ## [2.1.1] - 2025-07-28
 
 ### Added
@@ -496,7 +523,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.1...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.2...HEAD
+[2.1.2]: https://github.com/yoshiko-pg/difit/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/yoshiko-pg/difit/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...v2.1.0
 [2.0.11]: https://github.com/yoshiko-pg/difit/compare/v2.0.10...v2.0.11
