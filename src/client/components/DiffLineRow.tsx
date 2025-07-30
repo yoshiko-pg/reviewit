@@ -19,6 +19,7 @@ interface DiffLineRowProps {
   onCommentButtonMouseDown: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onCommentButtonMouseUp: (e: React.MouseEvent<HTMLButtonElement>) => void;
   syntaxTheme?: AppearanceSettings['syntaxTheme'];
+  onClick?: () => void;
   filename?: string;
 }
 
@@ -57,6 +58,7 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
     onCommentButtonMouseDown,
     onCommentButtonMouseUp,
     syntaxTheme,
+    onClick,
     filename,
   }) => {
     const lineNumber = line.newLineNumber || line.oldLineNumber;
@@ -67,10 +69,11 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = React.memo(
     return (
       <tr
         id={lineId}
-        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${highlightClass}`}
+        className={`group ${getLineClass(line)} relative ${selectedLineStyle} ${highlightClass} cursor-pointer`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
+        onClick={onClick}
       >
         <td className="w-[50px] px-2 text-right text-github-text-muted bg-github-bg-secondary border-r border-github-border select-none align-top relative">
           {line.oldLineNumber || ''}

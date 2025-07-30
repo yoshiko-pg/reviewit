@@ -39,6 +39,12 @@ interface DiffViewerProps {
   targetCommitish?: string;
   cursor?: CursorPosition | null;
   fileIndex?: number;
+  onLineClick?: (
+    fileIndex: number,
+    chunkIndex: number,
+    lineIndex: number,
+    side: 'left' | 'right'
+  ) => void;
   commentTrigger?: { fileIndex: number; chunkIndex: number; lineIndex: number } | null;
   onCommentTriggerHandled?: () => void;
 }
@@ -58,6 +64,7 @@ export function DiffViewer({
   targetCommitish,
   cursor = null,
   fileIndex = 0,
+  onLineClick,
   commentTrigger,
   onCommentTriggerHandled,
 }: DiffViewerProps) {
@@ -192,6 +199,7 @@ export function DiffViewer({
                     syntaxTheme={syntaxTheme}
                     cursor={cursor}
                     fileIndex={fileIndex}
+                    onLineClick={onLineClick}
                     commentTrigger={commentTrigger?.chunkIndex === index ? commentTrigger : null}
                     onCommentTriggerHandled={onCommentTriggerHandled}
                     filename={file.path}

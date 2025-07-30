@@ -546,6 +546,14 @@ function App() {
                     targetCommitish={diffData.targetCommitish}
                     cursor={cursor?.fileIndex === fileIndex ? cursor : null}
                     fileIndex={fileIndex}
+                    onLineClick={(fileIdx, chunkIdx, lineIdx, side) => {
+                      setCursorPosition({
+                        fileIndex: fileIdx,
+                        chunkIndex: chunkIdx,
+                        lineIndex: lineIdx,
+                        side,
+                      });
+                    }}
                     commentTrigger={commentTrigger?.fileIndex === fileIndex ? commentTrigger : null}
                     onCommentTriggerHandled={() => setCommentTrigger(null)}
                   />
