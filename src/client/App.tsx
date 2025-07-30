@@ -518,6 +518,7 @@ function App() {
                   comments={comments}
                   reviewedFiles={reviewedFiles}
                   onToggleReviewed={toggleFileReviewed}
+                  selectedFileIndex={cursor?.fileIndex ?? null}
                 />
               </div>
               <div className="p-4 border-t border-github-border flex justify-between items-center">
