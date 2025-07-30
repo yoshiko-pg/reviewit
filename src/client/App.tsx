@@ -291,6 +291,31 @@ function App() {
     }
   };
 
+  const handleGlobalClick = (e: React.MouseEvent) => {
+    // Clear cursor position
+    setCursorPosition(null);
+
+    // Check if clicking on a comment button
+    const target = e.target as HTMLElement;
+    const isCommentButton = target.closest('[data-comment-button="true"]');
+
+    // Close empty comment forms (unless clicking on a comment button)
+    if (!isCommentButton) {
+      closeEmptyCommentForms(e);
+    }
+  };
+
+  const closeEmptyCommentForms = (e: React.MouseEvent) => {
+    const emptyForms = document.querySelectorAll('form[data-empty="true"]');
+    emptyForms.forEach((form) => {
+      // Don't close if clicking inside the form itself
+      if (!form.contains(e.target as Node)) {
+        const cancelButton = form.querySelector('button[type="button"]') as HTMLButtonElement;
+        cancelButton?.click();
+      }
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-github-bg-primary">
@@ -319,7 +344,7 @@ function App() {
 
   return (
     <WordHighlightProvider>
-      <div className="h-screen flex flex-col" onClickCapture={() => setCursorPosition(null)}>
+      <div className="h-screen flex flex-col" onClickCapture={handleGlobalClick}>
         <header className="bg-github-bg-secondary border-b border-github-border flex items-center">
           <div
             className={`px-4 py-3 flex items-center justify-between gap-4 ${!isDragging ? '!transition-all !duration-300 !ease-in-out' : ''}`}
