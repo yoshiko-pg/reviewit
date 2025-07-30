@@ -10,12 +10,6 @@
 
 **difit** is a CLI tool that lets you view and review local git diffs with a GitHub-style viewer. In addition to clean visuals, comments can be copied as prompts for AI. The local code review tool for the AI era!
 
-## ✨ Features
-
-- ⚡ **Zero Config**: Just run `npx difit` and it works
-- 💬 **Local Review**: Add comments to diffs and copy them with file paths and line numbers for AI
-- 🖥️ **WebUI/TerminalUI**: Web UI in browser, or stay in terminal with `--tui`
-
 ## ⚡ Quick Start
 
 ```bash
