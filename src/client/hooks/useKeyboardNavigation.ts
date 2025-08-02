@@ -412,7 +412,7 @@ export function useKeyboardNavigation({
 
   // Refresh
   useHotkeys(
-    'r',
+    'shift+r',
     () => {
       if (onRefresh) {
         onRefresh();

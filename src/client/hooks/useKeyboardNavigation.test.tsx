@@ -573,8 +573,8 @@ describe('useKeyboardNavigation', () => {
     });
   });
 
-  describe('Refresh (r)', () => {
-    it('should trigger refresh with r key', async () => {
+  describe('Refresh (shift+r)', () => {
+    it('should trigger refresh with shift+r key', async () => {
       const user = userEvent.setup();
       const onRefresh = vi.fn();
 
@@ -591,7 +591,7 @@ describe('useKeyboardNavigation', () => {
         { wrapper }
       );
 
-      await user.keyboard('r');
+      await user.keyboard('{Shift>}r{/Shift}');
 
       expect(onRefresh).toHaveBeenCalled();
     });

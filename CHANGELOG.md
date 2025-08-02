@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Keyboard shortcut for refresh changed from 'r' to 'Shift+R' to avoid conflicts
+
 ## [2.1.2] - 2025-07-30
 
 ### Added
