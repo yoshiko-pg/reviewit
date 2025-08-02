@@ -1,12 +1,12 @@
-# 設計書
+# Design Document
 
-## 概要
+## Overview
 
-この設計書は、difitのWebUIにおけるコメントとViewed状態の管理システムを改善するための技術設計を記載します。現在の実装では、コメントがコミットハッシュのみで管理されているため、異なる差分範囲（baseCommitish→targetCommitish）でコメントが混在する問題があります。本設計では、差分コンテキスト全体を考慮した新しいデータ構造と、ファイルのViewed状態の永続化機能を実装します。
+This design document describes the technical design for improving the comment and viewed state management system in difit's WebUI. The current implementation manages comments only by commit hash, which causes issues when comments from different diff ranges (baseCommitish→targetCommitish) are mixed together. This design implements a new data structure that considers the entire diff context and adds persistent storage for file viewed states.
 
-## アーキテクチャ
+## Architecture
 
-### データストレージ階層
+### Data Storage Hierarchy
 
 ```
 localStorage
@@ -16,88 +16,88 @@ localStorage
         └── viewedFiles: ViewedFileRecord[]
 ```
 
-### 主要な変更点
+### Key Changes
 
-1. **統合されたストレージ構造**: 差分コンテキストごとにコメントとViewed状態を一緒に管理
-2. **バージョニング**: 将来のスキーマ変更に対応するため、ストレージキーにバージョンを含める（v1から開始）
-3. **差分内容の検証**: Viewed状態の妥当性を確認するため、ファイルの差分内容のハッシュ値を保存
-4. **マイグレーション不要**: 新しい構造として開始し、既存データの移行は行わない
+1. **Unified Storage Structure**: Manage comments and viewed states together per diff context
+2. **Versioning**: Include version in storage key for future schema changes (starting with v1)
+3. **Diff Content Validation**: Store hash of file diff content to validate viewed state
+4. **No Migration Required**: Start as new structure without migrating existing data
 
-## コンポーネントと インターフェース
+## Components and Interfaces
 
-### 1. データモデル
+### 1. Data Models
 
 ```typescript
-// コメントのデータ構造（ゼロベースで設計）
+// Comment data structure (designed from scratch)
 interface DiffComment {
-  id: string;  // UUID形式を推奨
+  id: string;  // UUID format recommended
   filePath: string;
   body: string;
-  createdAt: string;  // ISO 8601形式
-  updatedAt: string;  // ISO 8601形式
+  createdAt: string;  // ISO 8601 format
+  updatedAt: string;  // ISO 8601 format
   
-  // チャンク情報
-  chunkHeader: string;  // 例: "@@ -10,7 +10,8 @@ function example()"
+  // Chunk information
+  chunkHeader: string;  // e.g., "@@ -10,7 +10,8 @@ function example()"
   
-  // コメントの位置情報
+  // Comment position information
   position: {
-    side: 'old' | 'new';  // 削除側(-)か追加側(+)か
-    line: number | { start: number; end: number };  // 単一行またはレンジ
+    side: 'old' | 'new';  // Deletion side (-) or addition side (+)
+    line: number | { start: number; end: number };  // Single line or range
   };
   
-  // コメント時点のコード内容（オプション）
+  // Code content at comment time (optional)
   codeSnapshot?: {
     content: string;
-    language?: string;  // ファイル拡張子から推測
+    language?: string;  // Inferred from file extension
   };
 }
 
-// Viewed状態の記録
+// Viewed state record
 interface ViewedFileRecord {
   filePath: string;
-  viewedAt: string;  // ISO 8601形式
-  diffContentHash: string;  // SHA-256ハッシュ
+  viewedAt: string;  // ISO 8601 format
+  diffContentHash: string;  // SHA-256 hash
 }
 
-// ストレージのルート構造
+// Storage root structure
 interface DiffContextStorage {
-  version: 1;  // スキーマバージョン
+  version: 1;  // Schema version
   baseCommitish: string;
   targetCommitish: string;
-  createdAt: string;  // ISO 8601形式
-  lastModifiedAt: string;  // ISO 8601形式
+  createdAt: string;  // ISO 8601 format
+  lastModifiedAt: string;  // ISO 8601 format
   
   comments: DiffComment[];
   viewedFiles: ViewedFileRecord[];
 }
 ```
 
-### 2. ストレージサービス
+### 2. Storage Service
 
 ```typescript
 interface StorageService {
-  // 統合されたデータ取得・保存
+  // Unified data fetch/save
   getDiffContextData(baseCommitish: string, targetCommitish: string): DiffContextStorage;
   saveDiffContextData(baseCommitish: string, targetCommitish: string, data: DiffContextStorage): void;
   
-  // コメント関連
+  // Comment related
   getComments(baseCommitish: string, targetCommitish: string): DiffComment[];
   saveComments(baseCommitish: string, targetCommitish: string, comments: DiffComment[]): void;
   
-  // Viewed状態関連
+  // Viewed state related
   getViewedFiles(baseCommitish: string, targetCommitish: string): ViewedFileRecord[];
   saveViewedFiles(baseCommitish: string, targetCommitish: string, files: ViewedFileRecord[]): void;
   
-  // ユーティリティ
+  // Utilities
   cleanupOldData(daysToKeep: number): void;
   getStorageSize(): number;
 }
 ```
 
-### 3. フック
+### 3. Hooks
 
 ```typescript
-// コメント追加時のパラメータ
+// Parameters for adding comments
 interface AddCommentParams {
   filePath: string;
   body: string;
@@ -107,7 +107,7 @@ interface AddCommentParams {
   codeSnapshot?: DiffComment['codeSnapshot'];
 }
 
-// 新しいコメント管理フック
+// New comment management hook
 interface UseDiffCommentsReturn {
   comments: DiffComment[];
   addComment: (params: AddCommentParams) => DiffComment;
@@ -118,9 +118,9 @@ interface UseDiffCommentsReturn {
   generateAllCommentsPrompt: () => string;
 }
 
-// Viewed状態管理フック
+// Viewed state management hook
 interface UseViewedFilesReturn {
-  viewedFiles: Set<string>;  // ファイルパスのSet
+  viewedFiles: Set<string>;  // Set of file paths
   toggleFileViewed: (filePath: string, diffFile: DiffFile) => void;
   isFileContentChanged: (filePath: string) => boolean;
   getViewedFileRecord: (filePath: string) => ViewedFileRecord | undefined;
@@ -128,14 +128,14 @@ interface UseViewedFilesReturn {
 }
 ```
 
-## データモデル
+## Data Model
 
-### ストレージキーの生成
+### Storage Key Generation
 
 ```typescript
 function generateStorageKey(baseCommitish: string, targetCommitish: string): string {
-  // フルコミットハッシュまたは参照名をそのまま使用
-  // 特殊文字をエンコードしてファイルシステムセーフな形式に
+  // Use full commit hash or reference name as is
+  // Encode special characters to filesystem-safe format
   const encode = (str: string) => str.replace(/[^a-zA-Z0-9-_]/g, (char) => {
     return `_${char.charCodeAt(0).toString(16)}_`;
   });
@@ -143,14 +143,14 @@ function generateStorageKey(baseCommitish: string, targetCommitish: string): str
   return `${encode(baseCommitish)}-${encode(targetCommitish)}`;
 }
 
-// 例:
+// Examples:
 // generateStorageKey("main", "feature/add-auth")
 // => "main-feature_2f_add_2d_auth"
 // generateStorageKey("abc1234", "def5678")  
 // => "abc1234-def5678"
 ```
 
-### 差分内容のハッシュ生成
+### Diff Content Hash Generation
 
 ```typescript
 async function generateDiffHash(diffContent: string): Promise<string> {
@@ -162,82 +162,82 @@ async function generateDiffHash(diffContent: string): Promise<string> {
 }
 ```
 
-## エラーハンドリング
+## Error Handling
 
-### ストレージエラー
+### Storage Errors
 
-1. **容量超過**: localStorageの容量制限（通常5-10MB）に達した場合
-   - 古いデータの自動削除を提案
-   - ユーザーに通知
+1. **Capacity Exceeded**: When localStorage limit (usually 5-10MB) is reached
+   - Suggest automatic deletion of old data
+   - Notify user
 
-2. **データ破損**: JSON パースエラーが発生した場合
-   - 破損したデータをバックアップ
-   - 新しい構造で初期化
+2. **Data Corruption**: When JSON parse error occurs
+   - Backup corrupted data
+   - Initialize with new structure
 
-3. **マイグレーションエラー**: V1からV2への移行時のエラー
-   - 元のデータを保持
-   - エラーログを記録
+3. **Migration Errors**: Errors during V1 to V2 migration
+   - Retain original data
+   - Log errors
 
-### ハッシュ計算エラー
+### Hash Calculation Errors
 
-- Web Crypto APIが利用できない場合は、簡易的なハッシュ関数にフォールバック
-- ハッシュ計算に失敗した場合は、Viewed状態を保存しない
+- Fall back to simple hash function if Web Crypto API is unavailable
+- Don't save viewed state if hash calculation fails
 
-## テスト戦略
+## Testing Strategy
 
-### ユニットテスト
+### Unit Tests
 
-1. **ストレージサービス**
-   - キー生成の正確性
-   - データの保存と読み込み
-   - マイグレーション処理
-   - エラーハンドリング
+1. **Storage Service**
+   - Key generation accuracy
+   - Data save and load
+   - Migration processing
+   - Error handling
 
-2. **フック**
-   - コメントのCRUD操作
-   - Viewed状態の管理
-   - 差分内容の変更検出
+2. **Hooks**
+   - Comment CRUD operations
+   - Viewed state management
+   - Diff content change detection
 
-3. **ハッシュ生成**
-   - 同一内容で同じハッシュ
-   - 異なる内容で異なるハッシュ
-   - エッジケース（空文字、大きなファイル）
+3. **Hash Generation**
+   - Same hash for same content
+   - Different hash for different content
+   - Edge cases (empty string, large files)
 
-### 統合テスト
+### Integration Tests
 
-1. **データ永続性**
-   - ページリロード後のデータ復元
-   - 異なる差分コンテキストでのデータ分離
+1. **Data Persistence**
+   - Data restoration after page reload
+   - Data separation in different diff contexts
 
-2. **マイグレーション**
-   - V1データの正常な移行
-   - 移行後の動作確認
+2. **Migration**
+   - Normal migration of V1 data
+   - Operation verification after migration
 
-3. **パフォーマンス**
-   - 大量のコメントでの動作
-   - ストレージ容量の監視
+3. **Performance**
+   - Operation with large number of comments
+   - Storage capacity monitoring
 
-## 実装の詳細
+## Implementation Details
 
-### 動的な参照の扱い
+### Handling Dynamic References
 
-サーバーから受け取る `baseCommitish` と `targetCommitish` には以下のような値が来る可能性があります：
+`baseCommitish` and `targetCommitish` received from server may have the following values:
 
-1. **コミットハッシュ**: `abc1234...` - そのまま使用
-2. **ブランチ名**: `main`, `feature/auth` - コミットハッシュに解決
-3. **HEAD**: 現在のコミットハッシュに解決
-4. **作業ディレクトリ**: `.` または `working` - 特別な扱いが必要
-5. **ステージ**: `staged` - 特別な扱いが必要
+1. **Commit Hash**: `abc1234...` - Use as is
+2. **Branch Name**: `main`, `feature/auth` - Resolve to commit hash
+3. **HEAD**: Resolve to current commit hash
+4. **Working Directory**: `.` or `working` - Requires special handling
+5. **Staged**: `staged` - Requires special handling
 
 ```typescript
-// 動的参照の正規化
+// Dynamic reference normalization
 function normalizeCommitish(
   commitish: string, 
-  currentCommitHash: string,  // 現在のHEADのハッシュ
-  branchToHash?: Map<string, string>  // ブランチ名→ハッシュのマッピング
+  currentCommitHash: string,  // Current HEAD hash
+  branchToHash?: Map<string, string>  // Branch name → hash mapping
 ): string {
-  // 作業ディレクトリやステージの場合
-  // baseにHEADハッシュ、targetに特別キーワードで一意性を保証
+  // For working directory or staged
+  // Use HEAD hash for base, special keyword for target to ensure uniqueness
   if (commitish === '.' || commitish === 'working') {
     return 'WORKING';
   }
@@ -245,39 +245,39 @@ function normalizeCommitish(
     return 'STAGED';
   }
   
-  // HEADの場合は解決されたハッシュを使用
+  // Use resolved hash for HEAD
   if (commitish === 'HEAD') {
     return currentCommitHash;
   }
   
-  // ブランチ名の場合はハッシュに解決
+  // Resolve branch name to hash
   if (branchToHash?.has(commitish)) {
     return branchToHash.get(commitish)!;
   }
   
-  // コミットハッシュの場合はそのまま
+  // Use commit hash as is
   return commitish;
 }
 
-// ストレージキー生成の例
-// difit staged の場合:
-// base: 解決されたHEADのハッシュ (例: "abc1234")
+// Storage key generation examples
+// For difit staged:
+// base: Resolved HEAD hash (e.g., "abc1234")
 // target: "STAGED"
-// → キー: "difit-storage-v1/abc1234-STAGED"
+// → Key: "difit-storage-v1/abc1234-STAGED"
 
-// difit . の場合:
-// base: 解決されたHEADのハッシュ (例: "abc1234")
+// For difit .:
+// base: Resolved HEAD hash (e.g., "abc1234")
 // target: "WORKING"
-// → キー: "difit-storage-v1/abc1234-WORKING"
+// → Key: "difit-storage-v1/abc1234-WORKING"
 ```
 
-### localStorageキーの構造
+### localStorage Key Structure
 
 ```typescript
-// メインのストレージキー
+// Main storage key prefix
 const STORAGE_KEY_PREFIX = 'difit-storage-v1';
 
-// 差分コンテキストごとのキー生成
+// Generate key per diff context
 function getStorageKey(
   baseCommitish: string, 
   targetCommitish: string,
@@ -287,7 +287,7 @@ function getStorageKey(
   let normalizedBase: string;
   let normalizedTarget: string;
   
-  // 特別なケースの処理
+  // Handle special cases
   if (targetCommitish === '.' || targetCommitish === 'working') {
     normalizedBase = currentCommitHash;
     normalizedTarget = 'WORKING';
@@ -295,7 +295,7 @@ function getStorageKey(
     normalizedBase = currentCommitHash;
     normalizedTarget = 'STAGED';
   } else {
-    // 通常のケース
+    // Normal cases
     normalizedBase = normalizeCommitish(baseCommitish, currentCommitHash, branchToHash);
     normalizedTarget = normalizeCommitish(targetCommitish, currentCommitHash, branchToHash);
   }
@@ -304,14 +304,14 @@ function getStorageKey(
   return `${STORAGE_KEY_PREFIX}/${key}`;
 }
 
-// データの保存例
+// Data save example
 const storageKey = getStorageKey('HEAD~1', 'staged', 'abc1234def5678');
 // → "difit-storage-v1/abc1234def5678-STAGED"
 
 const data: DiffContextStorage = {
   version: 1,
-  baseCommitish: 'HEAD~1',  // 元の値を保存（UI表示用）
-  targetCommitish: 'staged', // 元の値を保存（UI表示用）
+  baseCommitish: 'HEAD~1',  // Save original value (for UI display)
+  targetCommitish: 'staged', // Save original value (for UI display)
   createdAt: new Date().toISOString(),
   lastModifiedAt: new Date().toISOString(),
   comments: [...],
@@ -320,8 +320,8 @@ const data: DiffContextStorage = {
 localStorage.setItem(storageKey, JSON.stringify(data));
 ```
 
-### 古いデータとの共存
+### Coexistence with Old Data
 
-- 既存の `difit-comments-${commitHash}` キーは残す（読み取り専用）
-- 新しいデータは `difit-storage-v1/` 配下に保存
-- 将来的に古いデータのクリーンアップ機能を追加可能
+- Keep existing `difit-comments-${commitHash}` keys (read-only)
+- Save new data under `difit-storage-v1/`
+- Can add cleanup functionality for old data in the future

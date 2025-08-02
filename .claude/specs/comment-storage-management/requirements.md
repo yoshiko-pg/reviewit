@@ -1,53 +1,52 @@
-# 要件定義書
+# Requirements Document
 
-## 概要
+## Overview
 
-この機能は、WebUIにおけるコメントと既読状態の管理システムを改善し、表示している差分範囲に基づいてデータを適切に分離します。現在、データ構造が特定の差分コンテキスト（ベースコミットと対象コミット）を考慮していないため、異なる差分のコメントが誤った場所に表示される問題があります。この機能強化では、コメントと既読状態を完全な差分コンテキストを認識して保存する、より堅牢なデータ構造を実装します。
+This feature improves the comment and viewed state management system in the WebUI, properly separating data based on the displayed diff range. Currently, the data structure doesn't consider specific diff contexts (base commit and target commit), causing comments from different diffs to appear in wrong places. This enhancement implements a more robust data structure that saves comments and viewed states with awareness of the complete diff context.
 
-## 要件
+## Requirements
 
-### 要件1
+### Requirement 1
 
-**ユーザーストーリー:** 開発者として、コメントを特定の差分コンテキストと共に保存したい。これにより、ある差分範囲のコメントが別の差分範囲を表示している時に現れないようにしたい。
+**User Story:** As a developer, I want to save comments with their specific diff context, so that comments from one diff range don't appear when viewing another diff range.
 
-#### 受け入れ基準
+#### Acceptance Criteria
 
-1. ユーザーが差分ビューにコメントを追加した時、システムはbaseCommitishとtargetCommitishの両方の識別子と共にコメントを保存しなければならない
-2. ユーザーが特定のベースコミットと対象コミットの差分を表示した時、システムはその正確な差分範囲に対して作成されたコメントのみを表示しなければならない
-3. 差分A→Bに対して作成されたコメントがある場合、システムは差分C→Dを表示している時にそれを表示してはならない
-4. コメントを保存する時、システムは完全な差分コンテキスト（baseCommitish、targetCommitish、ファイルパス、行番号）を含めなければならない
+1. When a user adds a comment to a diff view, the system must save the comment with both baseCommitish and targetCommitish identifiers
+2. When a user views a diff between specific base and target commits, the system must display only comments created for that exact diff range
+3. Given comments created for diff A→B, the system must not display them when showing diff C→D
+4. When saving a comment, the system must include the complete diff context (baseCommitish, targetCommitish, file path, line number)
 
-### 要件2
+### Requirement 2
 
-**ユーザーストーリー:** 開発者として、ファイルのViewedボタンの状態を永続化したい。これにより、同じ差分を再度開いた時に、以前のレビュー状態を保持できるようにしたい。
+**User Story:** As a developer, I want to persist the state of file Viewed buttons, so that when I reopen the same diff, I can maintain my previous review state.
 
-#### 受け入れ基準
+#### Acceptance Criteria
 
-1. ユーザーがViewedボタンをクリックしてファイルを既読としてマークした時、システムはその状態を差分コンテキストと共に保存しなければならない
-2. Viewed状態を保存する時、システムはファイルの差分内容のハッシュ値も一緒に保存しなければならない
-3. 同じ差分範囲を再表示した時、システムは保存されたハッシュ値と現在の差分内容を比較しなければならない
-4. 差分内容が同じ場合、システムは以前のViewed状態を復元しなければならない
-5. 差分内容が変更されている場合、システムはViewed状態をリセットして未読として表示しなければならない
+1. When a user clicks the Viewed button to mark a file as reviewed, the system must save that state with the diff context
+2. When saving the Viewed state, the system must also store a hash of the file's diff content
+3. When redisplaying the same diff range, the system must compare the saved hash with the current diff content
+4. If the diff content is the same, the system must restore the previous Viewed state
+5. If the diff content has changed, the system must reset the Viewed state and display as unviewed
 
-### 要件3
+### Requirement 3
 
-**ユーザーストーリー:** 開発者として、コメントと既読データをlocalStorageで効率的に整理したい。これにより、多くの差分があってもパフォーマンスが良好に保たれるようにしたい。
+**User Story:** As a developer, I want comments and viewed data to be efficiently organized in localStorage, so that performance remains good even with many diffs.
 
-#### 受け入れ基準
+#### Acceptance Criteria
 
-1. データを保存する時、システムはbaseCommitishとtargetCommitishを含む階層的なキー構造を使用しなければならない
-2. データをクエリする時、システムは現在の差分範囲に関連するデータのみをロードしなければならない
-3. localStorageが制限に近づいた場合、システムは古いデータをクリーンアップする方法を提供しなければならない
-4. 古いデータ構造から移行する時、システムは可能な限り既存のコメントを保持しようと試みなければならない
+1. When storing data, the system must use a hierarchical key structure that includes baseCommitish and targetCommitish
+2. When querying data, the system must load only data relevant to the current diff range
+3. If localStorage approaches its limit, the system must provide a way to clean up old data
+4. When migrating from old data structures, the system must attempt to preserve existing comments where possible
 
-### 要件4
+### Requirement 4
 
-**ユーザーストーリー:** 開発者として、コメントしている特定のコード範囲を見たい。これにより、行番号が変更されてもコメントが正確に保たれるようにしたい。
+**User Story:** As a developer, I want to see the specific code range I'm commenting on, so that comments remain accurate even when line numbers change.
 
-#### 受け入れ基準
+#### Acceptance Criteria
 
-1. コメントを保存する時、システムはチャンクヘッダー情報をキャプチャしなければならない
-2. コメントを表示する時、システムは元のコードコンテキストを表示しなければならない
-3. 行番号がシフトした場合、システムは依然として関連するコードの近くにコメントを表示しようと試みなければならない
-4. コメントがコード範囲を参照する時、システムは差分からの旧行番号と新行番号の両方を保存しなければならない
-
+1. When saving a comment, the system must capture the chunk header information
+2. When displaying a comment, the system must show the original code context
+3. If line numbers have shifted, the system must still attempt to display the comment near the relevant code
+4. When a comment references a code range, the system must save both old and new line numbers from the diff
