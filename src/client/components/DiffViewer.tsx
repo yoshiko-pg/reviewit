@@ -29,7 +29,9 @@ interface DiffViewerProps {
     file: string,
     line: LineNumber,
     body: string,
-    codeContent?: string
+    codeContent?: string,
+    chunkHeader?: string,
+    side?: 'old' | 'new'
   ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
@@ -84,9 +86,15 @@ export function DiffViewer({
     }
   };
 
-  const handleAddComment = async (line: LineNumber, body: string, codeContent?: string) => {
+  const handleAddComment = async (
+    line: LineNumber,
+    body: string,
+    codeContent?: string,
+    chunkHeader?: string,
+    side?: 'old' | 'new'
+  ) => {
     try {
-      await onAddComment(file.path, line, body, codeContent);
+      await onAddComment(file.path, line, body, codeContent, chunkHeader, side);
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
@@ -191,7 +199,9 @@ export function DiffViewer({
                     chunk={chunk}
                     chunkIndex={index}
                     comments={comments}
-                    onAddComment={handleAddComment}
+                    onAddComment={(line, body, codeContent, side) =>
+                      handleAddComment(line, body, codeContent, chunk.header, side)
+                    }
                     onGeneratePrompt={onGeneratePrompt}
                     onRemoveComment={onRemoveComment}
                     onUpdateComment={onUpdateComment}

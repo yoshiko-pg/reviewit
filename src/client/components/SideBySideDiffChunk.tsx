@@ -19,7 +19,12 @@ interface SideBySideDiffChunkProps {
   chunk: DiffChunkType;
   chunkIndex: number;
   comments: Comment[];
-  onAddComment: (line: LineNumber, body: string, codeContent?: string) => Promise<void>;
+  onAddComment: (
+    line: LineNumber,
+    body: string,
+    codeContent?: string,
+    side?: 'old' | 'new'
+  ) => Promise<void>;
   onGeneratePrompt: (comment: Comment) => string;
   onRemoveComment: (commentId: string) => void;
   onUpdateComment: (commentId: string, newBody: string) => void;
@@ -120,7 +125,7 @@ export function SideBySideDiffChunk({
   const handleSubmitComment = useCallback(
     async (body: string) => {
       if (commentingLine !== null) {
-        await onAddComment(commentingLine.lineNumber, body);
+        await onAddComment(commentingLine.lineNumber, body, undefined, commentingLine.side);
         setCommentingLine(null);
       }
     },

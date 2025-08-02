@@ -16,15 +16,15 @@ import { SettingsModal } from './components/SettingsModal';
 import { SparkleAnimation } from './components/SparkleAnimation';
 import { WordHighlightProvider } from './contexts/WordHighlightContext';
 import { useAppearanceSettings } from './hooks/useAppearanceSettings';
+import { useDiffComments } from './hooks/useDiffComments';
 import { useFileWatch } from './hooks/useFileWatch';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
-import { useLocalComments } from './hooks/useLocalComments';
+import { useViewedFiles } from './hooks/useViewedFiles';
 import { getFileElementId } from './utils/domUtils';
 import { findCommentPosition } from './utils/navigation/positionHelpers';
 
 function App() {
   const [diffData, setDiffData] = useState<DiffResponse | null>(null);
-  const [reviewedFiles, setReviewedFiles] = useState<Set<string>>(new Set());
   const [diffMode, setDiffMode] = useState<'side-by-side' | 'inline'>('side-by-side');
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,7 @@ function App() {
 
   const { settings, updateSettings } = useAppearanceSettings();
 
+  // New diff-aware comment system
   const {
     comments,
     addComment,
@@ -48,27 +49,39 @@ function App() {
     clearAllComments,
     generatePrompt,
     generateAllCommentsPrompt,
-  } = useLocalComments(diffData?.commit);
+  } = useDiffComments(
+    diffData?.baseCommitish,
+    diffData?.targetCommitish,
+    diffData?.commit, // Using commit as currentCommitHash
+    undefined // branchToHash map - could be populated from server data
+  );
 
-  const toggleFileReviewed = (filePath: string) => {
-    setReviewedFiles((prev) => {
-      const newSet = new Set(prev);
-      const wasReviewed = newSet.has(filePath);
+  // Viewed files management
+  const { viewedFiles, toggleFileViewed } = useViewedFiles(
+    diffData?.baseCommitish,
+    diffData?.targetCommitish,
+    diffData?.commit,
+    undefined,
+    diffData?.files
+  );
 
-      if (wasReviewed) {
-        newSet.delete(filePath);
-      } else {
-        newSet.add(filePath);
+  const toggleFileReviewed = async (filePath: string) => {
+    if (diffData) {
+      const file = diffData.files.find((f) => f.path === filePath);
+      if (file) {
+        await toggleFileViewed(filePath, file);
+
         // When marking as reviewed (closing file), scroll to the file header
-        setTimeout(() => {
-          const element = document.getElementById(getFileElementId(filePath));
-          if (element) {
-            element.scrollIntoView({ behavior: 'instant', block: 'start' });
-          }
-        }, 100);
+        if (!viewedFiles.has(filePath)) {
+          setTimeout(() => {
+            const element = document.getElementById(getFileElementId(filePath));
+            if (element) {
+              element.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+          }, 100);
+        }
       }
-      return newSet;
-    });
+    }
   };
 
   // State to trigger comment creation from keyboard
@@ -85,9 +98,19 @@ function App() {
 
   const { cursor, isHelpOpen, setIsHelpOpen, setCursorPosition } = useKeyboardNavigation({
     files: diffData?.files || [],
-    comments,
+    comments: comments.map((c) => ({
+      id: c.id,
+      file: c.filePath,
+      line:
+        typeof c.position.line === 'number' ?
+          c.position.line
+        : [c.position.line.start, c.position.line.end],
+      body: c.body,
+      timestamp: c.createdAt,
+      codeContent: c.codeSnapshot?.content,
+    })),
     viewMode: diffMode,
-    reviewedFiles,
+    reviewedFiles: viewedFiles,
     onToggleReviewed: toggleFileReviewed,
     onCreateComment: () => {
       if (cursor) {
@@ -137,24 +160,6 @@ function App() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Check if file is a lock file that should be collapsed by default
-  const isLockFile = (filePath: string): boolean => {
-    const lockFiles = [
-      'pnpm-lock.yaml',
-      'package-lock.json',
-      'yarn.lock',
-      'Cargo.lock',
-      'Gemfile.lock',
-      'composer.lock',
-      'Pipfile.lock',
-      'poetry.lock',
-      'go.sum',
-      'mix.lock',
-    ];
-    const fileName = filePath.split('/').pop() || '';
-    return lockFiles.includes(fileName);
-  };
-
   const fetchDiffData = useCallback(async () => {
     try {
       const response = await fetch(`/api/diff?ignoreWhitespace=${ignoreWhitespace}`);
@@ -167,14 +172,7 @@ function App() {
         setDiffMode(data.mode as 'side-by-side' | 'inline');
       }
 
-      // Auto-collapse lock files
-      const lockFilesToCollapse = data.files
-        .filter((file) => isLockFile(file.path))
-        .map((file) => file.path);
-
-      if (lockFilesToCollapse.length > 0) {
-        setReviewedFiles((prev) => new Set([...prev, ...lockFilesToCollapse]));
-      }
+      // Lock files are now automatically marked as viewed by useViewedFiles hook
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -200,11 +198,11 @@ function App() {
   useEffect(() => {
     if (diffData) {
       // Reset the trigger flag when not all files are viewed
-      if (reviewedFiles.size < diffData.files.length) {
+      if (viewedFiles.size < diffData.files.length) {
         setHasTriggeredSparkles(false);
       }
       // Show sparkles when all files are viewed and not already triggered
-      else if (reviewedFiles.size === diffData.files.length && !hasTriggeredSparkles) {
+      else if (viewedFiles.size === diffData.files.length && !hasTriggeredSparkles) {
         setShowSparkles(true);
         setHasTriggeredSparkles(true);
         // Hide sparkles after animation completes
@@ -213,7 +211,7 @@ function App() {
         }, 1000);
       }
     }
-  }, [reviewedFiles.size, diffData, hasTriggeredSparkles]);
+  }, [viewedFiles.size, diffData, hasTriggeredSparkles]);
 
   // Send comments to server whenever they change and before page unload
   useEffect(() => {
@@ -268,9 +266,24 @@ function App() {
     file: string,
     line: LineNumber,
     body: string,
-    codeContent?: string
+    codeContent?: string,
+    chunkHeader?: string,
+    side?: 'old' | 'new'
   ): Promise<void> => {
-    addComment(file, line, body, codeContent);
+    addComment({
+      filePath: file,
+      body,
+      side: side || 'new',
+      line: typeof line === 'number' ? line : { start: line[0], end: line[1] },
+      chunkHeader: chunkHeader || '',
+      codeSnapshot:
+        codeContent ?
+          {
+            content: codeContent,
+            language: undefined,
+          }
+        : undefined,
+    });
     return Promise.resolve();
   };
 
@@ -443,9 +456,9 @@ function App() {
               )}
               <div className="flex flex-col gap-1 items-center">
                 <div className="text-xs relative">
-                  {reviewedFiles.size === diffData.files.length ?
+                  {viewedFiles.size === diffData.files.length ?
                     'All diffs difit-ed!'
-                  : `${reviewedFiles.size} / ${diffData.files.length} files viewed`}
+                  : `${viewedFiles.size} / ${diffData.files.length} files viewed`}
                   <SparkleAnimation isActive={showSparkles} />
                 </div>
                 <div
@@ -458,10 +471,10 @@ function App() {
                   <div
                     className="absolute top-0 right-0 h-full transition-all duration-300 ease-out"
                     style={{
-                      width: `${((diffData.files.length - reviewedFiles.size) / diffData.files.length) * 100}%`,
+                      width: `${((diffData.files.length - viewedFiles.size) / diffData.files.length) * 100}%`,
                       backgroundColor: (() => {
                         const remainingPercent =
-                          ((diffData.files.length - reviewedFiles.size) / diffData.files.length) *
+                          ((diffData.files.length - viewedFiles.size) / diffData.files.length) *
                           100;
                         if (remainingPercent > 50) return 'var(--color-github-accent)'; // green
                         if (remainingPercent > 20) return 'var(--color-github-warning)'; // yellow
@@ -518,8 +531,18 @@ function App() {
                       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  comments={comments}
-                  reviewedFiles={reviewedFiles}
+                  comments={comments.map((c) => ({
+                    id: c.id,
+                    file: c.filePath,
+                    line:
+                      typeof c.position.line === 'number' ?
+                        c.position.line
+                      : [c.position.line.start, c.position.line.end],
+                    body: c.body,
+                    timestamp: c.createdAt,
+                    codeContent: c.codeSnapshot?.content,
+                  }))}
+                  reviewedFiles={viewedFiles}
                   onToggleReviewed={toggleFileReviewed}
                   selectedFileIndex={cursor?.fileIndex ?? null}
                 />
@@ -562,12 +585,24 @@ function App() {
                 <div key={file.path} id={getFileElementId(file.path)} className="mb-6">
                   <DiffViewer
                     file={file}
-                    comments={comments.filter((c) => c.file === file.path)}
+                    comments={comments
+                      .filter((c) => c.filePath === file.path)
+                      .map((c) => ({
+                        id: c.id,
+                        file: c.filePath,
+                        line:
+                          typeof c.position.line === 'number' ?
+                            c.position.line
+                          : [c.position.line.start, c.position.line.end],
+                        body: c.body,
+                        timestamp: c.createdAt,
+                        codeContent: c.codeSnapshot?.content,
+                      }))}
                     diffMode={diffMode}
-                    reviewedFiles={reviewedFiles}
+                    reviewedFiles={viewedFiles}
                     onToggleReviewed={toggleFileReviewed}
                     onAddComment={handleAddComment}
-                    onGeneratePrompt={generatePrompt}
+                    onGeneratePrompt={(comment) => generatePrompt(comment.id)}
                     onRemoveComment={removeComment}
                     onUpdateComment={updateComment}
                     syntaxTheme={settings.syntaxTheme}
@@ -605,9 +640,19 @@ function App() {
           isOpen={isCommentsListOpen}
           onClose={() => setIsCommentsListOpen(false)}
           onNavigate={handleNavigateToComment}
-          comments={comments}
+          comments={comments.map((c) => ({
+            id: c.id,
+            file: c.filePath,
+            line:
+              typeof c.position.line === 'number' ?
+                c.position.line
+              : [c.position.line.start, c.position.line.end],
+            body: c.body,
+            timestamp: c.createdAt,
+            codeContent: c.codeSnapshot?.content,
+          }))}
           onRemoveComment={removeComment}
-          onGeneratePrompt={generatePrompt}
+          onGeneratePrompt={(comment) => generatePrompt(comment.id)}
           onUpdateComment={updateComment}
         />
       </div>

@@ -61,3 +61,45 @@ export interface LineSelection {
   side: 'old' | 'new';
   lineNumber: number;
 }
+
+// New data structures for enhanced comment and viewed state management
+
+export interface DiffComment {
+  id: string; // UUID format recommended
+  filePath: string;
+  body: string;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
+
+  // Chunk information
+  chunkHeader: string; // e.g., "@@ -10,7 +10,8 @@ function example()"
+
+  // Comment position
+  position: {
+    side: 'old' | 'new'; // whether on deletion (-) or addition (+) side
+    line: number | { start: number; end: number }; // single line or range
+  };
+
+  // Code snapshot at comment time (optional)
+  codeSnapshot?: {
+    content: string;
+    language?: string; // inferred from file extension
+  };
+}
+
+export interface ViewedFileRecord {
+  filePath: string;
+  viewedAt: string; // ISO 8601 format
+  diffContentHash: string; // SHA-256 hash
+}
+
+export interface DiffContextStorage {
+  version: 1; // Schema version
+  baseCommitish: string;
+  targetCommitish: string;
+  createdAt: string; // ISO 8601 format
+  lastModifiedAt: string; // ISO 8601 format
+
+  comments: DiffComment[];
+  viewedFiles: ViewedFileRecord[];
+}
