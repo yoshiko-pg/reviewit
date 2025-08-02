@@ -150,6 +150,78 @@ describe('useLocalComments', () => {
     expect(prompt).toBe('test.ts:L10-L20\nRefactor this function');
   });
 
+  describe('generatePrompt format tests', () => {
+    it('should format single line comment correctly', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      const comment = {
+        id: '1',
+        file: 'src/components/Button.tsx',
+        line: 42,
+        body: 'This button should be disabled when form is invalid',
+        timestamp: '2024-01-01T00:00:00.000Z',
+      };
+
+      const prompt = result.current.generatePrompt(comment);
+
+      expect(prompt).toBe(
+        'src/components/Button.tsx:L42\nThis button should be disabled when form is invalid'
+      );
+    });
+
+    it('should format multi-line comment correctly', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      const comment = {
+        id: '2',
+        file: 'src/utils/validation.ts',
+        line: [100, 150] as [number, number],
+        body: 'Extract this validation logic into a separate function',
+        timestamp: '2024-01-01T00:00:00.000Z',
+      };
+
+      const prompt = result.current.generatePrompt(comment);
+
+      expect(prompt).toBe(
+        'src/utils/validation.ts:L100-L150\nExtract this validation logic into a separate function'
+      );
+    });
+
+    it('should handle comment body with multiple lines', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      const comment = {
+        id: '3',
+        file: 'src/api/client.ts',
+        line: 25,
+        body: 'Add error handling:\n- Network errors\n- Timeout errors\n- Invalid response format',
+        timestamp: '2024-01-01T00:00:00.000Z',
+      };
+
+      const prompt = result.current.generatePrompt(comment);
+
+      expect(prompt).toBe(
+        'src/api/client.ts:L25\nAdd error handling:\n- Network errors\n- Timeout errors\n- Invalid response format'
+      );
+    });
+
+    it('should handle file paths with special characters', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      const comment = {
+        id: '4',
+        file: 'src/@types/custom-types.d.ts',
+        line: 5,
+        body: 'Add type definition for CustomWidget',
+        timestamp: '2024-01-01T00:00:00.000Z',
+      };
+
+      const prompt = result.current.generatePrompt(comment);
+
+      expect(prompt).toBe('src/@types/custom-types.d.ts:L5\nAdd type definition for CustomWidget');
+    });
+  });
+
   it('should generate prompt for all comments', () => {
     const { result } = renderHook(() => useLocalComments());
 
@@ -173,6 +245,94 @@ describe('useLocalComments', () => {
     const allPrompts = result.current.generateAllCommentsPrompt();
 
     expect(allPrompts).toBe('No comments available.');
+  });
+
+  describe('generateAllCommentsPrompt format tests', () => {
+    it('should format multiple comments correctly with separator', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      act(() => {
+        result.current.addComment('src/index.ts', 10, 'Fix import statement');
+        result.current.addComment(
+          'src/App.tsx',
+          [50, 60] as [number, number],
+          'Refactor this component'
+        );
+        result.current.addComment('src/utils/helper.ts', 100, 'Add type annotations');
+      });
+
+      const allPrompts = result.current.generateAllCommentsPrompt();
+      const expectedOutput =
+        'src/index.ts:L10\nFix import statement\n=====\n' +
+        'src/App.tsx:L50-L60\nRefactor this component\n=====\n' +
+        'src/utils/helper.ts:L100\nAdd type annotations';
+
+      expect(allPrompts).toBe(expectedOutput);
+    });
+
+    it('should handle single comment without trailing separator', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      act(() => {
+        result.current.addComment('src/main.ts', 42, 'Single comment test');
+      });
+
+      const allPrompts = result.current.generateAllCommentsPrompt();
+
+      expect(allPrompts).toBe('src/main.ts:L42\nSingle comment test');
+      expect(allPrompts).not.toMatch(/=====$/);
+    });
+
+    it('should preserve order of comments', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      act(() => {
+        result.current.addComment('first.ts', 1, 'First comment');
+        result.current.addComment('second.ts', 2, 'Second comment');
+        result.current.addComment('third.ts', 3, 'Third comment');
+      });
+
+      const allPrompts = result.current.generateAllCommentsPrompt();
+      const lines = allPrompts.split('\n');
+
+      expect(lines[0]).toBe('first.ts:L1');
+      expect(lines[1]).toBe('First comment');
+      expect(lines[2]).toBe('=====');
+      expect(lines[3]).toBe('second.ts:L2');
+      expect(lines[4]).toBe('Second comment');
+      expect(lines[5]).toBe('=====');
+      expect(lines[6]).toBe('third.ts:L3');
+      expect(lines[7]).toBe('Third comment');
+    });
+
+    it('should handle comments with complex multi-line bodies', () => {
+      const { result } = renderHook(() => useLocalComments());
+
+      act(() => {
+        result.current.addComment(
+          'src/components/Form.tsx',
+          [10, 30] as [number, number],
+          'Refactor this form component:\n' +
+            '1. Extract validation logic\n' +
+            '2. Add error handling\n' +
+            '3. Improve accessibility'
+        );
+        result.current.addComment('src/api/auth.ts', 45, 'TODO: Implement refresh token logic');
+      });
+
+      const allPrompts = result.current.generateAllCommentsPrompt();
+
+      expect(allPrompts).toBe(
+        'src/components/Form.tsx:L10-L30\n' +
+          'Refactor this form component:\n' +
+          '1. Extract validation logic\n' +
+          '2. Add error handling\n' +
+          '3. Improve accessibility\n' +
+          '=====\n' +
+          'src/api/auth.ts:L45\n' +
+          'TODO: Implement refresh token logic'
+      );
+    });
   });
 
   it('should save comments to localStorage whenever they change', () => {
