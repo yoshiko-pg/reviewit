@@ -1,11 +1,5 @@
 #!/usr/bin/env node
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 // Performance test configuration
 const config = {
   sizes: {
@@ -137,7 +131,6 @@ function generateUnifiedDiff(filename, oldContent, newContent) {
   // For simplicity, we'll create a basic diff showing all lines
   // In a real implementation, you'd use a proper diff algorithm
   const maxLines = Math.max(oldLines.length, newLines.length);
-  let contextStart = 0;
   let oldCount = 0;
   let newCount = 0;
   const chunk = [];
