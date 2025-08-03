@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-08-03
+
 ### Changed
 
-- Keyboard shortcut for refresh changed from 'r' to 'Shift+R' to avoid conflicts
+- Comment storage now saves with diff context (baseCommitish and targetCommitish) to prevent comments from appearing in wrong diff ranges (#78)
+- Viewed state persistence now includes file diff content hash to detect changes between reviews (#78)
+- Keyboard shortcut for refresh changed from 'r' to 'Shift+R'
+
+### Thanks
+
+- [@noritaka1166](https://github.com/noritaka1166) for removing unused imports and variables #77
 
 ## [2.1.2] - 2025-07-30
 
@@ -527,7 +535,8 @@ All notable changes to this project will be documented in this file.
 
 - First stable release 🌱
 
-[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.1.2...HEAD
+[Unreleased]: https://github.com/yoshiko-pg/difit/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/yoshiko-pg/difit/compare/v2.1.2...v2.2.0
 [2.1.2]: https://github.com/yoshiko-pg/difit/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/yoshiko-pg/difit/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/yoshiko-pg/difit/compare/v2.0.11...v2.1.0
