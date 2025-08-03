@@ -8,9 +8,9 @@ import type { DiffResponse } from '../types/diff';
 
 import App from './App';
 
-// Mock the useLocalComments hook
-vi.mock('./hooks/useLocalComments', () => ({
-  useLocalComments: vi.fn(() => ({
+// Mock the useDiffComments hook
+vi.mock('./hooks/useDiffComments', () => ({
+  useDiffComments: vi.fn(() => ({
     comments: mockComments,
     addComment: vi.fn(),
     removeComment: vi.fn(),
@@ -18,6 +18,17 @@ vi.mock('./hooks/useLocalComments', () => ({
     clearAllComments: mockClearAllComments,
     generatePrompt: vi.fn(),
     generateAllCommentsPrompt: vi.fn(),
+  })),
+}));
+
+// Mock the useViewedFiles hook
+vi.mock('./hooks/useViewedFiles', () => ({
+  useViewedFiles: vi.fn(() => ({
+    viewedFiles: new Set<string>(),
+    toggleFileViewed: vi.fn(),
+    isFileContentChanged: vi.fn(),
+    getViewedFileRecord: vi.fn(),
+    clearViewedFiles: vi.fn(),
   })),
 }));
 
@@ -98,10 +109,12 @@ describe('App Component - Clear Comments Functionality', () => {
       mockComments = [
         {
           id: 'test-1',
-          file: 'test.ts',
-          line: 10,
+          filePath: 'test.ts',
+          position: { side: 'new', line: 10 },
           body: 'Test comment',
-          timestamp: '2024-01-01T00:00:00.000Z',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+          chunkHeader: '@@ -1,2 +1,2 @@',
         },
       ];
 
@@ -120,8 +133,24 @@ describe('App Component - Clear Comments Functionality', () => {
 
     it('should call clearAllComments immediately when delete button is clicked', async () => {
       mockComments = [
-        { id: '1', file: 'test.ts', line: 10, body: 'Comment 1', timestamp: '2024-01-01' },
-        { id: '2', file: 'test.ts', line: 20, body: 'Comment 2', timestamp: '2024-01-01' },
+        {
+          id: '1',
+          filePath: 'test.ts',
+          position: { side: 'new', line: 10 },
+          body: 'Comment 1',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          chunkHeader: '@@ -1,2 +1,2 @@',
+        },
+        {
+          id: '2',
+          filePath: 'test.ts',
+          position: { side: 'new', line: 20 },
+          body: 'Comment 2',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          chunkHeader: '@@ -1,2 +1,2 @@',
+        },
       ];
 
       renderApp();
